@@ -1,5 +1,6 @@
 package com.core.reactive.corereactive.component.renderer;
 
+import com.core.reactive.corereactive.component.vector.Vector2;
 import com.core.reactive.corereactive.rpm.ReadProcessMemoryService;
 import com.core.reactive.corereactive.util.Offset;
 import com.sun.jna.Memory;
