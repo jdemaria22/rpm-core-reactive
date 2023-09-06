@@ -17,7 +17,9 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-	implementation group: 'net.java.dev.jna', name: 'jna-platform', version: '4.0.0'
+	implementation group: 'net.java.dev.jna', name: 'jna', version: '5.13.0'
+	implementation group: 'net.java.dev.jna', name: 'jna-platform', version: '5.13.0'
+	implementation 'org.json:json:20230618'
 
 	compileOnly 'org.projectlombok:lombok:1.18.22'
 	annotationProcessor 'org.projectlombok:lombok:1.18.22'

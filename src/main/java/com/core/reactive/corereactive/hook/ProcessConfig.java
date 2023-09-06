@@ -4,6 +4,7 @@ import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinNT;
+import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.win32.StdCallLibrary;
 import com.sun.jna.win32.W32APIOptions;
@@ -22,15 +23,20 @@ public class ProcessConfig {
 
     public interface User32 extends StdCallLibrary {
         String USER_32 = "user32";
-        User32 instance = (User32) Native.loadLibrary (USER_32, User32.class);
+        User32 instance = (User32) Native.load(USER_32, User32.class);
         WinDef.HWND FindWindowExA(WinDef.HWND parent, WinDef.HWND childAfter, String className, String windowName);
         WinDef.HWND FindWindowA(String className, String windowName);
         int GetWindowThreadProcessId(WinDef.HWND hWnd, IntByReference pref);
+        boolean SetCursorPos(long x, long y);
+        WinDef.DWORD SendInput(WinDef.DWORD nInputs, WinUser.INPUT[] pInputs, int cbSize);
+        WinDef.BOOL BlockInput(WinDef.BOOL fBlockIt);
+        boolean GetCursorPos(WinDef.POINT point);
+        short GetAsyncKeyState(int vKey);
     }
 
     public interface Kernel32 extends StdCallLibrary {
         String KERNEL_32 = "kernel32";
-        Kernel32 instance = (Kernel32) Native.loadLibrary (KERNEL_32, Kernel32.class, W32APIOptions.DEFAULT_OPTIONS);
+        Kernel32 instance = (Kernel32) Native.load(KERNEL_32, Kernel32.class, W32APIOptions.DEFAULT_OPTIONS);
         int PROCESS_VM_READ = 0x0010;
         int PROCESS_QUERY_INFORMATION = 0x0400;
         int GetLastError();
@@ -40,7 +46,7 @@ public class ProcessConfig {
 
     public interface PsApi extends StdCallLibrary {
         String PSAPI = "psapi";
-        PsApi instance = (PsApi) Native.loadLibrary (PSAPI, PsApi.class);
+        PsApi instance = (PsApi) Native.load(PSAPI, PsApi.class);
         boolean EnumProcessModules(WinNT.HANDLE handle, WinDef.HMODULE[] lphModule, int length, IntByReference intByReference);
     }
 
@@ -52,13 +58,17 @@ public class ProcessConfig {
                 .baseAddress(this.baseAddress())
                 .pointerBaseAddress(this.basePointerAddress())
                 .build();
-         log.info("ProcessHook {}", processHook);
          return processHook;
     }
 
     @Bean
     public Kernel32 kernel32(){
         return Kernel32.instance;
+    }
+
+    @Bean
+    public User32 user32(){
+        return User32.instance;
     }
 
     private WinDef.HWND window() {
