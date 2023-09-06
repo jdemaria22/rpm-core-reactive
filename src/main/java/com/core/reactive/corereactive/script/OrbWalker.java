@@ -42,25 +42,23 @@ public class OrbWalker {
                         Champion localPlayer =  championComponent.getLocalPlayer();
                         BigDecimal range = BigDecimal.valueOf(localPlayer.getAttackRange());
                         return championComponent.getBestTargetInRange(range)
+                                .defaultIfEmpty(Champion.builder().build())
                                 .flatMap(champion -> {
-                                    log.info("champion {}", champion);
-                                    Vector2 position = rendererComponent.worldToScreen(champion.getPosition().getX(), champion.getPosition().getY(), champion.getPosition().getZ());
-                                    if (canAttackTime.compareTo(gameTime.getGameTime()) < 0) {
-                                        log.info("position {}", position);
+                                    if (!ObjectUtils.isEmpty(champion.getPosition()) && canAttackTime.compareTo(gameTime.getGameTime()) < 0) {
+                                        Vector2 position = rendererComponent.worldToScreen(champion.getPosition().getX(), champion.getPosition().getY(), champion.getPosition().getZ());
                                         Vector2 mousePos = mouseService.getCursorPos();
-                                        log.info("mousePos {}", mousePos);
                                         BigDecimal attackSpeedValue = attackSpeed.setScale(15, RoundingMode.HALF_UP);
                                         BigDecimal value = new BigDecimal("1.00000000000000").divide(attackSpeedValue,RoundingMode.HALF_UP);
                                         canAttackTime = gameTime.getGameTime().add(value);
                                         canMoveTime = gameTime.getGameTime().add(this.getWindUpTime(champion.getJsonCommunityDragon().getAttackSpeed(), champion.getJsonCommunityDragon().getWindUp(), champion.getJsonCommunityDragon().getWindupMod(), attackSpeed));
                                         mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                        this.sleep(200);
+                                        this.sleep(40);
                                         mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         return Mono.just(Boolean.TRUE);
                                     }
-                                    if (canMoveTime.compareTo(gameTime.getGameTime()) <0) {
+                                    if (canMoveTime.compareTo(gameTime.getGameTime()) < 0) {
                                         this.sleep(40);
-                                        mouseService.mouseLeftClickNoMove();
+                                        mouseService.mouseRightClickNoMove();
                                     }
                                     return Mono.just(Boolean.TRUE);
                                 });

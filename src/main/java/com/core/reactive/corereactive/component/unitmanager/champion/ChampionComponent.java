@@ -77,15 +77,12 @@ public class ChampionComponent {
         return Flux.fromIterable(this.championList.values())
                 .filter(champion -> {
                     if (!champion.getIsTargeteable()){
-                        log.info("getIsTargeteable");
                         return false;
                     }
                     if (!champion.getIsVisible()) {
-                        log.info("getIsVisible");
                         return false;
                     }
                     if (!champion.getIsAlive()) {
-                        log.info("getIsAlive");
                         return false;
                     }
                     if (Objects.equals(champion.getTeam(), this.getLocalPlayer().getTeam())) {
@@ -98,7 +95,6 @@ public class ChampionComponent {
                     Vector2 target = rendererComponent.worldToScreen(champion.getPosition());
                     BigDecimal targetX = BigDecimal.valueOf(target.getX());
                     BigDecimal targetY = BigDecimal.valueOf(target.getY());
-                    log.info("target {}", targetY);
                     return distanceCalculator.inDistance(localPlayerX, localPlayerY, targetX, targetY, range, champion.getJsonCommunityDragon().getGameplayRadius(), this.getLocalPlayer().getJsonCommunityDragon().getGameplayRadius());
                 }).next();
     }
@@ -131,7 +127,7 @@ public class ChampionComponent {
                 .z(memory.getFloat(Offset.objPositionX + 0x8))
                 .build();
         champion.setPosition(vector3);
-        champion.setIsAlive(memory.getByte(Offset.objSpawnCount) != 0);
+        champion.setIsAlive(memory.getByte(Offset.objSpawnCount) %2 == 0 );
         champion.setIsTargeteable(memory.getByte(Offset.objTargetable) != 0);
         champion.setIsVisible(memory.getByte(Offset.objVisible) != 0);
         champion.setAttackRange(memory.getFloat(Offset.objAttackRange));

@@ -24,7 +24,7 @@ public class MouseService {
     public static final int MOUSEEVENTF_WHEEL = 2048;
 
     public void mouseMove(int x, int y) {
-        mouseAction(x, y, MOUSEEVENTF_MOVE);
+        user32.SetCursorPos(x, y);
     }
 
     public void mouseLeftClickNoMove() {
