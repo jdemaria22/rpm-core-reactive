@@ -1,7 +1,6 @@
 package com.core.reactive.corereactive.component.unitmanager.champion;
 
 import com.core.reactive.corereactive.component.renderer.RendererComponent;
-import com.core.reactive.corereactive.component.renderer.vector.Vector2;
 import com.core.reactive.corereactive.component.renderer.vector.Vector3;
 import com.core.reactive.corereactive.rpm.ReadProcessMemoryService;
 import com.core.reactive.corereactive.util.DistanceCalculator;
@@ -88,18 +87,19 @@ public class ChampionComponent {
                     if (Objects.equals(champion.getTeam(), this.getLocalPlayer().getTeam())) {
                         return false;
                     }
-                    Vector2 localPlayer = rendererComponent.worldToScreen(this.getLocalPlayer().getPosition());
-                    BigDecimal localPlayerX = BigDecimal.valueOf(localPlayer.getX());
-                    BigDecimal localPlayerY = BigDecimal.valueOf(localPlayer.getY());
-
-                    Vector2 target = rendererComponent.worldToScreen(champion.getPosition());
-                    BigDecimal targetX = BigDecimal.valueOf(target.getX());
-                    BigDecimal targetY = BigDecimal.valueOf(target.getY());
-                    return distanceCalculator.inDistance(localPlayerX, localPlayerY, targetX, targetY, range, champion.getJsonCommunityDragon().getGameplayRadius(), this.getLocalPlayer().getJsonCommunityDragon().getGameplayRadius());
+                    return this.distanceBetweenTargets(this.getLocalPlayer().getPosition(), champion.getPosition()).compareTo(range) < 0;
                 }).next();
     }
 
+    private BigDecimal distanceBetweenTargets(Vector3 position, Vector3 position2) {
+        BigDecimal xDiff = BigDecimal.valueOf(Math.abs(position.getX() - position2.getX()));
+        BigDecimal yDiff = BigDecimal.valueOf(Math.abs(position.getY() - position2.getY()));
+        BigDecimal zDiff = BigDecimal.valueOf(Math.abs(position.getZ() - position2.getZ()));
 
+        BigDecimal sumOfSquares = xDiff.pow(2).add(yDiff.pow(2)).add(zDiff.pow(2));
+
+        return BigDecimal.valueOf(Math.sqrt(sumOfSquares.doubleValue()));
+    }
 
     private Mono<Champion> getLocalPlayer(ConcurrentHashMap<Long,Champion> championList) {
         return readProcessMemoryService.reactiveRead(Offset.localPlayer, Long.class, true)

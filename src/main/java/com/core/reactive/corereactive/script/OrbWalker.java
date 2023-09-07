@@ -5,21 +5,21 @@ import com.core.reactive.corereactive.component.renderer.RendererComponent;
 import com.core.reactive.corereactive.component.renderer.vector.Vector2;
 import com.core.reactive.corereactive.component.unitmanager.champion.Champion;
 import com.core.reactive.corereactive.component.unitmanager.champion.ChampionComponent;
+import com.core.reactive.corereactive.hook.ProcessConfig;
 import com.core.reactive.corereactive.util.KeyboardService;
 import com.core.reactive.corereactive.util.MouseService;
 import com.core.reactive.corereactive.util.api.ApiService;
+import com.sun.jna.platform.win32.WinDef;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.util.Arrays;
 
 @Component
 @RequiredArgsConstructor
@@ -31,6 +31,7 @@ public class OrbWalker {
     private final MouseService mouseService;
     private final RendererComponent rendererComponent;
     private final KeyboardService keyboardService;
+    private final ProcessConfig.User32 user32;
 
     private BigDecimal canAttackTime = new BigDecimal("0.000000000000");
     private BigDecimal canMoveTime = new BigDecimal("0.000000000000");
@@ -44,20 +45,22 @@ public class OrbWalker {
                         return championComponent.getBestTargetInRange(range)
                                 .defaultIfEmpty(Champion.builder().build())
                                 .flatMap(champion -> {
-                                    if (!ObjectUtils.isEmpty(champion.getPosition()) && canAttackTime.compareTo(gameTime.getGameTime()) < 0) {
+                                    if (canAttackTime.compareTo(gameTime.getGameTime()) < 0 && !ObjectUtils.isEmpty(champion.getPosition())) {
                                         Vector2 position = rendererComponent.worldToScreen(champion.getPosition().getX(), champion.getPosition().getY(), champion.getPosition().getZ());
                                         Vector2 mousePos = mouseService.getCursorPos();
                                         BigDecimal attackSpeedValue = attackSpeed.setScale(15, RoundingMode.HALF_UP);
                                         BigDecimal value = new BigDecimal("1.00000000000000").divide(attackSpeedValue,RoundingMode.HALF_UP);
                                         canAttackTime = gameTime.getGameTime().add(value);
                                         canMoveTime = gameTime.getGameTime().add(this.getWindUpTime(champion.getJsonCommunityDragon().getAttackSpeed(), champion.getJsonCommunityDragon().getWindUp(), champion.getJsonCommunityDragon().getWindupMod(), attackSpeed));
+                                        user32.BlockInput(new WinDef.BOOL(true));
                                         mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                        this.sleep(40);
+                                        this.sleep(100);
                                         mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
+                                        user32.BlockInput(new WinDef.BOOL(false));
                                         return Mono.just(Boolean.TRUE);
                                     }
                                     if (canMoveTime.compareTo(gameTime.getGameTime()) < 0) {
-                                        this.sleep(40);
+                                        this.sleep(50);
                                         mouseService.mouseRightClickNoMove();
                                     }
                                     return Mono.just(Boolean.TRUE);
@@ -67,27 +70,27 @@ public class OrbWalker {
         return Mono.fromCallable(() -> Boolean.TRUE);
     }
 
-    private BigDecimal getWindUpTime(BigDecimal baseAs, BigDecimal windup, BigDecimal windupMod, BigDecimal cAttackSpeed) {
+    public BigDecimal getWindUpTime(BigDecimal baseAs, BigDecimal windup, BigDecimal windupMod, BigDecimal cAttackSpeed) {
         BigDecimal zero = BigDecimal.ZERO;
         BigDecimal one = BigDecimal.ONE;
         int scale = 10;
-        RoundingMode roundingMode = RoundingMode.HALF_UP;
-        MathContext mathContext = new MathContext(scale, roundingMode);
+        MathContext mathContext = new MathContext(scale, RoundingMode.HALF_UP);
 
-        BigDecimal divide1 = one.divide(cAttackSpeed.multiply(windup), mathContext);
-        BigDecimal multiply = one.divide(baseAs, mathContext).multiply(windup);
+        BigDecimal divide1 = one.divide(baseAs, mathContext);
+        BigDecimal divide2 = one.divide(cAttackSpeed, mathContext);
+
+        BigDecimal part1 = divide1.multiply(windup);
         BigDecimal part2;
+
+        BigDecimal divide2TimesWindupMinusPart1 = divide2.multiply(windup).subtract(part1);
+
         if (windupMod.compareTo(zero) != 0) {
-            part2 = divide1
-                    .subtract(multiply)
-                    .multiply(windupMod);
-
+            part2 = divide2TimesWindupMinusPart1.multiply(windupMod);
         } else {
-            part2 = divide1
-                    .subtract(multiply);
-
+            part2 = divide2TimesWindupMinusPart1;
         }
-        return multiply.add(part2);
+
+        return part1.add(part2);
     }
 
     @SneakyThrows
