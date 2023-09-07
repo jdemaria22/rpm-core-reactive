@@ -40,6 +40,7 @@ public class OrbWalker {
             return Mono.just(Boolean.TRUE);
         }
         if (keyboardService.isKeyDown(0x20)){
+            keyboardService.sendKeyDown(2);
             return apiService.getJsonActivePlayer()
                     .flatMap(jsonActivePlayer -> Mono.just(jsonActivePlayer.championStats.getAttackSpeed()))
                     .flatMap(attackSpeed -> {
@@ -57,13 +58,13 @@ public class OrbWalker {
                                         canMoveTime = gameTime.getGameTime().add(this.getWindUpTime(champion.getJsonCommunityDragon().getAttackSpeed(), champion.getJsonCommunityDragon().getWindUp(), champion.getJsonCommunityDragon().getWindupMod(), attackSpeed));
                                         user32.BlockInput(new WinDef.BOOL(true));
                                         mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                        this.sleep(120);
+                                        this.sleep(30);
                                         mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         user32.BlockInput(new WinDef.BOOL(false));
                                         return Mono.just(Boolean.TRUE);
                                     }
                                     if (canMoveTime.compareTo(gameTime.getGameTime()) < 0) {
-                                        this.sleep(50);
+                                        this.sleep(35);
                                         mouseService.mouseRightClickNoMove();
                                     }
                                     return Mono.just(Boolean.TRUE);

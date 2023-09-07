@@ -47,20 +47,20 @@ public class ChampionComponent {
 
     private Mono<Long> getAiHeroList(Long heroClient) {
 //        log.info("heroClient {}", heroClient);
-        return this.readProcessMemoryService.reactiveRead(heroClient + 0x8L, Long.class, false);
+        return this.readProcessMemoryService.reactiveRead(heroClient + 0x8, Long.class, false);
     }
 
     private Mono<Long> getAiHeroLength(Long heroClient) {
-        return this.readProcessMemoryService.reactiveRead(heroClient + 0x10L, Long.class, false);
+        return this.readProcessMemoryService.reactiveRead(heroClient + 0x10, Long.class, false);
     }
 
     private Mono<ConcurrentHashMap<Long, Champion>> getChampionInfo (Long heroArrayLen, Long heroArray) {
         return Mono.fromCallable(() -> {
             //log.info("heroArray {}", heroArray);
             //log.info("heroArrayLen {}", heroArrayLen);
-            for (int i = 0; i < 2; i++){
+            for (int i = 0; i < 11; i++){
 //                log.info("i {}", i);
-                Long unitId = this.readProcessMemoryService.read(heroArray + (0x8L * i), Long.class, false);
+                Long unitId = this.readProcessMemoryService.read(heroArray + (0x8 * i), Long.class, false);
                 if (unitId < 1) {
                     return this.championList;
                 }
