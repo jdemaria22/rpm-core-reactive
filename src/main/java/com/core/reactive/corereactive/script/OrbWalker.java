@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import reactor.core.publisher.Mono;
 
+import java.awt.event.KeyEvent;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
@@ -40,7 +41,7 @@ public class OrbWalker {
             return Mono.just(Boolean.TRUE);
         }
         if (keyboardService.isKeyDown(0x20)){
-            keyboardService.sendKeyDown(2);
+            keyboardService.sendKeyDown(KeyEvent.VK_O);
             return apiService.getJsonActivePlayer()
                     .flatMap(jsonActivePlayer -> Mono.just(jsonActivePlayer.championStats.getAttackSpeed()))
                     .flatMap(attackSpeed -> {

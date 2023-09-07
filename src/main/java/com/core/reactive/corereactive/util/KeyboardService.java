@@ -32,7 +32,7 @@ public class KeyboardService {
     }
 
     public void sendKeyDown(int c) {
-        this.createRobot().keyPress(KeyEvent.VK_O);
+        this.createRobot().keyPress(c);
 //        robot.keyPress(KeyEvent.VK_O);
     }
 
