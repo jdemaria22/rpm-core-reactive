@@ -60,7 +60,7 @@ public class OrbWalker {
                                         mouseService.mouseMiddleDown();
                                         user32.BlockInput(new WinDef.BOOL(true));
                                         mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                        this.sleep(5);
+                                        this.sleep(30);
                                         mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         user32.BlockInput(new WinDef.BOOL(false));
                                         mouseService.mouseMiddleUp();
