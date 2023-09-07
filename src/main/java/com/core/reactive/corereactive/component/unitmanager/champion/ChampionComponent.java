@@ -58,7 +58,8 @@ public class ChampionComponent {
         return Mono.fromCallable(() -> {
             //log.info("heroArray {}", heroArray);
             //log.info("heroArrayLen {}", heroArrayLen);
-            for (int i = 0; i < heroArrayLen; i++){
+            for (int i = 0; i < 2; i++){
+//                log.info("i {}", i);
                 Long unitId = this.readProcessMemoryService.read(heroArray + (0x8L * i), Long.class, false);
                 if (unitId < 1) {
                     return this.championList;
@@ -69,9 +70,14 @@ public class ChampionComponent {
                     Champion champion = Champion.builder().address(unitId).build();
                     this.championList.put(unitId, this.findInfoChampion(champion, unitId));
 //                    log.info("this.championList {}", this.championList);
-                    champion.setJsonCommunityDragon(apiService.getJsonCommunityDragon(champion).block());
+                    try {
+                        champion.setJsonCommunityDragon(apiService.getJsonCommunityDragon(champion).block());
+                    } catch (Exception e) {
+
+                    }
                 }
             }
+//            log.info("this.championList.size() {}", this.championList.size());
             return this.championList;
         });
     }

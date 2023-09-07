@@ -36,6 +36,9 @@ public class OrbWalker {
     private BigDecimal canAttackTime = new BigDecimal("0.000000000000");
     private BigDecimal canMoveTime = new BigDecimal("0.000000000000");
     public Mono<Boolean> update() {
+        if (!this.championComponent.getLocalPlayer().getIsAlive()){
+            return Mono.just(Boolean.TRUE);
+        }
         if (keyboardService.isKeyDown(0x20)){
             return apiService.getJsonActivePlayer()
                     .flatMap(jsonActivePlayer -> Mono.just(jsonActivePlayer.championStats.getAttackSpeed()))

@@ -9,6 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -19,6 +23,8 @@ public class Core {
     private final OrbWalker orbWalker;
 
     public void run() {
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleAtFixedRate(System::gc, 0, 1, TimeUnit.SECONDS);
         while (true) {
             Mono<Boolean> loadMemory = gameTime.update()
                     .flatMap(gameTimeOk -> rendererComponent.update())
