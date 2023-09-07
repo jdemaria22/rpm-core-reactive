@@ -6,6 +6,7 @@ import com.sun.jna.platform.win32.BaseTSD;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -44,6 +45,7 @@ public class MouseService {
 
     public void mouseRightClick(int x, int y) {
         user32.SetCursorPos(x, y);
+        this.sleep(5);
         this.mouseRightClickNoMove();
     }
 
@@ -77,6 +79,11 @@ public class MouseService {
         input.input.mi.dwExtraInfo = new BaseTSD.ULONG_PTR(0);
         input.input.mi.dwFlags = new WinDef.DWORD(flags);
         user32.SendInput(new WinDef.DWORD(1), new WinUser.INPUT[] { input }, input.size());
+    }
+
+    @SneakyThrows
+    private void sleep(int ms){
+        Thread.sleep(ms);
     }
 
 }

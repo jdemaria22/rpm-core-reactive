@@ -58,7 +58,7 @@ public class ChampionComponent {
         return Mono.fromCallable(() -> {
 //            log.info("heroArray {}", heroArray);
 //            log.info("heroArrayLen {}", heroArrayLen);
-            for (int i = 0; i < 2; i++){
+            for (int i = 0; i < 11; i++){
                 Long unitId = this.readProcessMemoryService.read(heroArray + (0x8L * i), Long.class, false);
                 if (this.existsChampionInList(unitId)) {
                     this.findInfoChampion(this.championList.get(unitId), unitId);

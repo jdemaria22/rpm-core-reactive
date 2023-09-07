@@ -54,7 +54,7 @@ public class OrbWalker {
                                         canMoveTime = gameTime.getGameTime().add(this.getWindUpTime(champion.getJsonCommunityDragon().getAttackSpeed(), champion.getJsonCommunityDragon().getWindUp(), champion.getJsonCommunityDragon().getWindupMod(), attackSpeed));
                                         user32.BlockInput(new WinDef.BOOL(true));
                                         mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                        this.sleep(100);
+                                        this.sleep(120);
                                         mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         user32.BlockInput(new WinDef.BOOL(false));
                                         return Mono.just(Boolean.TRUE);
