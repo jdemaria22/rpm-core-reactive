@@ -9,6 +9,7 @@ import com.core.reactive.corereactive.util.api.ApiService;
 import com.sun.jna.Memory;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
@@ -46,7 +47,6 @@ public class ChampionComponent {
     }
 
     private Mono<Long> getAiHeroList(Long heroClient) {
-//        log.info("heroClient {}", heroClient);
         return this.readProcessMemoryService.reactiveRead(heroClient + 0x8, Long.class, false);
     }
 
@@ -56,10 +56,8 @@ public class ChampionComponent {
 
     private Mono<ConcurrentHashMap<Long, Champion>> getChampionInfo (Long heroArrayLen, Long heroArray) {
         return Mono.fromCallable(() -> {
-            //log.info("heroArray {}", heroArray);
-            //log.info("heroArrayLen {}", heroArrayLen);
-            for (int i = 0; i < 11; i++){
-//                log.info("i {}", i);
+            //log.info(".intValue() {}", heroArrayLen.intValue());
+            for (int i = 0; i < heroArrayLen.intValue(); i++){
                 Long unitId = this.readProcessMemoryService.read(heroArray + (0x8 * i), Long.class, false);
                 if (unitId < 1) {
                     return this.championList;
@@ -69,7 +67,6 @@ public class ChampionComponent {
                 } else {
                     Champion champion = Champion.builder().address(unitId).build();
                     this.championList.put(unitId, this.findInfoChampion(champion, unitId));
-//                    log.info("this.championList {}", this.championList);
                     try {
                         champion.setJsonCommunityDragon(apiService.getJsonCommunityDragon(champion).block());
                     } catch (Exception e) {
@@ -77,7 +74,6 @@ public class ChampionComponent {
                     }
                 }
             }
-//            log.info("this.championList.size() {}", this.championList.size());
             return this.championList;
         });
     }
