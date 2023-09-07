@@ -93,7 +93,7 @@ public class ChampionComponent {
                     if (Objects.equals(champion.getTeam(), this.getLocalPlayer().getTeam())) {
                         return false;
                     }
-                    return this.distanceBetweenTargets(this.getLocalPlayer().getPosition(), champion.getPosition()).compareTo(range) < 0;
+                    return (this.distanceBetweenTargets(this.getLocalPlayer().getPosition(), champion.getPosition()).subtract(champion.getJsonCommunityDragon().getGameplayRadius())).compareTo(range.add(localPlayer.getJsonCommunityDragon().getGameplayRadius())) < 0;
                 }).next();
     }
 

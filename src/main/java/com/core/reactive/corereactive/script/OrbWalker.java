@@ -57,16 +57,19 @@ public class OrbWalker {
                                         BigDecimal value = new BigDecimal("1.00000000000000").divide(attackSpeedValue,RoundingMode.HALF_UP);
                                         canAttackTime = gameTime.getGameTime().add(value);
                                         canMoveTime = gameTime.getGameTime().add(this.getWindUpTime(champion.getJsonCommunityDragon().getAttackSpeed(), champion.getJsonCommunityDragon().getWindUp(), champion.getJsonCommunityDragon().getWindupMod(), attackSpeed));
+                                        mouseService.mouseMiddleDown();
                                         user32.BlockInput(new WinDef.BOOL(true));
                                         mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                        this.sleep(30);
+                                        this.sleep(5);
                                         mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         user32.BlockInput(new WinDef.BOOL(false));
+                                        mouseService.mouseMiddleUp();
                                         return Mono.just(Boolean.TRUE);
                                     }
                                     if (canMoveTime.compareTo(gameTime.getGameTime()) < 0) {
-                                        this.sleep(35);
+                                        this.sleep(30);
                                         mouseService.mouseRightClickNoMove();
+                                        keyboardService.sendKeyUp(KeyEvent.VK_O);
                                     }
                                     return Mono.just(Boolean.TRUE);
                                 });

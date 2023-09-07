@@ -33,18 +33,9 @@ public class KeyboardService {
 
     public void sendKeyDown(int c) {
         this.createRobot().keyPress(c);
-//        robot.keyPress(KeyEvent.VK_O);
     }
 
     public void sendKeyUp(int c) {
-        WinUser.INPUT input = new WinUser.INPUT();
-        input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
-        input.input.setType(KI);
-        input.input.ki.wScan = new WinDef.WORD(0);
-        input.input.ki.time = new WinDef.DWORD(0);
-        input.input.ki.dwExtraInfo = new BaseTSD.ULONG_PTR(0);
-        input.input.ki.wVk = new WinDef.WORD(c);
-        input.input.ki.dwFlags = new WinDef.DWORD(KEYEVENTF_KEYUP);
-        this.user32.SendInput(new WinDef.DWORD(1), (WinUser.INPUT[]) input.toArray(1), input.size());
+        this.createRobot().keyRelease(c);
     }
 }

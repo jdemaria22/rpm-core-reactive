@@ -49,6 +49,14 @@ public class MouseService {
         this.mouseRightClickNoMove();
     }
 
+    public void mouseMiddleDown() {
+        mouseAction(-1, -1, MOUSEEVENTF_MIDDLEDOWN);
+    }
+
+    public void mouseMiddleUp() {
+        mouseAction(-1, -1, MOUSEEVENTF_MIDDLEUP);
+    }
+
     public void mouseMiddleClick(int x, int y) {
         mouseAction(x, y, MOUSEEVENTF_MIDDLEDOWN);
         mouseAction(x, y, MOUSEEVENTF_MIDDLEUP);
