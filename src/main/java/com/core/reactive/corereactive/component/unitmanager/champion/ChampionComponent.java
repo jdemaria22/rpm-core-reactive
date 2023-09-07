@@ -56,15 +56,19 @@ public class ChampionComponent {
 
     private Mono<ConcurrentHashMap<Long, Champion>> getChampionInfo (Long heroArrayLen, Long heroArray) {
         return Mono.fromCallable(() -> {
-//            log.info("heroArray {}", heroArray);
-//            log.info("heroArrayLen {}", heroArrayLen);
-            for (int i = 0; i < 11; i++){
+            //log.info("heroArray {}", heroArray);
+            //log.info("heroArrayLen {}", heroArrayLen);
+            for (int i = 0; i < heroArrayLen; i++){
                 Long unitId = this.readProcessMemoryService.read(heroArray + (0x8L * i), Long.class, false);
+                if (unitId < 1) {
+                    return this.championList;
+                }
                 if (this.existsChampionInList(unitId)) {
                     this.findInfoChampion(this.championList.get(unitId), unitId);
                 } else {
                     Champion champion = Champion.builder().address(unitId).build();
                     this.championList.put(unitId, this.findInfoChampion(champion, unitId));
+//                    log.info("this.championList {}", this.championList);
                     champion.setJsonCommunityDragon(apiService.getJsonCommunityDragon(champion).block());
                 }
             }

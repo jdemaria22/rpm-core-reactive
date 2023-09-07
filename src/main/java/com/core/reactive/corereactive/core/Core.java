@@ -25,7 +25,6 @@ public class Core {
                     .flatMap(render -> unitManagerComponent.update());
 
             loadMemory.block();
-
             Mono<Boolean> loadScript = orbWalker.update();
 
             loadScript.block();
