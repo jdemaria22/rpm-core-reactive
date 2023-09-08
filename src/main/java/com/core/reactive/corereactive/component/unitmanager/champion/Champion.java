@@ -16,6 +16,11 @@ public class Champion {
     private Float attackRange;
     private Integer team;
     private String name;
+    private Float baseAttack;
+    private Float bonusAttack;
+    private Float health;
+    private Float armor;
+    private Float magicDamage;
     private Vector3 position;
     private Boolean isVisible;
     private Boolean isTargeteable;
