@@ -1,7 +1,8 @@
-package com.core.reactive.corereactive.component.unitmanager.champion;
+package com.core.reactive.corereactive.component.unitmanager.impl;
 
 import com.core.reactive.corereactive.component.renderer.RendererComponent;
 import com.core.reactive.corereactive.component.renderer.vector.Vector3;
+import com.core.reactive.corereactive.component.unitmanager.model.Champion;
 import com.core.reactive.corereactive.rpm.ReadProcessMemoryService;
 import com.core.reactive.corereactive.util.DistanceCalculator;
 import com.core.reactive.corereactive.util.Offset;
@@ -9,10 +10,8 @@ import com.core.reactive.corereactive.util.api.ApiService;
 import com.sun.jna.Memory;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -25,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Getter
 public class ChampionComponent {
     private final ReadProcessMemoryService readProcessMemoryService;
-    private final ConcurrentHashMap<Long,Champion> championList = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, Champion> championList = new ConcurrentHashMap<>();
     private final ApiService apiService;
     private final DistanceCalculator distanceCalculator;
     private final RendererComponent rendererComponent;
@@ -56,7 +55,6 @@ public class ChampionComponent {
 
     private Mono<ConcurrentHashMap<Long, Champion>> getChampionInfo (Long heroArrayLen, Long heroArray) {
         return Mono.fromCallable(() -> {
-            //log.info(".intValue() {}", heroArrayLen.intValue());
             for (int i = 0; i < heroArrayLen.intValue(); i++){
                 Long unitId = this.readProcessMemoryService.read(heroArray + (0x8 * i), Long.class, false);
                 if (unitId < 1) {
@@ -69,9 +67,7 @@ public class ChampionComponent {
                     this.championList.put(unitId, this.findInfoChampion(champion, unitId));
                     try {
                         champion.setJsonCommunityDragon(apiService.getJsonCommunityDragon(champion).block());
-                    } catch (Exception e) {
-
-                    }
+                    } catch (Exception ignored) {}
                 }
             }
             return this.championList;
@@ -79,22 +75,33 @@ public class ChampionComponent {
     }
 
     public Mono<Champion> getBestTargetInRange(BigDecimal range) {
-        return Flux.fromIterable(this.championList.values())
-                .filter(champion -> {
-                    if (!champion.getIsTargeteable()){
-                        return false;
-                    }
-                    if (!champion.getIsVisible()) {
-                        return false;
-                    }
-                    if (!champion.getIsAlive()) {
-                        return false;
-                    }
-                    if (Objects.equals(champion.getTeam(), this.getLocalPlayer().getTeam())) {
-                        return false;
-                    }
-                    return (this.distanceBetweenTargets(this.getLocalPlayer().getPosition(), champion.getPosition()).subtract(champion.getJsonCommunityDragon().getGameplayRadius())).compareTo(range.add(localPlayer.getJsonCommunityDragon().getGameplayRadius())) < 0;
-                }).next();
+        return Mono.fromCallable(() -> {
+            Float health = 0.0F;
+            Champion championFinal = Champion.builder().build();
+            for (Champion champion : this.championList.values()) {
+                if (!champion.getIsTargeteable()){
+                    continue;
+                }
+                if (!champion.getIsVisible()) {
+                    continue;
+                }
+                if (!champion.getIsAlive()) {
+                    continue;
+                }
+                if (Objects.equals(champion.getTeam(), this.getLocalPlayer().getTeam())) {
+                    continue;
+                }
+                if (health > champion.getHealth()) {
+                    continue;
+                }
+                boolean inDistance = (this.distanceBetweenTargets(this.getLocalPlayer().getPosition(), champion.getPosition()).subtract(champion.getJsonCommunityDragon().getGameplayRadius())).compareTo(range.add(localPlayer.getJsonCommunityDragon().getGameplayRadius())) < 0;
+                if (inDistance){
+                    health = champion.getHealth();
+                    championFinal = champion;
+                }
+            }
+            return championFinal;
+        });
     }
 
     private BigDecimal distanceBetweenTargets(Vector3 position, Vector3 position2) {
@@ -108,7 +115,7 @@ public class ChampionComponent {
     }
 
     private Mono<Champion> getLocalPlayer(ConcurrentHashMap<Long,Champion> championList) {
-        return readProcessMemoryService.reactiveRead(Offset.localPlayer, Long.class, true)
+        return this.readProcessMemoryService.reactiveRead(Offset.localPlayer, Long.class, true)
                         .flatMap(id -> {
                             if (championList.containsKey(id)) {
                                 Champion champion = championList.get(id);
@@ -137,6 +144,10 @@ public class ChampionComponent {
         champion.setIsTargeteable(memory.getByte(Offset.objTargetable) != 0);
         champion.setIsVisible(memory.getByte(Offset.objVisible) != 0);
         champion.setAttackRange(memory.getFloat(Offset.objAttackRange));
+        champion.setHealth(memory.getFloat(Offset.objHealth));
+        try {
+            champion.setJsonCommunityDragon(this.apiService.getJsonCommunityDragon(champion).block());
+        } catch (Exception ignored) {}
         return champion;
     }
 

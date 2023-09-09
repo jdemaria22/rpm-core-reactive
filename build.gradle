@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.core.reactive'
-version = '0.0.1-SNAPSHOT'
+version = 'core'
 
 java {
 	sourceCompatibility = '17'

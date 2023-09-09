@@ -1,4 +1,4 @@
-package com.core.reactive.corereactive.component.unitmanager.champion;
+package com.core.reactive.corereactive.component.unitmanager.model;
 
 import com.core.reactive.corereactive.component.renderer.vector.Vector3;
 import com.core.reactive.corereactive.util.api.object.JsonCommunityDragon;
@@ -21,4 +21,5 @@ public class Champion {
     private Boolean isTargeteable;
     private Boolean isAlive;
     private JsonCommunityDragon jsonCommunityDragon;
+    private Float health;
 }

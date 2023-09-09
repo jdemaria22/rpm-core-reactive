@@ -1,5 +1,6 @@
 package com.core.reactive.corereactive.component.renderer;
 
+import com.core.reactive.corereactive.component.MemoryLoaderService;
 import com.core.reactive.corereactive.component.renderer.vector.Vector2;
 import com.core.reactive.corereactive.component.renderer.vector.Vector3;
 import com.core.reactive.corereactive.rpm.ReadProcessMemoryService;
@@ -17,7 +18,7 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 @Getter
 @Slf4j
-public class RendererComponent {
+public class RendererComponent implements MemoryLoaderService {
 
     public static final int SIZE_MATRIX = 16;
     private final ReadProcessMemoryService readProcessMemoryService;
@@ -27,6 +28,7 @@ public class RendererComponent {
     private final float width = 1920.0F;
     private final float height = 1080.0F;
 
+    @Override
     public Mono<Boolean> update() {
         this.updateMatrix(this.readProcessMemoryService.readMemory(Offset.viewProjMatrix, 128, true));
         return Mono.just(Boolean.TRUE);

@@ -1,7 +1,7 @@
 package com.core.reactive.corereactive.util;
 
 import com.core.reactive.corereactive.component.renderer.vector.Vector2;
-import com.core.reactive.corereactive.hook.ProcessConfig;
+import com.core.reactive.corereactive.hook.Config;
 import com.sun.jna.platform.win32.BaseTSD;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class MouseService {
-    private final ProcessConfig.User32 user32;
+    private final Config.User32 user32;
 
     private static final String MI = "mi";
     public static final int MOUSEEVENTF_MOVE = 1;

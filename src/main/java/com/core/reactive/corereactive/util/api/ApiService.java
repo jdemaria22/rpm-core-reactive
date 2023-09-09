@@ -1,6 +1,6 @@
 package com.core.reactive.corereactive.util.api;
 
-import com.core.reactive.corereactive.component.unitmanager.champion.Champion;
+import com.core.reactive.corereactive.component.unitmanager.model.Champion;
 import com.core.reactive.corereactive.util.api.object.JsonActivePlayer;
 import com.core.reactive.corereactive.util.api.object.JsonCommunityDragon;
 import io.netty.handler.ssl.SslContext;

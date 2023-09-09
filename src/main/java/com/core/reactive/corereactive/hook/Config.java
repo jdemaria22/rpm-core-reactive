@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
-public class ProcessConfig {
+public class Config {
 
     private static final String RIOT_WINDOW_CLASS = "RiotWindowClass";
     private static final int VALUE = 1024;
@@ -52,13 +52,12 @@ public class ProcessConfig {
 
     @Bean
     public ProcessHook processHook() {
-         ProcessHook processHook = ProcessHook.builder()
-                .window(this.window())
-                .process(this.process())
-                .baseAddress(this.baseAddress())
-                .pointerBaseAddress(this.basePointerAddress())
-                .build();
-         return processHook;
+        return ProcessHook.builder()
+               .window(this.window())
+               .process(this.process())
+               .baseAddress(this.baseAddress())
+               .pointerBaseAddress(this.basePointerAddress())
+               .build();
     }
 
     @Bean

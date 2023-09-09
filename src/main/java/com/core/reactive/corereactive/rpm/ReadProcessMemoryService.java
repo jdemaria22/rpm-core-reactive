@@ -1,6 +1,6 @@
 package com.core.reactive.corereactive.rpm;
 
-import com.core.reactive.corereactive.hook.ProcessConfig;
+import com.core.reactive.corereactive.hook.Config;
 import com.core.reactive.corereactive.hook.ProcessHook;
 import com.sun.jna.Memory;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class ReadProcessMemoryService {
 
-    private final ProcessConfig.Kernel32 kernel32;
+    private final Config.Kernel32 kernel32;
     private final ProcessHook processHook;
 
     public Memory readMemory(long address, int size, boolean isBaseAddress) {

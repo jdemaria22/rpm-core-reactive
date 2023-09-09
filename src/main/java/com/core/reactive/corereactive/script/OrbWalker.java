@@ -1,17 +1,17 @@
 package com.core.reactive.corereactive.script;
 
-import com.core.reactive.corereactive.component.gametime.GameTime;
+import com.core.reactive.corereactive.component.gametime.GameTimeComponent;
 import com.core.reactive.corereactive.component.renderer.RendererComponent;
 import com.core.reactive.corereactive.component.renderer.vector.Vector2;
-import com.core.reactive.corereactive.component.unitmanager.champion.Champion;
-import com.core.reactive.corereactive.component.unitmanager.champion.ChampionComponent;
-import com.core.reactive.corereactive.hook.ProcessConfig;
+import com.core.reactive.corereactive.component.unitmanager.impl.ChampionComponent;
+import com.core.reactive.corereactive.component.unitmanager.model.Champion;
+import com.core.reactive.corereactive.hook.Config;
 import com.core.reactive.corereactive.util.KeyboardService;
 import com.core.reactive.corereactive.util.MouseService;
+import com.core.reactive.corereactive.util.TargetService;
 import com.core.reactive.corereactive.util.api.ApiService;
 import com.sun.jna.platform.win32.WinDef;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -25,51 +25,53 @@ import java.math.RoundingMode;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class OrbWalker {
+public class OrbWalker implements ScriptLoaderService {
     private final ApiService apiService;
     private final ChampionComponent championComponent;
-    private final GameTime gameTime;
+    private final GameTimeComponent gameTimeComponent;
     private final MouseService mouseService;
     private final RendererComponent rendererComponent;
     private final KeyboardService keyboardService;
-    private final ProcessConfig.User32 user32;
+    private final Config.User32 user32;
+    private final TargetService targetService;
 
     private BigDecimal canAttackTime = new BigDecimal("0.000000000000");
     private BigDecimal canMoveTime = new BigDecimal("0.000000000000");
+
+    @Override
     public Mono<Boolean> update() {
         if (!this.championComponent.getLocalPlayer().getIsAlive()){
             return Mono.just(Boolean.TRUE);
         }
-        if (keyboardService.isKeyDown(0x20)){
-            keyboardService.sendKeyDown(KeyEvent.VK_O);
-            return apiService.getJsonActivePlayer()
+        if (this.keyboardService.isKeyDown(0x20)){
+            this.keyboardService.sendKeyDown(KeyEvent.VK_O);
+            return this.apiService.getJsonActivePlayer()
                     .flatMap(jsonActivePlayer -> Mono.just(jsonActivePlayer.championStats.getAttackSpeed()))
                     .flatMap(attackSpeed -> {
                         Champion localPlayer =  championComponent.getLocalPlayer();
                         BigDecimal range = BigDecimal.valueOf(localPlayer.getAttackRange());
-                        return championComponent.getBestTargetInRange(range)
+                        return this.targetService.getBestChampionInRange(range)
                                 .defaultIfEmpty(Champion.builder().build())
                                 .flatMap(champion -> {
-                                    if (canAttackTime.compareTo(gameTime.getGameTime()) < 0 && !ObjectUtils.isEmpty(champion.getPosition())) {
-                                        Vector2 position = rendererComponent.worldToScreen(champion.getPosition().getX(), champion.getPosition().getY(), champion.getPosition().getZ());
-                                        Vector2 mousePos = mouseService.getCursorPos();
+                                    if (this.canAttackTime.compareTo(this.gameTimeComponent.getGameTime()) < 0 && !ObjectUtils.isEmpty(champion.getPosition())) {
+                                        Vector2 position = this.rendererComponent.worldToScreen(champion.getPosition().getX(), champion.getPosition().getY(), champion.getPosition().getZ());
+                                        Vector2 mousePos = this.mouseService.getCursorPos();
                                         BigDecimal attackSpeedValue = attackSpeed.setScale(15, RoundingMode.HALF_UP);
                                         BigDecimal value = new BigDecimal("1.00000000000000").divide(attackSpeedValue,RoundingMode.HALF_UP);
-                                        canAttackTime = gameTime.getGameTime().add(value);
-                                        canMoveTime = gameTime.getGameTime().add(this.getWindUpTime(champion.getJsonCommunityDragon().getAttackSpeed(), champion.getJsonCommunityDragon().getWindUp(), champion.getJsonCommunityDragon().getWindupMod(), attackSpeed));
-                                        mouseService.mouseMiddleDown();
-                                        user32.BlockInput(new WinDef.BOOL(true));
-                                        mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                        this.sleep(30);
-                                        mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-                                        user32.BlockInput(new WinDef.BOOL(false));
-                                        mouseService.mouseMiddleUp();
+                                        this.canAttackTime = this.gameTimeComponent.getGameTime().add(value);
+                                        this.canMoveTime = this.gameTimeComponent.getGameTime().add(this.getWindUpTime(champion.getJsonCommunityDragon().getAttackSpeed(), champion.getJsonCommunityDragon().getWindUp(), champion.getJsonCommunityDragon().getWindupMod(), attackSpeed));
+                                        this.mouseService.mouseMiddleDown();
+                                        this.user32.BlockInput(new WinDef.BOOL(true));
+                                        this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
+                                        this.gameTimeComponent.sleep(30);
+                                        this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
+                                        this.user32.BlockInput(new WinDef.BOOL(false));
+                                        this.mouseService.mouseMiddleUp();
                                         return Mono.just(Boolean.TRUE);
                                     }
-                                    if (canMoveTime.compareTo(gameTime.getGameTime()) < 0) {
-                                        this.sleep(30);
-                                        mouseService.mouseRightClickNoMove();
-                                        keyboardService.sendKeyUp(KeyEvent.VK_O);
+                                    if (canMoveTime.compareTo(this.gameTimeComponent.getGameTime()) < 0) {
+                                        this.gameTimeComponent.sleep(30);
+                                        this.mouseService.mouseRightClickNoMove();
                                     }
                                     return Mono.just(Boolean.TRUE);
                                 });
@@ -101,8 +103,4 @@ public class OrbWalker {
         return part1.add(part2);
     }
 
-    @SneakyThrows
-    private void sleep(int ms){
-        Thread.sleep(ms);
-    }
 }
