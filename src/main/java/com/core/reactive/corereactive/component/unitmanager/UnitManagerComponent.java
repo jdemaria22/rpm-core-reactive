@@ -16,5 +16,4 @@ public class UnitManagerComponent {
     public Mono<Boolean> update() {
         return this.championComponent.update();
     }
-
 }

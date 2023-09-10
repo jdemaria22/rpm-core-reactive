@@ -11,14 +11,12 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 @RequiredArgsConstructor
@@ -57,7 +55,6 @@ public class ChampionComponent {
 
     private Mono<ConcurrentHashMap<Long, Champion>> getChampionInfo (Long heroArrayLen, Long heroArray) {
         return Mono.fromCallable(() -> {
-            //log.info(".intValue() {}", heroArrayLen.intValue());
             for (int i = 0; i < heroArrayLen.intValue(); i++){
                 Long unitId = this.readProcessMemoryService.read(heroArray + (0x8 * i), Long.class, false);
                 if (unitId < 1) {
@@ -71,7 +68,6 @@ public class ChampionComponent {
                     try {
                         champion.setJsonCommunityDragon(apiService.getJsonCommunityDragon(champion).block());
                     } catch (Exception e) {
-
                     }
                 }
             }
@@ -80,36 +76,33 @@ public class ChampionComponent {
     }
 
     public Mono<Champion> getBestTargetInRange(BigDecimal range) {
-        AtomicReference<BigDecimal> minAutos = new AtomicReference<>(BigDecimal.valueOf(0));
-        return Flux.fromIterable(this.championList.values())
-                .filter(champion -> {
-                    if (!champion.getIsTargeteable()){
-                        return false;
+        return Mono.fromCallable(() -> {
+            BigDecimal minAutos = BigDecimal.ZERO;
+            Champion championFinal = Champion.builder().build();
+            for (Champion champion : this.championList.values()) {
+                if (!champion.getIsTargeteable()){
+                    continue;
+                }
+                if (!champion.getIsVisible()) {
+                    continue;
+                }
+                if (!champion.getIsAlive()) {
+                    continue;
+                }
+                if (Objects.equals(champion.getTeam(), this.getLocalPlayer().getTeam())) {
+                    continue;
+                }
+                boolean inDistance = (this.distanceBetweenTargets(this.getLocalPlayer().getPosition(), champion.getPosition()).subtract(champion.getJsonCommunityDragon().getGameplayRadius())).compareTo(range.add(localPlayer.getJsonCommunityDragon().getGameplayRadius())) < 0;
+                if (inDistance){
+                    BigDecimal minAttacks = getMinAttacks(BigDecimal.valueOf(this.getLocalPlayer().getBaseAttack()), BigDecimal.valueOf(this.getLocalPlayer().getBonusAttack()), BigDecimal.valueOf(champion.getHealth()), BigDecimal.valueOf(champion.getArmor()));
+                    if (minAttacks.compareTo(minAutos) < 0 || minAutos.compareTo(BigDecimal.ZERO) == 0){
+                        minAutos = minAttacks;
+                        championFinal = champion;
                     }
-                    if (!champion.getIsVisible()) {
-                        return false;
-                    }
-                    if (!champion.getIsAlive()) {
-                        return false;
-                    }
-                    if (Objects.equals(champion.getTeam(), this.getLocalPlayer().getTeam())) {
-                        return false;
-                    }
-                    if ((this.distanceBetweenTargets(this.getLocalPlayer().getPosition(), champion.getPosition()).subtract(champion.getJsonCommunityDragon().getGameplayRadius())).compareTo(range.add(localPlayer.getJsonCommunityDragon().getGameplayRadius()))<0){
-                        BigDecimal playerBasicAttack = BigDecimal.valueOf(this.getLocalPlayer().getBaseAttack());
-                        BigDecimal playerBonusAttack = BigDecimal.valueOf(this.getLocalPlayer().getBonusAttack());
-                        BigDecimal targetHealth = BigDecimal.valueOf(champion.getHealth());
-                        BigDecimal targetArmor =  BigDecimal.valueOf(champion.getArmor());
-                        BigDecimal minAttacks = getMinAttacks(playerBasicAttack, playerBonusAttack, targetHealth, targetArmor);
-                        if (BigDecimal.valueOf(0).compareTo(minAttacks) < 0 || (minAutos.get().compareTo(minAttacks) < 0 )){
-                            minAutos.set(minAttacks);
-                            return Boolean.TRUE;
-                        }
-                        //BigDecimal damage = (playerBasicAttack.add(playerBonusAttack).add(BigDecimal.valueOf(this.getLocalPlayer().getAttackRange()))).max(BigDecimal.valueOf(this.getLocalPlayer().getMagicDamage()));
-                    }
-                    return Boolean.FALSE;
-                    //return (this.distanceBetweenTargets(this.getLocalPlayer().getPosition(), champion.getPosition()).subtract(champion.getJsonCommunityDragon().getGameplayRadius())).compareTo(range.add(localPlayer.getJsonCommunityDragon().getGameplayRadius())) < 0;
-                }).next();
+                }
+            }
+            return championFinal;
+        });
     }
 
     private BigDecimal distanceBetweenTargets(Vector3 position, Vector3 position2) {

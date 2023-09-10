@@ -41,6 +41,7 @@ public class OrbWalker {
             return Mono.just(Boolean.TRUE);
         }
         if (keyboardService.isKeyDown(0x20)){
+
             keyboardService.sendKeyDown(KeyEvent.VK_O);
             return apiService.getJsonActivePlayer()
                     .flatMap(jsonActivePlayer -> Mono.just(jsonActivePlayer.championStats.getAttackSpeed()))
@@ -51,23 +52,20 @@ public class OrbWalker {
                                 .defaultIfEmpty(Champion.builder().build())
                                 .flatMap(champion -> {
                                     if (canAttackTime.compareTo(gameTime.getGameTime()) < 0 && !ObjectUtils.isEmpty(champion.getPosition())) {
+                                        user32.BlockInput(new WinDef.BOOL(true));
+                                        mouseService.mouseMiddleDown();
                                         Vector2 position = rendererComponent.worldToScreen(champion.getPosition().getX(), champion.getPosition().getY(), champion.getPosition().getZ());
                                         Vector2 mousePos = mouseService.getCursorPos();
                                         BigDecimal attackSpeedValue = attackSpeed.setScale(15, RoundingMode.HALF_UP);
                                         BigDecimal value = new BigDecimal("1.00000000000000").divide(attackSpeedValue,RoundingMode.HALF_UP);
                                         canAttackTime = gameTime.getGameTime().add(value);
                                         canMoveTime = gameTime.getGameTime().add(this.getWindUpTime(champion.getJsonCommunityDragon().getAttackSpeed(), champion.getJsonCommunityDragon().getWindUp(), champion.getJsonCommunityDragon().getWindupMod(), attackSpeed));
-                                        mouseService.mouseMiddleDown();
-                                        user32.BlockInput(new WinDef.BOOL(true));
-                                        keyboardService.sendKeyDown(KeyEvent.VK_C);
-                                        mouseService.mouseLeftClick((int) position.getX(),(int) position.getY());
+                                        mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
                                         this.sleep(30);
                                         mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         user32.BlockInput(new WinDef.BOOL(false));
                                         mouseService.mouseMiddleUp();
-                                        keyboardService.sendKeyUp(KeyEvent.VK_C);
                                         return Mono.just(Boolean.TRUE);
-
                                     }
                                     if (canMoveTime.compareTo(gameTime.getGameTime()) < 0) {
                                         this.sleep(30);
