@@ -97,7 +97,7 @@ public class TargetService {
         BigDecimal effectiveDamage = getEffectiveDamage(playerBasicAttack.add(playerBonusAttack), targetArmor);
 
         if (effectiveDamage.compareTo(BigDecimal.ZERO) > 0) {
-            return targetHealth.divide(effectiveDamage, 15, RoundingMode.HALF_UP);
+            return targetHealth.divide(effectiveDamage, 15, RoundingMode.FLOOR);
         } else {
             // Handle the case where effective damage is non-positive (division by zero or negative damage).
             return BigDecimal.ZERO;
@@ -109,10 +109,10 @@ public class TargetService {
 
         if (armor.compareTo(BigDecimal.ZERO) >= 0) {
             BigDecimal divisor = oneHundred.add(armor);
-            return damage.multiply(oneHundred).divide(divisor, 15, RoundingMode.HALF_UP);
+            return damage.multiply(oneHundred).divide(divisor, 15, RoundingMode.FLOOR);
         } else {
             BigDecimal divisor = oneHundred.subtract(armor);
-            return damage.multiply(BigDecimal.valueOf(2)).subtract(oneHundred.divide(divisor, 15, RoundingMode.HALF_UP));
+            return damage.multiply(BigDecimal.valueOf(2)).subtract(oneHundred.divide(divisor, 15, RoundingMode.FLOOR));
         }
     }
 }
