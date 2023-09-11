@@ -75,11 +75,9 @@ public class OrbWalker implements ScriptLoaderService {
                                 if (this.canAttackTime.compareTo(this.gameTimeComponent.getGameTime()) < 0 && !ObjectUtils.isEmpty(champion.getPosition())) {
                                     Vector2 position = this.rendererComponent.worldToScreen(champion.getPosition().getX(), champion.getPosition().getY(), champion.getPosition().getZ());
                                     Vector2 mousePos = this.mouseService.getCursorPos();
-                                    int scale = 10;
-                                    MathContext mathContext = new MathContext(scale, RoundingMode.FLOOR);
                                     BigDecimal attackSpeedValue = attackSpeed.setScale(15, RoundingMode.FLOOR);
                                     BigDecimal value = new BigDecimal(VAL).divide(attackSpeedValue,RoundingMode.FLOOR);
-                                    this.canAttackTime = this.gameTimeComponent.getGameTime().add(value, mathContext);
+                                    this.canAttackTime = this.gameTimeComponent.getGameTime().add(value);
                                     this.canMoveTime = this.gameTimeComponent.getGameTime().add(this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed));
                                     this.mouseService.mouseMiddleDown();
                                     this.user32.BlockInput(new WinDef.BOOL(true));
