@@ -22,6 +22,7 @@ import java.awt.event.KeyEvent;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 @RequiredArgsConstructor
@@ -77,22 +78,21 @@ public class OrbWalker implements ScriptLoaderService {
                                     BigDecimal attackSpeedValue = attackSpeed.setScale(15, RoundingMode.HALF_UP);
                                     BigDecimal value = new BigDecimal(VAL).divide(attackSpeedValue,RoundingMode.HALF_UP);
                                     this.mouseService.mouseMiddleDown();
-                                    this.user32.BlockInput(new WinDef.BOOL(true));
-                                    this.gameTimeComponent.sleep(10);
-                                    this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                    this.gameTimeComponent.sleep(10);
                                     this.canAttackTime = this.gameTimeComponent.getGameTime().add(value);
                                     this.canMoveTime = this.gameTimeComponent.getGameTime().add(this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed));
-                                    this.gameTimeComponent.sleep(3);
+                                    this.user32.BlockInput(new WinDef.BOOL(true));
+                                    this.gameTimeComponent.sleep(8);
+                                    this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
+                                    this.gameTimeComponent.sleep(8);
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-                                    this.gameTimeComponent.sleep(3);
                                     this.user32.BlockInput(new WinDef.BOOL(false));
                                     this.mouseService.mouseMiddleUp();
                                     return Mono.just(Boolean.TRUE);
                                 }
                                 if (canMoveTime.compareTo(this.gameTimeComponent.getGameTime()) < 0) {
-                                    this.gameTimeComponent.sleep(30);
                                     this.mouseService.mouseRightClickNoMove();
+                                    this.gameTimeComponent.sleep(30);
+                                    return Mono.just(Boolean.TRUE);
                                 }
                                 return Mono.just(Boolean.TRUE);
                             });
@@ -111,22 +111,24 @@ public class OrbWalker implements ScriptLoaderService {
                                 if (this.canAttackTime.compareTo(this.gameTimeComponent.getGameTime()) < 0 && !ObjectUtils.isEmpty(minion.getPosition())) {
                                     Vector2 position = this.rendererComponent.worldToScreen(minion.getPosition().getX(), minion.getPosition().getY(), minion.getPosition().getZ());
                                     Vector2 mousePos = this.mouseService.getCursorPos();
-                                    BigDecimal attackSpeedValue = attackSpeed.setScale(15, RoundingMode.HALF_UP);
-                                    BigDecimal value = new BigDecimal(VAL).divide(attackSpeedValue,RoundingMode.HALF_UP);
-                                    this.user32.BlockInput(new WinDef.BOOL(true));
-                                    this.gameTimeComponent.sleep(10);
-                                    this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                    this.gameTimeComponent.sleep(10);
-                                    this.canAttackTime = this.gameTimeComponent.getGameTime().add(value);
+                                    int scale = 10;
+                                    MathContext mathContext = new MathContext(scale, RoundingMode.FLOOR);
+                                    BigDecimal attackSpeedValue = attackSpeed.setScale(15, RoundingMode.FLOOR);
+                                    BigDecimal value = new BigDecimal(VAL).divide(attackSpeedValue,RoundingMode.FLOOR);
+                                    this.canAttackTime = this.gameTimeComponent.getGameTime().add(value, mathContext);
                                     this.canMoveTime = this.gameTimeComponent.getGameTime().add(this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed));
+                                    this.user32.BlockInput(new WinDef.BOOL(true));
+                                    this.gameTimeComponent.sleep(8);
+                                    this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
+                                    this.gameTimeComponent.sleep(8);
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                     this.user32.BlockInput(new WinDef.BOOL(false));
-                                    this.mouseService.mouseMiddleUp();
                                     return Mono.just(Boolean.TRUE);
                                 }
                                 if (canMoveTime.compareTo(this.gameTimeComponent.getGameTime()) < 0) {
-                                    this.gameTimeComponent.sleep(30);
                                     this.mouseService.mouseRightClickNoMove();
+                                    this.gameTimeComponent.sleep(30);
+                                    return Mono.just(Boolean.TRUE);
                                 }
                                 return Mono.just(Boolean.TRUE);
                             });
@@ -137,7 +139,7 @@ public class OrbWalker implements ScriptLoaderService {
         BigDecimal zero = BigDecimal.ZERO;
         BigDecimal one = BigDecimal.ONE;
         int scale = 10;
-        MathContext mathContext = new MathContext(scale, RoundingMode.HALF_UP);
+        MathContext mathContext = new MathContext(scale, RoundingMode.FLOOR);
 
         BigDecimal divide1 = one.divide(baseAs, mathContext);
         BigDecimal cAttackTime = one.divide(cAttackSpeed, mathContext);
