@@ -76,12 +76,14 @@ public class OrbWalker implements ScriptLoaderService {
                                     Vector2 mousePos = this.mouseService.getCursorPos();
                                     BigDecimal attackSpeedValue = attackSpeed.setScale(15, RoundingMode.HALF_UP);
                                     BigDecimal value = new BigDecimal(VAL).divide(attackSpeedValue,RoundingMode.HALF_UP);
-                                    this.canAttackTime = this.gameTimeComponent.getGameTime().add(value);
-                                    this.canMoveTime = this.gameTimeComponent.getGameTime().add(this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed));
                                     this.mouseService.mouseMiddleDown();
                                     this.user32.BlockInput(new WinDef.BOOL(true));
+                                    this.gameTimeComponent.sleep(6);
                                     this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                    this.gameTimeComponent.sleep(30);
+                                    this.gameTimeComponent.sleep(6);
+                                    this.canAttackTime = this.gameTimeComponent.getGameTime().add(value);
+                                    this.canMoveTime = this.gameTimeComponent.getGameTime().add(this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed));
+                                    this.gameTimeComponent.sleep(1);
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                     this.user32.BlockInput(new WinDef.BOOL(false));
                                     this.mouseService.mouseMiddleUp();
@@ -110,11 +112,15 @@ public class OrbWalker implements ScriptLoaderService {
                                     Vector2 mousePos = this.mouseService.getCursorPos();
                                     BigDecimal attackSpeedValue = attackSpeed.setScale(15, RoundingMode.HALF_UP);
                                     BigDecimal value = new BigDecimal(VAL).divide(attackSpeedValue,RoundingMode.HALF_UP);
+                                    this.user32.BlockInput(new WinDef.BOOL(true));
+                                    var a = System.currentTimeMillis();
+                                    this.gameTimeComponent.sleep(6);
+                                    log.info(String.valueOf(System.currentTimeMillis() - a));
+                                    this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
+                                    this.gameTimeComponent.sleep(6);
                                     this.canAttackTime = this.gameTimeComponent.getGameTime().add(value);
                                     this.canMoveTime = this.gameTimeComponent.getGameTime().add(this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed));
-                                    this.user32.BlockInput(new WinDef.BOOL(true));
-                                    this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                    this.gameTimeComponent.sleep(30);
+                                    this.gameTimeComponent.sleep(1);
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                     this.user32.BlockInput(new WinDef.BOOL(false));
                                     this.mouseService.mouseMiddleUp();
@@ -136,12 +142,12 @@ public class OrbWalker implements ScriptLoaderService {
         MathContext mathContext = new MathContext(scale, RoundingMode.HALF_UP);
 
         BigDecimal divide1 = one.divide(baseAs, mathContext);
-        BigDecimal divide2 = one.divide(cAttackSpeed, mathContext);
+        BigDecimal cAttackTime = one.divide(cAttackSpeed, mathContext);
 
-        BigDecimal part1 = divide1.multiply(windup);
+        BigDecimal baseWindupTime = divide1.multiply(windup);
         BigDecimal part2;
 
-        BigDecimal divide2TimesWindupMinusPart1 = divide2.multiply(windup).subtract(part1);
+        BigDecimal divide2TimesWindupMinusPart1 = cAttackTime.multiply(windup).subtract(baseWindupTime);
 
         if (windupMod.compareTo(zero) != 0) {
             part2 = divide2TimesWindupMinusPart1.multiply(windupMod);
@@ -149,7 +155,7 @@ public class OrbWalker implements ScriptLoaderService {
             part2 = divide2TimesWindupMinusPart1;
         }
 
-        return part1.add(part2);
+        return baseWindupTime.add(part2);
     }
 
     private boolean isVkSpacePressed() {

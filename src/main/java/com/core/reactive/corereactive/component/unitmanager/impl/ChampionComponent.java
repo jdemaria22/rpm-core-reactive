@@ -63,6 +63,12 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
             }
         }
         champion.setTeam(memory.getInt(Offset.objTeam));
+        champion.setName(memory.getString(Offset.objName));
+        champion.setBaseAttack(memory.getFloat(Offset.objBaseAttack));
+        champion.setBonusAttack(memory.getFloat(Offset.objBonusAttack));
+        champion.setHealth(memory.getFloat(Offset.objHealth));
+        champion.setArmor(memory.getFloat(Offset.objArmor));
+        champion.setMagicDamage(memory.getFloat(Offset.objMagicDamage));
         Vector3 vector3 = Vector3.builder()
                 .x(memory.getFloat(Offset.objPositionX))
                 .y(memory.getFloat(Offset.objPositionX + 0x4))
@@ -73,7 +79,6 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
         champion.setIsTargeteable(memory.getByte(Offset.objTargetable) != 0);
         champion.setIsVisible(memory.getByte(Offset.objVisible) != 0);
         champion.setAttackRange(memory.getFloat(Offset.objAttackRange));
-        champion.setHealth(memory.getFloat(Offset.objHealth));
         return champion;
     }
 

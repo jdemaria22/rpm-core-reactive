@@ -61,6 +61,11 @@ public class MinionComponent extends AbstractUnitManagerComponent<Minion> {
         Memory memory = this.readProcessMemoryService.readMemory(address, SIZE_MINION, false);
         unit.setTeam(memory.getInt(Offset.objTeam));
         unit.setName(memory.getString(Offset.objName));
+        unit.setBaseAttack(memory.getFloat(Offset.objBaseAttack));
+        unit.setBonusAttack(memory.getFloat(Offset.objBonusAttack));
+        unit.setHealth(memory.getFloat(Offset.objHealth));
+        unit.setArmor(memory.getFloat(Offset.objArmor));
+        unit.setMagicDamage(memory.getFloat(Offset.objMagicDamage));
         Vector3 vector3 = Vector3.builder()
                 .x(memory.getFloat(Offset.objPositionX))
                 .y(memory.getFloat(Offset.objPositionX + 0x4))
@@ -70,7 +75,7 @@ public class MinionComponent extends AbstractUnitManagerComponent<Minion> {
         unit.setIsAlive(memory.getByte(Offset.objSpawnCount) %2 == 0 );
         unit.setIsTargeteable(memory.getByte(Offset.objTargetable) != 0);
         unit.setIsVisible(memory.getByte(Offset.objVisible) != 0);
-        unit.setHealth(memory.getFloat(Offset.objHealth));
+        unit.setAttackRange(memory.getFloat(Offset.objAttackRange));
         return unit;
     }
 }

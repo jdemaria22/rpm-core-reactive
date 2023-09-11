@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Objects;
 
 @Service
@@ -19,10 +20,11 @@ import java.util.Objects;
 public class TargetService {
     private final ChampionComponent championComponent;
     private final MinionComponent minionComponent;
+
     public Mono<Champion> getBestChampionInRange(BigDecimal range) {
+        Champion localPLayer = this.championComponent.getLocalPlayer();
         return Mono.fromCallable(() -> {
-            Champion localPLayer = this.championComponent.getLocalPlayer();
-            Float health = 0.0F;
+            BigDecimal minAutos = BigDecimal.ZERO;
             Champion championFinal = Champion.builder().build();
             for (Champion champion : this.championComponent.getMapUnit().values()) {
                 if (!champion.getIsTargeteable()){
@@ -37,15 +39,13 @@ public class TargetService {
                 if (Objects.equals(champion.getTeam(), localPLayer.getTeam())) {
                     continue;
                 }
-                if (health > champion.getHealth()) {
-                    continue;
-                }
-                BigDecimal championRadius = champion.getJsonCommunityDragon().getGameplayRadius();
-                BigDecimal localPlayerRadius = localPLayer.getJsonCommunityDragon().getGameplayRadius();
-                boolean inDistance = (this.distanceBetweenTargets(localPLayer.getPosition(), champion.getPosition()).subtract(championRadius).compareTo(range.add(localPlayerRadius))) < 0;
+                boolean inDistance = (this.distanceBetweenTargets(localPLayer.getPosition(), champion.getPosition()).subtract(champion.getJsonCommunityDragon().getGameplayRadius())).compareTo(range.add(localPLayer.getJsonCommunityDragon().getGameplayRadius())) < 0;
                 if (inDistance){
-                    health = champion.getHealth();
-                    championFinal = champion;
+                    BigDecimal minAttacks = getMinAttacks(BigDecimal.valueOf(localPLayer.getBaseAttack()), BigDecimal.valueOf(localPLayer.getBonusAttack()), BigDecimal.valueOf(champion.getHealth()), BigDecimal.valueOf(champion.getArmor()));
+                    if (minAttacks.compareTo(minAutos) < 0 || minAutos.compareTo(BigDecimal.ZERO) == 0){
+                        minAutos = minAttacks;
+                        championFinal = champion;
+                    }
                 }
             }
             return championFinal;
@@ -55,7 +55,7 @@ public class TargetService {
     public Mono<Minion> getBestMinionInRange(BigDecimal range) {
         return Mono.fromCallable(() -> {
             Champion localPLayer = this.championComponent.getLocalPlayer();
-            Float health = 0.0F;
+            BigDecimal minAutos = BigDecimal.ZERO;
             Minion minionFinal = Minion.builder().build();
             for (Minion minion : this.minionComponent.getMapUnit().values()) {
                 if (!minion.getIsTargeteable()){
@@ -70,15 +70,13 @@ public class TargetService {
                 if (Objects.equals(minion.getTeam(), localPLayer.getTeam())) {
                     continue;
                 }
-                if (health > minion.getHealth()) {
-                    continue;
-                }
-                BigDecimal localPlayerRadius = localPLayer.getJsonCommunityDragon().getGameplayRadius();
-                BigDecimal minionRadius = new BigDecimal("65.0");
-                boolean inDistance = (this.distanceBetweenTargets(localPLayer.getPosition(), minion.getPosition()).subtract(minionRadius).compareTo(range.add(localPlayerRadius))) < 0;
+                boolean inDistance = (this.distanceBetweenTargets(localPLayer.getPosition(), minion.getPosition())).compareTo(range.add(localPLayer.getJsonCommunityDragon().getGameplayRadius())) < 0;
                 if (inDistance){
-                    health = minion.getHealth();
-                    minionFinal = minion;
+                    BigDecimal minAttacks = getMinAttacks(BigDecimal.valueOf(localPLayer.getBaseAttack()), BigDecimal.valueOf(localPLayer.getBonusAttack()), BigDecimal.valueOf(minion.getHealth()), BigDecimal.valueOf(minion.getArmor()));
+                    if (minAttacks.compareTo(minAutos) < 0 || minAutos.compareTo(BigDecimal.ZERO) == 0){
+                        minAutos = minAttacks;
+                        minionFinal = minion;
+                    }
                 }
             }
             return minionFinal;
@@ -95,5 +93,26 @@ public class TargetService {
         return BigDecimal.valueOf(Math.sqrt(sumOfSquares.doubleValue()));
     }
 
+    private BigDecimal getMinAttacks(BigDecimal playerBasicAttack, BigDecimal playerBonusAttack, BigDecimal targetHealth, BigDecimal targetArmor) {
+        BigDecimal effectiveDamage = getEffectiveDamage(playerBasicAttack.add(playerBonusAttack), targetArmor);
 
+        if (effectiveDamage.compareTo(BigDecimal.ZERO) > 0) {
+            return targetHealth.divide(effectiveDamage, 15, RoundingMode.HALF_UP);
+        } else {
+            // Handle the case where effective damage is non-positive (division by zero or negative damage).
+            return BigDecimal.ZERO;
+        }
+    }
+
+    private BigDecimal getEffectiveDamage(BigDecimal damage, BigDecimal armor) {
+        BigDecimal oneHundred = BigDecimal.valueOf(100);
+
+        if (armor.compareTo(BigDecimal.ZERO) >= 0) {
+            BigDecimal divisor = oneHundred.add(armor);
+            return damage.multiply(oneHundred).divide(divisor, 15, RoundingMode.HALF_UP);
+        } else {
+            BigDecimal divisor = oneHundred.subtract(armor);
+            return damage.multiply(BigDecimal.valueOf(2)).subtract(oneHundred.divide(divisor, 15, RoundingMode.HALF_UP));
+        }
+    }
 }
