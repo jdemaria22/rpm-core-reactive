@@ -8,7 +8,7 @@ import java.math.MathContext;
 
 @Component
 @RequiredArgsConstructor
-public class DistanceCalculator {
+public class DistanceCalculatorService {
     public BigDecimal distance(BigDecimal playerX, BigDecimal playerY, BigDecimal targetX, BigDecimal targetY) {
         BigDecimal xDifference = playerX.subtract(targetX);
         BigDecimal yDifference = playerY.subtract(targetY);

@@ -8,10 +8,8 @@ import com.core.reactive.corereactive.script.OrbWalker;
 import com.core.reactive.corereactive.script.ScriptLoaderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,26 +31,16 @@ public class Core {
         scheduler.scheduleAtFixedRate(System::gc, 0, 1, TimeUnit.SECONDS);
 
         while (true) {
-//            Flux.fromIterable(this.getMemoryLoaderServices())
-//                    .flatMap(MemoryLoaderService::update).blockLast();
-
-            Mono<Boolean> loadMemory = gameTimeComponent.update()
-                    .flatMap(gameTimeOk -> rendererComponent.update())
-                    .flatMap(render -> unitManagerComponent.update());
-
-            loadMemory.block();
-
-            log.info("unitManagerComponent {}", unitManagerComponent.getChampionComponent().getChampionList());
-//            log.info("unitManagerComponent {}", unitManagerComponent.getChampionComponentV2().getLocalPlayer());
-//            Flux.fromIterable(this.getScriptLoaderService())
-//                    .flatMap(ScriptLoaderService::update).blockLast();
-//            Mono<Boolean> loadScript = orbWalker.update();
-
-//            loadScript.block();
+            Flux.fromIterable(this.getMemoryLoaderServices())
+                    .flatMap(MemoryLoaderService::update)
+                    .all(result -> result).block();
+            Flux.fromIterable(this.getScriptLoaderService())
+                    .flatMap(ScriptLoaderService::update)
+                    .all(result -> result).block();
         }
     }
 
-    public List<MemoryLoaderService> getMemoryLoaderServices(){
+    private List<MemoryLoaderService> getMemoryLoaderServices(){
         List<MemoryLoaderService> memoryLoaderServices = new ArrayList<>();
         memoryLoaderServices.add(unitManagerComponent);
         memoryLoaderServices.add(rendererComponent);
@@ -60,7 +48,7 @@ public class Core {
         return memoryLoaderServices;
     }
 
-    public List<ScriptLoaderService> getScriptLoaderService(){
+    private List<ScriptLoaderService> getScriptLoaderService(){
         List<ScriptLoaderService> scriptLoaderServices = new ArrayList<>();
         scriptLoaderServices.add(orbWalker);
         return scriptLoaderServices;

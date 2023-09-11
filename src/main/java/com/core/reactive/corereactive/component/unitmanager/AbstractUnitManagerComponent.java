@@ -1,8 +1,10 @@
 package com.core.reactive.corereactive.component.unitmanager;
 
+import com.core.reactive.corereactive.component.MemoryLoaderService;
 import com.core.reactive.corereactive.component.renderer.RendererComponent;
+import com.core.reactive.corereactive.component.unitmanager.model.Unit;
 import com.core.reactive.corereactive.rpm.ReadProcessMemoryService;
-import com.core.reactive.corereactive.util.DistanceCalculator;
+import com.core.reactive.corereactive.util.DistanceCalculatorService;
 import com.core.reactive.corereactive.util.api.ApiService;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -10,18 +12,18 @@ import reactor.core.publisher.Mono;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-public abstract class AbstractUnitManagerComponent<UNIT> implements UnitManagerProvider<UNIT>, UnitManagerService<UNIT>{
+public abstract class AbstractUnitManagerComponent<UNIT extends Unit> implements UnitManagerProvider<UNIT>, UnitManagerService<UNIT>, MemoryLoaderService {
     protected static final int LENGTH_VALUE = 0x10;
     protected static final int LIST_VALUE = 0x8;
     protected ReadProcessMemoryService readProcessMemoryService;
     protected ApiService apiService;
-    protected DistanceCalculator distanceCalculator;
+    protected DistanceCalculatorService distanceCalculatorService;
     protected RendererComponent rendererComponent;
 
-    protected AbstractUnitManagerComponent(ReadProcessMemoryService readProcessMemoryService, ApiService apiService, DistanceCalculator distanceCalculator, RendererComponent rendererComponent) {
+    protected AbstractUnitManagerComponent(ReadProcessMemoryService readProcessMemoryService, ApiService apiService, DistanceCalculatorService distanceCalculatorService, RendererComponent rendererComponent) {
         this.readProcessMemoryService = readProcessMemoryService;
         this.apiService = apiService;
-        this.distanceCalculator = distanceCalculator;
+        this.distanceCalculatorService = distanceCalculatorService;
         this.rendererComponent = rendererComponent;
     }
 
