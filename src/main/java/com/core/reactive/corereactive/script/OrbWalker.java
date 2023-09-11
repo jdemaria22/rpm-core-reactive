@@ -119,9 +119,7 @@ public class OrbWalker implements ScriptLoaderService {
                                     this.gameTimeComponent.sleep(10);
                                     this.canAttackTime = this.gameTimeComponent.getGameTime().add(value);
                                     this.canMoveTime = this.gameTimeComponent.getGameTime().add(this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed));
-                                    this.gameTimeComponent.sleep(3);
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-                                    this.gameTimeComponent.sleep(3);
                                     this.user32.BlockInput(new WinDef.BOOL(false));
                                     this.mouseService.mouseMiddleUp();
                                     return Mono.just(Boolean.TRUE);
