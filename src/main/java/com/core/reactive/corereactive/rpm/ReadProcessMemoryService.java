@@ -61,6 +61,12 @@ public class ReadProcessMemoryService {
     }
 
     private <T> Mono<T> getValue(Memory memory, Class<T> tClass) {
+        if (tClass.isAssignableFrom(Double.class)) {
+            return Mono.fromCallable(() -> {
+                Double f = (double) memory.getFloat(0);
+                return (T) f;
+            });
+        }
         if (tClass.isAssignableFrom(Float.class)) {
             return Mono.fromCallable(() -> {
                 Float f = memory.getFloat(0);
@@ -110,6 +116,9 @@ public class ReadProcessMemoryService {
 
     private <T> Mono<Integer> getSize(Class<T> tClass) {
         return Mono.fromCallable(() -> {
+            if (tClass.isAssignableFrom(Double.class)) {
+                return 64;
+            }
             if (tClass.isAssignableFrom(Float.class)) {
                 return 8;
             }

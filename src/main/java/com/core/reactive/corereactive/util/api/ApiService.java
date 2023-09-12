@@ -17,8 +17,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
-import java.math.BigDecimal;
-
 @Service
 @Slf4j
 public class ApiService {
@@ -31,13 +29,13 @@ public class ApiService {
     private static final String M_ATTACK_DELAY_CAST_OFFSET_PERCENT = "mAttackDelayCastOffsetPercent";
     private static final String M_ATTACK_DELAY_CAST_OFFSET_PERCENT_ATTACK_SPEED_RATIO = "mAttackDelayCastOffsetPercentAttackSpeedRatio";
     private final WebClient webClient;
-    private final WebClient webClientCom;
+
     public ApiService(WebClient.Builder webClientBuilder) {
         HttpClient httpClient = HttpClient.create().secure(t -> t.sslContext(this.sslContext()));
         this.webClient = webClientBuilder.baseUrl("https://127.0.0.1:2999/liveclientdata/activeplayer")
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
-        this.webClientCom = webClientBuilder
+        WebClient webClientCom = webClientBuilder
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
 
@@ -64,18 +62,18 @@ public class ApiService {
                     JSONObject root = jsonObject.getJSONObject(CHARACTERS_ID_CHARACTERRECORDS_ROOT.replace(TARGET, champion.getName()));
 
                     String attackSpeed = this.get(ATTACK_SPEED, root);
-                    BigDecimal attackSpeedValue = new BigDecimal(ObjectUtils.isEmpty(attackSpeed)?"0.0":attackSpeed);
+                    Double attackSpeedValue = Double.parseDouble(ObjectUtils.isEmpty(attackSpeed) ? "0.0" : attackSpeed);
 
                     String gameplayRadius = this.get(OVERRIDE_GAMEPLAY_COLLISION_RADIUS, root);
-                    BigDecimal gameplayRadiusValue = new BigDecimal(ObjectUtils.isEmpty(gameplayRadius)?"65.0":gameplayRadius);
+                    Double gameplayRadiusValue = Double.parseDouble(ObjectUtils.isEmpty(gameplayRadius) ? "65.0" : gameplayRadius);
 
                     JSONObject basicAttack = root.getJSONObject(BASIC_ATTACK);
                     String mAttackDelayCastOffsetPercent = this.get(M_ATTACK_DELAY_CAST_OFFSET_PERCENT, basicAttack);
-                    BigDecimal mAttackDelayCastOffsetPercentVal = new BigDecimal(ObjectUtils.isEmpty(mAttackDelayCastOffsetPercent)?"0.0":mAttackDelayCastOffsetPercent);
-                    BigDecimal windUp = mAttackDelayCastOffsetPercentVal.add(new BigDecimal("0.3"));
+                    double mAttackDelayCastOffsetPercentVal = Double.parseDouble(ObjectUtils.isEmpty(mAttackDelayCastOffsetPercent) ? "0.0" : mAttackDelayCastOffsetPercent);
+                    Double windUp = mAttackDelayCastOffsetPercentVal + 0.3;
 
                     String mAttackDelayCastOffsetPercentAttackSpeedRatio = this.get(M_ATTACK_DELAY_CAST_OFFSET_PERCENT_ATTACK_SPEED_RATIO, basicAttack);
-                    BigDecimal mAttackDelayCastOffsetPercentAttackSpeedRatioValue = new BigDecimal(ObjectUtils.isEmpty(mAttackDelayCastOffsetPercentAttackSpeedRatio)?"0.0":mAttackDelayCastOffsetPercentAttackSpeedRatio);
+                    Double mAttackDelayCastOffsetPercentAttackSpeedRatioValue = ObjectUtils.isEmpty(mAttackDelayCastOffsetPercentAttackSpeedRatio) ? 0.0 : Double.parseDouble(mAttackDelayCastOffsetPercentAttackSpeedRatio);
 
                     return JsonCommunityDragon.builder()
                             .attackSpeed(attackSpeedValue)

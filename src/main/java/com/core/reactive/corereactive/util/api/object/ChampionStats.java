@@ -2,171 +2,170 @@ package com.core.reactive.corereactive.util.api.object;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.math.BigDecimal;
 
 public class ChampionStats{
     @JsonProperty("abilityHaste")
-    public BigDecimal getAbilityHaste() {
+    public Double getAbilityHaste() {
         return this.abilityHaste; }
-    public void setAbilityHaste(BigDecimal abilityHaste) {
+    public void setAbilityHaste(Double abilityHaste) {
         this.abilityHaste = abilityHaste; }
-    BigDecimal abilityHaste;
+    Double abilityHaste;
     @JsonProperty("abilityPower")
-    public BigDecimal getAbilityPower() {
+    public Double getAbilityPower() {
         return this.abilityPower; }
-    public void setAbilityPower(BigDecimal abilityPower) {
+    public void setAbilityPower(Double abilityPower) {
         this.abilityPower = abilityPower; }
-    BigDecimal abilityPower;
+    Double abilityPower;
     @JsonProperty("armor")
-    public BigDecimal getArmor() {
+    public Double getArmor() {
         return this.armor; }
-    public void setArmor(BigDecimal armor) {
+    public void setArmor(Double armor) {
         this.armor = armor; }
-    BigDecimal armor;
+    Double armor;
     @JsonProperty("armorPenetrationFlat")
-    public BigDecimal getArmorPenetrationFlat() {
+    public Double getArmorPenetrationFlat() {
         return this.armorPenetrationFlat; }
-    public void setArmorPenetrationFlat(BigDecimal armorPenetrationFlat) {
+    public void setArmorPenetrationFlat(Double armorPenetrationFlat) {
         this.armorPenetrationFlat = armorPenetrationFlat; }
-    BigDecimal armorPenetrationFlat;
+    Double armorPenetrationFlat;
     @JsonProperty("armorPenetrationPercent")
-    public BigDecimal getArmorPenetrationPercent() {
+    public Double getArmorPenetrationPercent() {
         return this.armorPenetrationPercent; }
-    public void setArmorPenetrationPercent(BigDecimal armorPenetrationPercent) {
+    public void setArmorPenetrationPercent(Double armorPenetrationPercent) {
         this.armorPenetrationPercent = armorPenetrationPercent; }
-    BigDecimal armorPenetrationPercent;
+    Double armorPenetrationPercent;
     @JsonProperty("attackDamage")
-    public BigDecimal getAttackDamage() {
+    public Double getAttackDamage() {
         return this.attackDamage; }
-    public void setAttackDamage(BigDecimal attackDamage) {
+    public void setAttackDamage(Double attackDamage) {
         this.attackDamage = attackDamage; }
-    BigDecimal attackDamage;
+    Double attackDamage;
     @JsonProperty("attackRange")
-    public BigDecimal getAttackRange() {
+    public Double getAttackRange() {
         return this.attackRange; }
-    public void setAttackRange(BigDecimal attackRange) {
+    public void setAttackRange(Double attackRange) {
         this.attackRange = attackRange; }
-    BigDecimal attackRange;
+    Double attackRange;
     @JsonProperty("attackSpeed")
-    public BigDecimal getAttackSpeed() {
+    public Double getAttackSpeed() {
         return this.attackSpeed; }
-    public void setAttackSpeed(BigDecimal attackSpeed) {
+    public void setAttackSpeed(Double attackSpeed) {
         this.attackSpeed = attackSpeed; }
-    BigDecimal attackSpeed;
+    Double attackSpeed;
     @JsonProperty("bonusArmorPenetrationPercent")
-    public BigDecimal getBonusArmorPenetrationPercent() {
+    public Double getBonusArmorPenetrationPercent() {
         return this.bonusArmorPenetrationPercent; }
-    public void setBonusArmorPenetrationPercent(BigDecimal bonusArmorPenetrationPercent) {
+    public void setBonusArmorPenetrationPercent(Double bonusArmorPenetrationPercent) {
         this.bonusArmorPenetrationPercent = bonusArmorPenetrationPercent; }
-    BigDecimal bonusArmorPenetrationPercent;
+    Double bonusArmorPenetrationPercent;
     @JsonProperty("bonusMagicPenetrationPercent")
-    public BigDecimal getBonusMagicPenetrationPercent() {
+    public Double getBonusMagicPenetrationPercent() {
         return this.bonusMagicPenetrationPercent; }
-    public void setBonusMagicPenetrationPercent(BigDecimal bonusMagicPenetrationPercent) {
+    public void setBonusMagicPenetrationPercent(Double bonusMagicPenetrationPercent) {
         this.bonusMagicPenetrationPercent = bonusMagicPenetrationPercent; }
-    BigDecimal bonusMagicPenetrationPercent;
+    Double bonusMagicPenetrationPercent;
     @JsonProperty("critChance")
-    public BigDecimal getCritChance() {
+    public Double getCritChance() {
         return this.critChance; }
-    public void setCritChance(BigDecimal critChance) {
+    public void setCritChance(Double critChance) {
         this.critChance = critChance; }
-    BigDecimal critChance;
+    Double critChance;
     @JsonProperty("critDamage")
-    public BigDecimal getCritDamage() {
+    public Double getCritDamage() {
         return this.critDamage; }
-    public void setCritDamage(BigDecimal critDamage) {
+    public void setCritDamage(Double critDamage) {
         this.critDamage = critDamage; }
-    BigDecimal critDamage;
+    Double critDamage;
     @JsonProperty("currentHealth")
-    public BigDecimal getCurrentHealth() {
+    public Double getCurrentHealth() {
         return this.currentHealth; }
-    public void setCurrentHealth(BigDecimal currentHealth) {
+    public void setCurrentHealth(Double currentHealth) {
         this.currentHealth = currentHealth; }
-    BigDecimal currentHealth;
+    Double currentHealth;
     @JsonProperty("healShieldPower")
-    public BigDecimal getHealShieldPower() {
+    public Double getHealShieldPower() {
         return this.healShieldPower; }
-    public void setHealShieldPower(BigDecimal healShieldPower) {
+    public void setHealShieldPower(Double healShieldPower) {
         this.healShieldPower = healShieldPower; }
-    BigDecimal healShieldPower;
+    Double healShieldPower;
     @JsonProperty("healthRegenRate")
-    public BigDecimal getHealthRegenRate() {
+    public Double getHealthRegenRate() {
         return this.healthRegenRate; }
-    public void setHealthRegenRate(BigDecimal healthRegenRate) {
+    public void setHealthRegenRate(Double healthRegenRate) {
         this.healthRegenRate = healthRegenRate; }
-    BigDecimal healthRegenRate;
+    Double healthRegenRate;
     @JsonProperty("lifeSteal")
-    public BigDecimal getLifeSteal() {
+    public Double getLifeSteal() {
         return this.lifeSteal; }
-    public void setLifeSteal(BigDecimal lifeSteal) {
+    public void setLifeSteal(Double lifeSteal) {
         this.lifeSteal = lifeSteal; }
-    BigDecimal lifeSteal;
+    Double lifeSteal;
     @JsonProperty("magicLethality")
-    public BigDecimal getMagicLethality() {
+    public Double getMagicLethality() {
         return this.magicLethality; }
-    public void setMagicLethality(BigDecimal magicLethality) {
+    public void setMagicLethality(Double magicLethality) {
         this.magicLethality = magicLethality; }
-    BigDecimal magicLethality;
+    Double magicLethality;
     @JsonProperty("magicPenetrationFlat")
-    public BigDecimal getMagicPenetrationFlat() {
+    public Double getMagicPenetrationFlat() {
         return this.magicPenetrationFlat; }
-    public void setMagicPenetrationFlat(BigDecimal magicPenetrationFlat) {
+    public void setMagicPenetrationFlat(Double magicPenetrationFlat) {
         this.magicPenetrationFlat = magicPenetrationFlat; }
-    BigDecimal magicPenetrationFlat;
+    Double magicPenetrationFlat;
     @JsonProperty("magicPenetrationPercent")
-    public BigDecimal getMagicPenetrationPercent() {
+    public Double getMagicPenetrationPercent() {
         return this.magicPenetrationPercent; }
-    public void setMagicPenetrationPercent(BigDecimal magicPenetrationPercent) {
+    public void setMagicPenetrationPercent(Double magicPenetrationPercent) {
         this.magicPenetrationPercent = magicPenetrationPercent; }
-    BigDecimal magicPenetrationPercent;
+    Double magicPenetrationPercent;
     @JsonProperty("magicResist")
-    public BigDecimal getMagicResist() {
+    public Double getMagicResist() {
         return this.magicResist; }
-    public void setMagicResist(BigDecimal magicResist) {
+    public void setMagicResist(Double magicResist) {
         this.magicResist = magicResist; }
-    BigDecimal magicResist;
+    Double magicResist;
     @JsonProperty("maxHealth")
-    public BigDecimal getMaxHealth() {
+    public Double getMaxHealth() {
         return this.maxHealth; }
-    public void setMaxHealth(BigDecimal maxHealth) {
+    public void setMaxHealth(Double maxHealth) {
         this.maxHealth = maxHealth; }
-    BigDecimal maxHealth;
+    Double maxHealth;
     @JsonProperty("moveSpeed")
-    public BigDecimal getMoveSpeed() {
+    public Double getMoveSpeed() {
         return this.moveSpeed; }
-    public void setMoveSpeed(BigDecimal moveSpeed) {
+    public void setMoveSpeed(Double moveSpeed) {
         this.moveSpeed = moveSpeed; }
-    BigDecimal moveSpeed;
+    Double moveSpeed;
     @JsonProperty("omnivamp")
-    public BigDecimal getOmnivamp() {
+    public Double getOmnivamp() {
         return this.omnivamp; }
-    public void setOmnivamp(BigDecimal omnivamp) {
+    public void setOmnivamp(Double omnivamp) {
         this.omnivamp = omnivamp; }
-    BigDecimal omnivamp;
+    Double omnivamp;
     @JsonProperty("physicalLethality")
-    public BigDecimal getPhysicalLethality() {
+    public Double getPhysicalLethality() {
         return this.physicalLethality; }
-    public void setPhysicalLethality(BigDecimal physicalLethality) {
+    public void setPhysicalLethality(Double physicalLethality) {
         this.physicalLethality = physicalLethality; }
-    BigDecimal physicalLethality;
+    Double physicalLethality;
     @JsonProperty("physicalVamp")
-    public BigDecimal getPhysicalVamp() {
+    public Double getPhysicalVamp() {
         return this.physicalVamp; }
-    public void setPhysicalVamp(BigDecimal physicalVamp) {
+    public void setPhysicalVamp(Double physicalVamp) {
         this.physicalVamp = physicalVamp; }
-    BigDecimal physicalVamp;
+    Double physicalVamp;
     @JsonProperty("resourceMax")
-    public BigDecimal getResourceMax() {
+    public Double getResourceMax() {
         return this.resourceMax; }
-    public void setResourceMax(BigDecimal resourceMax) {
+    public void setResourceMax(Double resourceMax) {
         this.resourceMax = resourceMax; }
-    BigDecimal resourceMax;
+    Double resourceMax;
     @JsonProperty("resourceRegenRate")
-    public BigDecimal getResourceRegenRate() {
+    public Double getResourceRegenRate() {
         return this.resourceRegenRate; }
-    public void setResourceRegenRate(BigDecimal resourceRegenRate) {
+    public void setResourceRegenRate(Double resourceRegenRate) {
         this.resourceRegenRate = resourceRegenRate; }
-    BigDecimal resourceRegenRate;
+    Double resourceRegenRate;
     @JsonProperty("resourceType")
     public String getResourceType() {
         return this.resourceType; }
@@ -174,21 +173,21 @@ public class ChampionStats{
         this.resourceType = resourceType; }
     String resourceType;
     @JsonProperty("resourceValue")
-    public BigDecimal getResourceValue() {
+    public Double getResourceValue() {
         return this.resourceValue; }
-    public void setResourceValue(BigDecimal resourceValue) {
+    public void setResourceValue(Double resourceValue) {
         this.resourceValue = resourceValue; }
-    BigDecimal resourceValue;
+    Double resourceValue;
     @JsonProperty("spellVamp")
-    public BigDecimal getSpellVamp() {
+    public Double getSpellVamp() {
         return this.spellVamp; }
-    public void setSpellVamp(BigDecimal spellVamp) {
+    public void setSpellVamp(Double spellVamp) {
         this.spellVamp = spellVamp; }
-    BigDecimal spellVamp;
+    Double spellVamp;
     @JsonProperty("tenacity")
-    public BigDecimal getTenacity() {
+    public Double getTenacity() {
         return this.tenacity; }
-    public void setTenacity(BigDecimal tenacity) {
+    public void setTenacity(Double tenacity) {
         this.tenacity = tenacity; }
-    BigDecimal tenacity;
+    Double tenacity;
 }

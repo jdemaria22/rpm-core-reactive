@@ -10,8 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Objects;
 
 @Service
@@ -21,10 +19,10 @@ public class TargetService {
     private final ChampionComponent championComponent;
     private final MinionComponent minionComponent;
 
-    public Mono<Champion> getBestChampionInRange(BigDecimal range) {
+    public Mono<Champion> getBestChampionInRange(Double range) {
         Champion localPLayer = this.championComponent.getLocalPlayer();
         return Mono.fromCallable(() -> {
-            BigDecimal minAutos = BigDecimal.ZERO;
+            double minAutos = 0.0;
             Champion championFinal = Champion.builder().build();
             for (Champion champion : this.championComponent.getMapUnit().values()) {
                 if (!champion.getIsTargeteable()){
@@ -39,10 +37,15 @@ public class TargetService {
                 if (Objects.equals(champion.getTeam(), localPLayer.getTeam())) {
                     continue;
                 }
-                boolean inDistance = (this.distanceBetweenTargets(localPLayer.getPosition(), champion.getPosition()).subtract(champion.getJsonCommunityDragon().getGameplayRadius())).compareTo(range.add(localPLayer.getJsonCommunityDragon().getGameplayRadius())) < 0;
+                boolean inDistance = this.distanceBetweenTargets(localPLayer.getPosition(), champion.getPosition()) - champion.getJsonCommunityDragon().getGameplayRadius() <= range + localPLayer.getJsonCommunityDragon().getGameplayRadius();
                 if (inDistance){
-                    BigDecimal minAttacks = getMinAttacks(BigDecimal.valueOf(localPLayer.getBaseAttack()), BigDecimal.valueOf(localPLayer.getBonusAttack()), BigDecimal.valueOf(champion.getHealth()), BigDecimal.valueOf(champion.getArmor()));
-                    if (minAttacks.compareTo(minAutos) < 0 || minAutos.compareTo(BigDecimal.ZERO) == 0){
+                    Double minAttacks = getMinAttacks(
+                            (double) localPLayer.getBaseAttack(),
+                            (double) localPLayer.getBonusAttack(),
+                            (double) champion.getHealth(),
+                            (double) champion.getArmor()
+                    );
+                    if (minAttacks < minAutos || minAutos == 0.0){
                         minAutos = minAttacks;
                         championFinal = champion;
                     }
@@ -52,10 +55,10 @@ public class TargetService {
         });
     }
 
-    public Mono<Minion> getBestMinionInRange(BigDecimal range) {
+    public Mono<Minion> getBestMinionInRange(Double range) {
         return Mono.fromCallable(() -> {
             Champion localPLayer = this.championComponent.getLocalPlayer();
-            BigDecimal minAutos = BigDecimal.ZERO;
+            Double minAutos = 0.0;
             Minion minionFinal = Minion.builder().build();
             for (Minion minion : this.minionComponent.getMapUnit().values()) {
                 if (!minion.getIsTargeteable()){
@@ -70,10 +73,10 @@ public class TargetService {
                 if (Objects.equals(minion.getTeam(), localPLayer.getTeam())) {
                     continue;
                 }
-                boolean inDistance = (this.distanceBetweenTargets(localPLayer.getPosition(), minion.getPosition())).compareTo(range.add(localPLayer.getJsonCommunityDragon().getGameplayRadius())) < 0;
+                boolean inDistance = (this.distanceBetweenTargets(localPLayer.getPosition(), minion.getPosition())).compareTo(range + localPLayer.getJsonCommunityDragon().getGameplayRadius()) < 0;
                 if (inDistance){
-                    BigDecimal minAttacks = getMinAttacks(BigDecimal.valueOf(localPLayer.getBaseAttack()), BigDecimal.valueOf(localPLayer.getBonusAttack()), BigDecimal.valueOf(minion.getHealth()), BigDecimal.valueOf(minion.getArmor()));
-                    if (minAttacks.compareTo(minAutos) < 0 || minAutos.compareTo(BigDecimal.ZERO) == 0){
+                    Double minAttacks = getMinAttacks((double) localPLayer.getBaseAttack(), (double) localPLayer.getBonusAttack(), (double) minion.getHealth(), (double) minion.getArmor());
+                    if (minAttacks.compareTo(minAutos) < 0 || minAutos == 0.0){
                         minAutos = minAttacks;
                         minionFinal = minion;
                     }
@@ -83,36 +86,37 @@ public class TargetService {
         });
     }
 
-    private BigDecimal distanceBetweenTargets(Vector3 position, Vector3 position2) {
-        BigDecimal xDiff = BigDecimal.valueOf(Math.abs(position.getX() - position2.getX()));
-        BigDecimal yDiff = BigDecimal.valueOf(Math.abs(position.getY() - position2.getY()));
-        BigDecimal zDiff = BigDecimal.valueOf(Math.abs(position.getZ() - position2.getZ()));
+    private Double distanceBetweenTargets(Vector3 position, Vector3 position2) {
+        Double xDiff = (double) Math.abs(position.getX() - position2.getX());
+        Double yDiff = (double) Math.abs(position.getY() - position2.getY());
+        Double zDiff = (double) Math.abs(position.getZ() - position2.getZ());
 
-        BigDecimal sumOfSquares = xDiff.pow(2).add(yDiff.pow(2)).add(zDiff.pow(2));
+        double sumOfSquares = xDiff * xDiff + yDiff * yDiff + zDiff * zDiff;
 
-        return BigDecimal.valueOf(Math.sqrt(sumOfSquares.doubleValue()));
+        return Math.sqrt(sumOfSquares);
     }
 
-    private BigDecimal getMinAttacks(BigDecimal playerBasicAttack, BigDecimal playerBonusAttack, BigDecimal targetHealth, BigDecimal targetArmor) {
-        BigDecimal effectiveDamage = getEffectiveDamage(playerBasicAttack.add(playerBonusAttack), targetArmor);
+    private Double getMinAttacks(Double playerBasicAttack, Double playerBonusAttack, Double targetHealth, Double targetArmor) {
+        Double effectiveDamage = getEffectiveDamage(playerBasicAttack + playerBonusAttack, targetArmor);
 
-        if (effectiveDamage.compareTo(BigDecimal.ZERO) > 0) {
-            return targetHealth.divide(effectiveDamage, 15, RoundingMode.FLOOR);
+        if (effectiveDamage > 0.0) {
+            return targetHealth / effectiveDamage;
         } else {
             // Handle the case where effective damage is non-positive (division by zero or negative damage).
-            return BigDecimal.ZERO;
+            return 0.0;
         }
     }
 
-    private BigDecimal getEffectiveDamage(BigDecimal damage, BigDecimal armor) {
-        BigDecimal oneHundred = BigDecimal.valueOf(100);
+    private Double getEffectiveDamage(Double damage, Double armor) {
+        Double oneHundred = 100.0;
 
-        if (armor.compareTo(BigDecimal.ZERO) >= 0) {
-            BigDecimal divisor = oneHundred.add(armor);
-            return damage.multiply(oneHundred).divide(divisor, 15, RoundingMode.FLOOR);
+        if (armor >= 0.0) {
+            double divisor = oneHundred + armor;
+            return (damage * oneHundred) / divisor;
         } else {
-            BigDecimal divisor = oneHundred.subtract(armor);
-            return damage.multiply(BigDecimal.valueOf(2)).subtract(oneHundred.divide(divisor, 15, RoundingMode.FLOOR));
+            Double divisor = oneHundred - armor;
+            return (damage * 2.0) - (oneHundred / divisor);
         }
     }
+
 }

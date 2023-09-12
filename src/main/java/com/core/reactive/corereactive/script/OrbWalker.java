@@ -19,15 +19,10 @@ import org.springframework.util.ObjectUtils;
 import reactor.core.publisher.Mono;
 
 import java.awt.event.KeyEvent;
-import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
-
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class OrbWalker implements ScriptLoaderService {
-    private static final String VAL = "1.0000000000";
     private final ApiService apiService;
     private final ChampionComponent championComponent;
     private final GameTimeComponent gameTimeComponent;
@@ -37,8 +32,8 @@ public class OrbWalker implements ScriptLoaderService {
     private final Config.User32 user32;
     private final TargetService targetService;
 
-    private BigDecimal canAttackTime = new BigDecimal("0.0000000000");
-    private BigDecimal canMoveTime = new BigDecimal("0.0000000000");
+    private Double canAttackTime = 0.0000000000;
+    private Double canMoveTime = 0.0000000000;
 
     @Override
     public Mono<Boolean> update() {
@@ -67,16 +62,16 @@ public class OrbWalker implements ScriptLoaderService {
                 .flatMap(jsonActivePlayer -> Mono.just(jsonActivePlayer.championStats.getAttackSpeed()))
                 .flatMap(attackSpeed -> {
                     Champion localPlayer =  championComponent.getLocalPlayer();
-                    BigDecimal range = BigDecimal.valueOf(localPlayer.getAttackRange());
+                    Double range = (double) localPlayer.getAttackRange();
+                    Double gameTime = this.gameTimeComponent.getGameTime();
                     return this.targetService.getBestChampionInRange(range)
                             .defaultIfEmpty(Champion.builder().build())
                             .flatMap(champion -> {
-                                if (this.canAttackTime.compareTo(this.gameTimeComponent.getGameTime()) < 0 && !ObjectUtils.isEmpty(champion.getPosition())) {
+                                if (this.canAttackTime < gameTime && !ObjectUtils.isEmpty(champion.getPosition())) {
                                     Vector2 position = this.rendererComponent.worldToScreen(champion.getPosition().getX(), champion.getPosition().getY(), champion.getPosition().getZ());
                                     Vector2 mousePos = this.mouseService.getCursorPos();
-                                    int scale = 5;
-                                    MathContext mathContext = new MathContext(scale, RoundingMode.HALF_UP);
-                                    BigDecimal value = new BigDecimal(VAL).divide(attackSpeed,RoundingMode.HALF_UP);
+                                    this.canAttackTime = gameTime + 1.0 / attackSpeed;
+                                    this.canMoveTime = gameTime + this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed);
                                     this.mouseService.mouseMiddleDown();
                                     this.user32.BlockInput(new WinDef.BOOL(true));
                                     this.gameTimeComponent.sleep(5);
@@ -86,19 +81,15 @@ public class OrbWalker implements ScriptLoaderService {
                                     this.gameTimeComponent.sleep(5);
                                     this.user32.BlockInput(new WinDef.BOOL(false));
                                     this.mouseService.mouseMiddleUp();
-                                    this.canAttackTime = this.gameTimeComponent.getGameTime().add(value,mathContext);
-                                    this.canMoveTime = this.gameTimeComponent.getGameTime().add(this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed),mathContext);
-                                    //log.info("Basic Attack -> canMoveTime: {}", this.canMoveTime);
-                                    //log.info("Basic Attack -> canAttackTime: {}", this.canAttackTime);
+                                   // log.info("Basic Attack -> canMoveTime: {}", this.canMoveTime);
+                                   // log.info("Basic Attack -> canAttackTime: {}", this.canAttackTime);
                                     //log.info("gAMEtIME -> canAttackTime: {}", this.gameTimeComponent.getGameTime());
                                     return Mono.just(Boolean.TRUE);
-                                }
-                                if (canMoveTime.compareTo(this.gameTimeComponent.getGameTime()) < 0) {
-                                    //log.info("Move -> canMoveTime: {}", this.canMoveTime);
-                                    //log.info("Move -> getGameTime: {}", this.gameTimeComponent.getGameTime());
-                                    this.mouseService.mouseRightClickNoMove();
+                                } else if (canMoveTime < gameTime) {
+                                   //log.info("Move -> canMoveTime: {}", canMoveTime);
+                                    //log.info("Move -> getGameTime: {}", gameTime);
                                     this.gameTimeComponent.sleep(30);
-                                    return Mono.just(Boolean.TRUE);
+                                    this.mouseService.mouseRightClickNoMove();
                                 }
                                 return Mono.just(Boolean.TRUE);
                             });
@@ -110,15 +101,16 @@ public class OrbWalker implements ScriptLoaderService {
                 .flatMap(jsonActivePlayer -> Mono.just(jsonActivePlayer.championStats.getAttackSpeed()))
                 .flatMap(attackSpeed -> {
                     Champion localPlayer =  championComponent.getLocalPlayer();
-                    BigDecimal range = BigDecimal.valueOf(localPlayer.getAttackRange());
+                    Double range = (double) localPlayer.getAttackRange();
+                    Double gameTime = this.gameTimeComponent.getGameTime();
                     return this.targetService.getBestMinionInRange(range)
                             .defaultIfEmpty(Minion.builder().build())
                             .flatMap(minion -> {
-                                if (this.canAttackTime.compareTo(this.gameTimeComponent.getGameTime()) < 0 && !ObjectUtils.isEmpty(minion.getPosition())) {
+                                if (this.canAttackTime < gameTime && !ObjectUtils.isEmpty(minion.getPosition())) {
                                     Vector2 position = this.rendererComponent.worldToScreen(minion.getPosition().getX(), minion.getPosition().getY(), minion.getPosition().getZ());
                                     Vector2 mousePos = this.mouseService.getCursorPos();
-                                    int scale = 5;
-                                    MathContext mathContext = new MathContext(scale, RoundingMode.HALF_UP);
+                                    this.canAttackTime = gameTime + 1.0 / attackSpeed;
+                                    this.canMoveTime = gameTime + this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed);
                                     this.user32.BlockInput(new WinDef.BOOL(true));
                                     this.gameTimeComponent.sleep(5);
                                     this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
@@ -126,46 +118,39 @@ public class OrbWalker implements ScriptLoaderService {
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                     this.gameTimeComponent.sleep(5);
                                     this.user32.BlockInput(new WinDef.BOOL(false));
-                                    BigDecimal value = new BigDecimal(VAL).divide(attackSpeed,RoundingMode.HALF_UP);
-                                    this.canAttackTime = this.gameTimeComponent.getGameTime().add(value,mathContext);
-                                    this.canMoveTime = this.gameTimeComponent.getGameTime().add(this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed),mathContext);
-//                                    log.info("Basic Attack -> canMoveTime: {}", this.canMoveTime);
+                                    //log.info("Basic Attack -> canMoveTime: {}", this.canMoveTime);
                                     //log.info("Basic Attack -> canAttackTime: {}", this.canAttackTime);
                                     return Mono.just(Boolean.TRUE);
-                                }
-                                if (canMoveTime.compareTo(this.gameTimeComponent.getGameTime()) < 0) {
+                                } else if (canMoveTime < gameTime) {
                                     //log.info("Move -> canMoveTime: {}", this.canMoveTime);
                                     //log.info("Move -> getGameTime: {}", this.gameTimeComponent.getGameTime());
-                                    this.mouseService.mouseRightClickNoMove();
                                     this.gameTimeComponent.sleep(30);
-                                    return Mono.just(Boolean.TRUE);
+                                    this.mouseService.mouseRightClickNoMove();
                                 }
                                 return Mono.just(Boolean.TRUE);
                             });
                 });
     }
 
-    private BigDecimal getWindUpTime(BigDecimal baseAs, BigDecimal windup, BigDecimal windupMod, BigDecimal cAttackSpeed) {
-        BigDecimal zero = BigDecimal.ZERO;
-        BigDecimal one = BigDecimal.ONE;
-        int scale = 5;
-        MathContext mathContext = new MathContext(scale, RoundingMode.FLOOR);
+    private Double getWindUpTime(Double baseAs, Double windup, Double windupMod, Double cAttackSpeed) {
+        Double zero = 0.0;
+        Double one = 1.0;
 
-        BigDecimal divide1 = one.divide(baseAs, mathContext);
-        BigDecimal cAttackTime = one.divide(cAttackSpeed, mathContext);
+        Double divide1 = one / baseAs;
+        Double cAttackTime = one / cAttackSpeed;
 
-        BigDecimal baseWindupTime = divide1.multiply(windup);
-        BigDecimal part2;
+        double baseWindupTime = divide1 * windup;
+        double part2;
 
-        BigDecimal divide2TimesWindupMinusPart1 = cAttackTime.multiply(windup).subtract(baseWindupTime);
+        Double divide2TimesWindupMinusPart1 = cAttackTime * windup - baseWindupTime;
 
         if (windupMod.compareTo(zero) != 0) {
-            part2 = divide2TimesWindupMinusPart1.multiply(windupMod);
+            part2 = divide2TimesWindupMinusPart1 * windupMod;
         } else {
             part2 = divide2TimesWindupMinusPart1;
         }
 
-        return baseWindupTime.add(part2);
+        return baseWindupTime + part2;
     }
 
     private boolean isVkSpacePressed() {

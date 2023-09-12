@@ -13,14 +13,14 @@ import lombok.experimental.SuperBuilder;
 @ToString
 public class Champion extends Unit {
     private Long address;
-    private Float attackRange;
+    private float attackRange;
     private Integer team;
     private String name;
-    private Float baseAttack;
-    private Float bonusAttack;
-    private Float health;
-    private Float armor;
-    private Float magicDamage;
+    private float baseAttack;
+    private float bonusAttack;
+    private float health;
+    private float armor;
+    private float magicDamage;
     private Vector3 position;
     private Boolean isVisible;
     private Boolean isTargeteable;
