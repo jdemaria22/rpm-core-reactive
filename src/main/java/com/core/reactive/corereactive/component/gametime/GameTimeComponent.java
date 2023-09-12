@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 
 @Component
 @Getter
@@ -22,12 +24,14 @@ public class GameTimeComponent implements MemoryLoaderService {
 
     @Override
     public Mono<Boolean> update() {
+        int scale = 5;
+        MathContext mathContext = new MathContext(scale, RoundingMode.HALF_UP);
         return this.readProcessMemoryService.reactiveRead(Offset.gameTime, Float.class, true)
                 .flatMap(floatTime -> {
                     if (floatTime < 1.0) {
                         return Mono.just(Boolean.FALSE);
                     }
-                    this.gameTime = new BigDecimal(floatTime);
+                    this.gameTime = new BigDecimal(floatTime,mathContext);
                     return Mono.just(Boolean.TRUE);
                 });
     }

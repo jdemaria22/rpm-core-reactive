@@ -12,5 +12,6 @@ public class CoreReactiveApplication {
 		ApplicationContext applicationContext = SpringApplication.run(CoreReactiveApplication.class, args);
 		Core core = applicationContext.getBean(Core.class);
 		core.run();
+
 	}
 }
