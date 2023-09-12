@@ -18,7 +18,7 @@ import java.math.RoundingMode;
 @Getter
 @RequiredArgsConstructor
 @Slf4j
-public class GameTimeComponent implements MemoryLoaderService {
+public class    GameTimeComponent implements MemoryLoaderService {
     private BigDecimal gameTime;
     private final ReadProcessMemoryService readProcessMemoryService;
 

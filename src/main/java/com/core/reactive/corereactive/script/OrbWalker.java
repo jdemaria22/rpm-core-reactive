@@ -22,7 +22,6 @@ import java.awt.event.KeyEvent;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 @RequiredArgsConstructor
@@ -78,16 +77,17 @@ public class OrbWalker implements ScriptLoaderService {
                                     int scale = 5;
                                     MathContext mathContext = new MathContext(scale, RoundingMode.HALF_UP);
                                     BigDecimal value = new BigDecimal(VAL).divide(attackSpeed,RoundingMode.HALF_UP);
-                                    this.canAttackTime = this.gameTimeComponent.getGameTime().add(value,mathContext);
-                                    this.canMoveTime = this.gameTimeComponent.getGameTime().add(this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed),mathContext);
                                     this.mouseService.mouseMiddleDown();
                                     this.user32.BlockInput(new WinDef.BOOL(true));
-                                    this.gameTimeComponent.sleep(8);
+                                    this.gameTimeComponent.sleep(5);
                                     this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                    this.gameTimeComponent.sleep(8);
+                                    this.gameTimeComponent.sleep(30);
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
+                                    this.gameTimeComponent.sleep(5);
                                     this.user32.BlockInput(new WinDef.BOOL(false));
                                     this.mouseService.mouseMiddleUp();
+                                    this.canAttackTime = this.gameTimeComponent.getGameTime().add(value,mathContext);
+                                    this.canMoveTime = this.gameTimeComponent.getGameTime().add(this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed),mathContext);
                                     //log.info("Basic Attack -> canMoveTime: {}", this.canMoveTime);
                                     //log.info("Basic Attack -> canAttackTime: {}", this.canAttackTime);
                                     //log.info("gAMEtIME -> canAttackTime: {}", this.gameTimeComponent.getGameTime());
@@ -119,16 +119,17 @@ public class OrbWalker implements ScriptLoaderService {
                                     Vector2 mousePos = this.mouseService.getCursorPos();
                                     int scale = 5;
                                     MathContext mathContext = new MathContext(scale, RoundingMode.HALF_UP);
+                                    this.user32.BlockInput(new WinDef.BOOL(true));
+                                    this.gameTimeComponent.sleep(5);
+                                    this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
+                                    this.gameTimeComponent.sleep(30);
+                                    this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
+                                    this.gameTimeComponent.sleep(5);
+                                    this.user32.BlockInput(new WinDef.BOOL(false));
                                     BigDecimal value = new BigDecimal(VAL).divide(attackSpeed,RoundingMode.HALF_UP);
                                     this.canAttackTime = this.gameTimeComponent.getGameTime().add(value,mathContext);
                                     this.canMoveTime = this.gameTimeComponent.getGameTime().add(this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed),mathContext);
-                                    this.user32.BlockInput(new WinDef.BOOL(true));
-                                    this.gameTimeComponent.sleep(8);
-                                    this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                    this.gameTimeComponent.sleep(8);
-                                    this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-                                    this.user32.BlockInput(new WinDef.BOOL(false));
-                                    //log.info("Basic Attack -> canMoveTime: {}", this.canMoveTime);
+//                                    log.info("Basic Attack -> canMoveTime: {}", this.canMoveTime);
                                     //log.info("Basic Attack -> canAttackTime: {}", this.canAttackTime);
                                     return Mono.just(Boolean.TRUE);
                                 }
