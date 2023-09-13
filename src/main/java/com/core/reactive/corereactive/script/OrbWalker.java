@@ -124,18 +124,12 @@ public class OrbWalker implements ScriptLoaderService {
     }
 
     private Double getWindUpTime(Double baseAs, Double windup, Double windupMod, Double cAttackSpeed) {
-        Double zero = 0.0;
-        Double one = 1.0;
-
-        Double divide1 = one / baseAs;
-        Double cAttackTime = one / cAttackSpeed;
-
-        double baseWindupTime = divide1 * windup;
+        double baseWindupTime = (1.0 / baseAs) * windup;
         double part2;
 
-        Double divide2TimesWindupMinusPart1 = cAttackTime * windup - baseWindupTime;
+        double divide2TimesWindupMinusPart1 = (1.0 / cAttackSpeed) * windup - baseWindupTime;
 
-        if (windupMod.compareTo(zero) != 0) {
+        if (windupMod != 0) {
             part2 = divide2TimesWindupMinusPart1 * windupMod;
         } else {
             part2 = divide2TimesWindupMinusPart1;
