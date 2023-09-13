@@ -74,20 +74,15 @@ public class OrbWalker implements ScriptLoaderService {
                                     this.canMoveTime = gameTime + this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed);
                                     this.mouseService.mouseMiddleDown();
                                     this.user32.BlockInput(new WinDef.BOOL(true));
-                                    this.gameTimeComponent.sleep(5);
+                                    this.gameTimeComponent.sleep(7);
                                     this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                    this.gameTimeComponent.sleep(30);
+                                    this.gameTimeComponent.sleep(10);
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-                                    this.gameTimeComponent.sleep(5);
+                                    this.gameTimeComponent.sleep(7);
                                     this.user32.BlockInput(new WinDef.BOOL(false));
                                     this.mouseService.mouseMiddleUp();
-                                   // log.info("Basic Attack -> canMoveTime: {}", this.canMoveTime);
-                                   // log.info("Basic Attack -> canAttackTime: {}", this.canAttackTime);
-                                    //log.info("gAMEtIME -> canAttackTime: {}", this.gameTimeComponent.getGameTime());
                                     return Mono.just(Boolean.TRUE);
                                 } else if (canMoveTime < gameTime) {
-                                   //log.info("Move -> canMoveTime: {}", canMoveTime);
-                                    //log.info("Move -> getGameTime: {}", gameTime);
                                     this.gameTimeComponent.sleep(30);
                                     this.mouseService.mouseRightClickNoMove();
                                 }
@@ -112,18 +107,14 @@ public class OrbWalker implements ScriptLoaderService {
                                     this.canAttackTime = gameTime + 1.0 / attackSpeed;
                                     this.canMoveTime = gameTime + this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed);
                                     this.user32.BlockInput(new WinDef.BOOL(true));
-                                    this.gameTimeComponent.sleep(5);
+                                    this.gameTimeComponent.sleep(7);
                                     this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                    this.gameTimeComponent.sleep(30);
+                                    this.gameTimeComponent.sleep(10);
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-                                    this.gameTimeComponent.sleep(5);
+                                    this.gameTimeComponent.sleep(7);
                                     this.user32.BlockInput(new WinDef.BOOL(false));
-                                    //log.info("Basic Attack -> canMoveTime: {}", this.canMoveTime);
-                                    //log.info("Basic Attack -> canAttackTime: {}", this.canAttackTime);
                                     return Mono.just(Boolean.TRUE);
                                 } else if (canMoveTime < gameTime) {
-                                    //log.info("Move -> canMoveTime: {}", this.canMoveTime);
-                                    //log.info("Move -> getGameTime: {}", this.gameTimeComponent.getGameTime());
                                     this.gameTimeComponent.sleep(30);
                                     this.mouseService.mouseRightClickNoMove();
                                 }
