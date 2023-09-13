@@ -71,7 +71,7 @@ public class OrbWalker implements ScriptLoaderService {
                                     Vector2 position = this.rendererComponent.worldToScreen(champion.getPosition().getX(), champion.getPosition().getY(), champion.getPosition().getZ());
                                     Vector2 mousePos = this.mouseService.getCursorPos();
                                     this.canAttackTime = gameTime + 1.0 / attackSpeed;
-                                    this.canMoveTime = gameTime + this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed);
+                                    this.canMoveTime = gameTime + this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (33/2000);
                                     this.mouseService.mouseMiddleDown();
                                     this.user32.BlockInput(new WinDef.BOOL(true));
                                     this.gameTimeComponent.sleep(7);
@@ -105,7 +105,7 @@ public class OrbWalker implements ScriptLoaderService {
                                     Vector2 position = this.rendererComponent.worldToScreen(minion.getPosition().getX(), minion.getPosition().getY(), minion.getPosition().getZ());
                                     Vector2 mousePos = this.mouseService.getCursorPos();
                                     this.canAttackTime = gameTime + 1.0 / attackSpeed;
-                                    this.canMoveTime = gameTime + this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed);
+                                    this.canMoveTime = gameTime + this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (33/2000);
                                     this.user32.BlockInput(new WinDef.BOOL(true));
                                     this.gameTimeComponent.sleep(7);
                                     this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
