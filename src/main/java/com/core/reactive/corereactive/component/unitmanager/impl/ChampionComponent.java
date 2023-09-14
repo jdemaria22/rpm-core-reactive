@@ -5,6 +5,7 @@ import com.core.reactive.corereactive.component.renderer.vector.Vector3;
 import com.core.reactive.corereactive.component.unitmanager.AbstractUnitManagerComponent;
 import com.core.reactive.corereactive.component.unitmanager.model.AiManager;
 import com.core.reactive.corereactive.component.unitmanager.model.Champion;
+import com.core.reactive.corereactive.component.unitmanager.model.WaypointsStructure;
 import com.core.reactive.corereactive.rpm.ReadProcessMemoryService;
 import com.core.reactive.corereactive.util.DistanceCalculatorService;
 import com.core.reactive.corereactive.util.Offset;
@@ -130,23 +131,34 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
                         .build())
                 .moveSpeed(memory.getFloat(Offset.aiManagerMovementSpeed))
                 .dashSpeed(memory.getFloat(Offset.aiManagerDashSpeed))
-//                .waypoints(this.getWaypoints(addressAiManager + Offset.aiManagerWaypointArray))
+                .waypoints(this.getWaypoints(addressAiManager))
                 .build();
     }
 
-    private List<Vector3> getWaypoints(Long address) {
+    private WaypointsStructure getWaypoints(Long address) {
         List<Vector3> waypoints = new ArrayList<>();
-        long aiManagerArray = this.readProcessMemoryService.read(address, Long.class, false);
-        Memory memory = this.readProcessMemoryService.readMemory(aiManagerArray, 200, false);
-        long numVector = memory.size() / 12;
-        for (long i = 0; i <= numVector; i++) {
+        long aiManagerArray = this.readProcessMemoryService.read(address + Offset.aiManagerWaypointArray, Long.class, false);
+        Memory memoryWaypoints = this.readProcessMemoryService.readMemory(aiManagerArray, 200, false);
+        Memory memoryWaypointsStructure = this.readProcessMemoryService.readMemory(address, 1064, false);
+        long numVector = memoryWaypoints.size() / 12;
+        for (long i = 0; i < numVector; i++) {
             long offset = i * 12;
             waypoints.add(Vector3.builder()
-                    .x(memory.getFloat(offset))
-                    .y(memory.getFloat(offset + 0x4))
-                     .z(memory.getFloat(offset + 0x8))
+                    .x(memoryWaypoints.getFloat(offset))
+                    .y(memoryWaypoints.getFloat(offset + 0x4))
+                    .z(memoryWaypoints.getFloat(offset + 0x8))
                     .build());
         }
-        return waypoints;
+        return WaypointsStructure.builder()
+                .navigationPath(waypoints)
+                .currentWaypoint(Vector3.builder()
+                        .x(memoryWaypointsStructure.getFloat(Offset.aiManagerWaypoint))
+                        .y(memoryWaypointsStructure.getFloat(Offset.aiManagerWaypoint + 0x4))
+                        .z(memoryWaypointsStructure.getFloat(Offset.aiManagerWaypoint + 0x8))
+                        .build())
+                .currentSize((int) memoryWaypointsStructure.getFloat(Offset.aiManagerWaypointCurrentSize))
+                .maxSize((int) memoryWaypointsStructure.getFloat(Offset.aiManagerWaypointMaxSize))
+                .passedWaypoint((int) memoryWaypointsStructure.getFloat(Offset.aiManagerPassedWaypoints))
+                .build();
     }
 }

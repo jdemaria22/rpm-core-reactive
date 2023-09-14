@@ -62,6 +62,7 @@ public class OrbWalker implements ScriptLoaderService {
                 .flatMap(jsonActivePlayer -> Mono.just(jsonActivePlayer.championStats.getAttackSpeed()))
                 .flatMap(attackSpeed -> {
                     Champion localPlayer =  championComponent.getLocalPlayer();
+                    log.info("aimanager:  {}", localPlayer.getAiManager());
                     Double range = (double) localPlayer.getAttackRange();
                     Double gameTime = this.gameTimeComponent.getGameTime();
                     return this.targetService.getBestChampionInRange(range)

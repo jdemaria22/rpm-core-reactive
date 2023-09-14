@@ -21,5 +21,5 @@ public class AiManager {
     private Vector3 velocity;
     private Float moveSpeed;
     private Float dashSpeed;
-    private List<Vector3> waypoints;
+    private WaypointsStructure waypoints;
 }
