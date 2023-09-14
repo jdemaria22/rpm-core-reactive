@@ -26,4 +26,5 @@ public class Champion extends Unit {
     private Boolean isTargeteable;
     private Boolean isAlive;
     private JsonCommunityDragon jsonCommunityDragon;
+    private AiManager aiManager;
 }

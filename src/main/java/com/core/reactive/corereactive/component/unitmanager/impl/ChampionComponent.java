@@ -3,6 +3,7 @@ package com.core.reactive.corereactive.component.unitmanager.impl;
 import com.core.reactive.corereactive.component.renderer.RendererComponent;
 import com.core.reactive.corereactive.component.renderer.vector.Vector3;
 import com.core.reactive.corereactive.component.unitmanager.AbstractUnitManagerComponent;
+import com.core.reactive.corereactive.component.unitmanager.model.AiManager;
 import com.core.reactive.corereactive.component.unitmanager.model.Champion;
 import com.core.reactive.corereactive.rpm.ReadProcessMemoryService;
 import com.core.reactive.corereactive.util.DistanceCalculatorService;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -58,8 +61,8 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
             champion.setName(memory.getString(Offset.objName));
             try {
                 champion.setJsonCommunityDragon(apiService.getJsonCommunityDragon(champion).block());
-            } catch (Exception ignored) {
-                log.info("error to get info from community dragon {}", champion.getName());
+            } catch (Exception exception) {
+                log.info("error to get info from community dragon {}, {}", champion.getName(), exception.getMessage());
             }
         }
         champion.setTeam(memory.getInt(Offset.objTeam));
@@ -79,6 +82,7 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
         champion.setIsTargeteable(memory.getByte(Offset.objTargetable) != 0);
         champion.setIsVisible(memory.getByte(Offset.objVisible) != 0);
         champion.setAttackRange(memory.getFloat(Offset.objAttackRange));
+        champion.setAiManager(this.findAiManager(address));
         return champion;
     }
 
@@ -91,5 +95,58 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
                     }
                     return Mono.empty();
                 });
+    }
+
+    private AiManager findAiManager(Long address) {
+        long v1 = address + Offset.aiManager;
+        int v3b = (int) (this.readProcessMemoryService.read(v1 + 16L, Long.class, false) & 0xFF);
+        long v7 = this.readProcessMemoryService.read(v1 + (8L * v3b + 24L), Long.class, false);
+        long v5 = this.readProcessMemoryService.read(v1 + (8L), Long.class, false);
+        v7 = v7 ^ ~v5;
+        long addressAiManager = this.readProcessMemoryService.read(v7 + 16, Long.class, false);
+        Memory memory = this.readProcessMemoryService.readMemory(addressAiManager, 1064, false);
+        return AiManager.builder()
+                .isMoving(memory.getByte(Offset.aiManagerIsMoving) != 0)
+                .isDashing(memory.getByte(Offset.aiManagerIsDashing) != 0)
+                .navBegin(Vector3.builder()
+                        .x(memory.getFloat(Offset.aiManagerStartPath))
+                        .y(memory.getFloat(Offset.aiManagerStartPath + 0x4))
+                        .z(memory.getFloat(Offset.aiManagerStartPath + 0x8))
+                        .build())
+                .navEnd(Vector3.builder()
+                        .x(memory.getFloat(Offset.aiManagerEndPath))
+                        .y(memory.getFloat(Offset.aiManagerEndPath + 0x4))
+                        .z(memory.getFloat(Offset.aiManagerEndPath + 0x8))
+                        .build())
+                .serverPos(Vector3.builder()
+                        .x(memory.getFloat(Offset.aiManagerServerPosition))
+                        .y(memory.getFloat(Offset.aiManagerServerPosition + 0x4))
+                        .z(memory.getFloat(Offset.aiManagerServerPosition + 0x8))
+                        .build())
+                .velocity(Vector3.builder()
+                        .x(memory.getFloat(Offset.aiManagerVelocity))
+                        .y(memory.getFloat(Offset.aiManagerVelocity + 0x4))
+                        .z(memory.getFloat(Offset.aiManagerVelocity + 0x8))
+                        .build())
+                .moveSpeed(memory.getFloat(Offset.aiManagerMovementSpeed))
+                .dashSpeed(memory.getFloat(Offset.aiManagerDashSpeed))
+//                .waypoints(this.getWaypoints(addressAiManager + Offset.aiManagerWaypointArray))
+                .build();
+    }
+
+    private List<Vector3> getWaypoints(Long address) {
+        List<Vector3> waypoints = new ArrayList<>();
+        long aiManagerArray = this.readProcessMemoryService.read(address, Long.class, false);
+        Memory memory = this.readProcessMemoryService.readMemory(aiManagerArray, 200, false);
+        long numVector = memory.size() / 12;
+        for (long i = 0; i <= numVector; i++) {
+            long offset = i * 12;
+            waypoints.add(Vector3.builder()
+                    .x(memory.getFloat(offset))
+                    .y(memory.getFloat(offset + 0x4))
+                     .z(memory.getFloat(offset + 0x8))
+                    .build());
+        }
+        return waypoints;
     }
 }
