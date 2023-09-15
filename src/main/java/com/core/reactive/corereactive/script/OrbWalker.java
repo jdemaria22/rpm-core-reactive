@@ -74,11 +74,11 @@ public class OrbWalker implements ScriptLoaderService {
                                     this.canMoveTime = gameTime + this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (40/2000);
                                     this.mouseService.mouseMiddleDown();
                                     this.user32.BlockInput(new WinDef.BOOL(true));
-                                    this.gameTimeComponent.sleep(7);
+                                    this.gameTimeComponent.sleep(10);
                                     this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
                                     this.gameTimeComponent.sleep(10);
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-                                    this.gameTimeComponent.sleep(7);
+                                    this.gameTimeComponent.sleep(10);
                                     this.user32.BlockInput(new WinDef.BOOL(false));
                                     this.mouseService.mouseMiddleUp();
                                     return Mono.just(Boolean.TRUE);
@@ -107,11 +107,11 @@ public class OrbWalker implements ScriptLoaderService {
                                     this.canAttackTime = gameTime + 1.0 / attackSpeed;
                                     this.canMoveTime = gameTime + this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (40/2000);
                                     this.user32.BlockInput(new WinDef.BOOL(true));
-                                    this.gameTimeComponent.sleep(7);
+                                    this.gameTimeComponent.sleep(10);
                                     this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
                                     this.gameTimeComponent.sleep(10);
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-                                    this.gameTimeComponent.sleep(7);
+                                    this.gameTimeComponent.sleep(10);
                                     this.user32.BlockInput(new WinDef.BOOL(false));
                                     return Mono.just(Boolean.TRUE);
                                 } else if (canMoveTime < gameTime) {
