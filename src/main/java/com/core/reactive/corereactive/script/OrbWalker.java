@@ -34,6 +34,7 @@ public class OrbWalker implements ScriptLoaderService {
 
     private Double canAttackTime = 0.0000000000;
     private Double canMoveTime = 0.0000000000;
+    private Double canCastTime = 0.0000000000;
 
     @Override
     public Mono<Boolean> update() {
@@ -44,6 +45,10 @@ public class OrbWalker implements ScriptLoaderService {
         if (this.isVkSpacePressed()) {
             this.keepKeyOPressed();
             return walk();
+        }
+
+        if (this.isVkSpacePressed()) {
+            return castQ();
         }
 
         if (this.isVkVPressed()) {
@@ -72,6 +77,7 @@ public class OrbWalker implements ScriptLoaderService {
                                     Vector2 mousePos = this.mouseService.getCursorPos();
                                     this.canAttackTime = gameTime + 1.0 / attackSpeed;
                                     this.canMoveTime = gameTime + this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (40/2000);
+                                    this.canCastTime = gameTime + this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (40/2000);
                                     this.mouseService.mouseMiddleDown();
                                     this.user32.BlockInput(new WinDef.BOOL(true));
                                     this.gameTimeComponent.sleep(10);
@@ -88,6 +94,32 @@ public class OrbWalker implements ScriptLoaderService {
                                 }
                                 return Mono.just(Boolean.TRUE);
                             });
+                });
+    }
+
+    private Mono<Boolean> castQ(){
+        return this.targetService.getBestChampionInSpell(1200.0, 2000.0, 0.25, 0.65)
+                .flatMap(predictedPosition -> {
+                    Double gameTime = this.gameTimeComponent.getGameTime();
+                    Vector2 mousePos = this.mouseService.getCursorPos();
+                        if (this.canCastTime < gameTime && predictedPosition != null) {
+                            this.canCastTime = gameTime + 0.25;
+                            this.user32.BlockInput(new WinDef.BOOL(true));
+                            this.gameTimeComponent.sleep(10);
+                            this.mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
+                            this.gameTimeComponent.sleep(10);
+                            this.keyboardService.sendKeyDown(KeyEvent.VK_Q);
+                            this.gameTimeComponent.sleep(10);
+                            this.keyboardService.sendKeyUp(KeyEvent.VK_Q);
+                            this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
+                            this.gameTimeComponent.sleep(10);
+                            this.user32.BlockInput(new WinDef.BOOL(false));
+                            return Mono.just(Boolean.TRUE);
+                        } else if (canMoveTime < gameTime + 0.25) {
+                            this.gameTimeComponent.sleep(30);
+                            this.mouseService.mouseRightClickNoMove();
+                        }
+                        return Mono.just(Boolean.TRUE);
                 });
     }
 

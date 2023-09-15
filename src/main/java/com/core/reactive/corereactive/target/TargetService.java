@@ -104,10 +104,9 @@ public class TargetService {
                                     double t = flytime + spellDelay + (double) ping / 2000.0;
                                     double arriveTimeA = this.distanceBetweenTargets(targetServPosVector, ptA) / targetMoveSpeed;
                                     double arriveTimeB = this.distanceBetweenTargets(targetServPosVector, ptB) / targetMoveSpeed;
-                                    Vector3 predictedPos = center;
 
                                     if (Math.min(arriveTimeA, arriveTimeB) <= t && t <= Math.max(arriveTimeA, arriveTimeB)) {
-                                        return this.rendererComponent.worldToScreen(predictedPos.getX(), predictedPos.getY(), predictedPos.getZ());
+                                        return this.rendererComponent.worldToScreen(center.getX(), center.getY(), center.getZ());
                                     }
                                 }
                             }
