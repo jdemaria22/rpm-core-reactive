@@ -44,10 +44,7 @@ public class OrbWalker implements ScriptLoaderService {
 
         if (this.isVkSpacePressed()) {
             this.keepKeyOPressed();
-            return walk();
-        }
-
-        if (this.isVkSpacePressed()) {
+            //this.walk();
             return castQ();
         }
 
@@ -98,7 +95,7 @@ public class OrbWalker implements ScriptLoaderService {
     }
 
     private Mono<Boolean> castQ(){
-        return this.targetService.getBestChampionInSpell(1200.0, 2000.0, 0.25, 0.65)
+        return this.targetService.getBestChampionInSpell(1200.0, 2000.0, 0.25, 120.0)
                 .flatMap(predictedPosition -> {
                     Double gameTime = this.gameTimeComponent.getGameTime();
                     Vector2 mousePos = this.mouseService.getCursorPos();

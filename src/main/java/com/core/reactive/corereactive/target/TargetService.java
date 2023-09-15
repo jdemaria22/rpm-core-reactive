@@ -53,7 +53,7 @@ public class TargetService {
                     int pathSize = waypoints.size();
                     int[] pathBounds = {-1, -1};
                     double pathTime = 0.0;
-                    double targetMoveSpeed = ai.getMoveSpeed() != null ? (double) ai.getDashSpeed() : (double) ai.getMoveSpeed();
+                    double targetMoveSpeed = ai.getIsDashing() ? (double) ai.getDashSpeed() : (double) ai.getMoveSpeed();
 
                     if (!(boolean) ai.getIsMoving()) {
                         Vector3 servPos = ai.getServerPos();
@@ -89,7 +89,6 @@ public class TargetService {
                             double extender = champion.getJsonCommunityDragon().getGameplayRadius();
                             double distance = spellRadius;
                             int steps = (int) (this.distanceBetweenTargets(curVector, nextVector) / distance);
-
                             if (0 < steps && steps < 1000) {
                                 for (int i = 1; i < steps - 1; i++) {
                                     Vector3 center = addVector3(curVector, scaleVector3(direction, distance * i));
@@ -104,7 +103,6 @@ public class TargetService {
                                     double t = flytime + spellDelay + (double) ping / 2000.0;
                                     double arriveTimeA = this.distanceBetweenTargets(targetServPosVector, ptA) / targetMoveSpeed;
                                     double arriveTimeB = this.distanceBetweenTargets(targetServPosVector, ptB) / targetMoveSpeed;
-
                                     if (Math.min(arriveTimeA, arriveTimeB) <= t && t <= Math.max(arriveTimeA, arriveTimeB)) {
                                         return this.rendererComponent.worldToScreen(center.getX(), center.getY(), center.getZ());
                                     }
