@@ -10,7 +10,7 @@ import lombok.ToString;
 @Builder
 @ToString
 public class Spell {
-    int level;
-    float readyAtSeconds;
-    float value;
+    Integer level;
+    Float readyAtSeconds;
+    Float value;
 }

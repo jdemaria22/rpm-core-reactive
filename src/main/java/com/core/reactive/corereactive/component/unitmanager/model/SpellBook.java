@@ -10,10 +10,10 @@ import lombok.ToString;
 @Builder
 @ToString
 public class SpellBook {
-    Spell q;
-    Spell w;
-    Spell e;
-    Spell r;
-    Spell d;
-    Spell f;
+    private Spell q;
+    private Spell w;
+    private Spell e;
+    private Spell r;
+    private Spell d;
+    private Spell f;
 }

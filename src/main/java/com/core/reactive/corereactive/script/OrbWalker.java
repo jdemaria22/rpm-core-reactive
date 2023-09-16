@@ -6,6 +6,7 @@ import com.core.reactive.corereactive.component.renderer.vector.Vector2;
 import com.core.reactive.corereactive.component.unitmanager.impl.ChampionComponent;
 import com.core.reactive.corereactive.component.unitmanager.model.Champion;
 import com.core.reactive.corereactive.component.unitmanager.model.Minion;
+import com.core.reactive.corereactive.component.unitmanager.model.Spell;
 import com.core.reactive.corereactive.hook.Config;
 import com.core.reactive.corereactive.target.TargetService;
 import com.core.reactive.corereactive.util.KeyboardService;
@@ -19,6 +20,8 @@ import org.springframework.util.ObjectUtils;
 import reactor.core.publisher.Mono;
 
 import java.awt.event.KeyEvent;
+import java.util.Map;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -97,8 +100,9 @@ public class OrbWalker implements ScriptLoaderService {
         return this.targetService.getBestChampionInSpell(1200.0, 2000.0, 0.25, 60.0)
                 .flatMap(predictedPosition -> {
                     Double gameTime = this.gameTimeComponent.getGameTime();
-                    Double qCoolDown = (double) this.championComponent.getLocalPlayer().getSpellBook().getQ().getReadyAtSeconds();
-                    int qLevel = this.championComponent.getLocalPlayer().getSpellBook().getQ().getLevel();
+                    Map<Long, Spell> spellMap = this.championComponent.getLocalPlayer().getSpells();
+                    Double qCoolDown = (double) spellMap.get(0L).getReadyAtSeconds();
+                    Integer qLevel = spellMap.get(0L).getLevel();
                     Vector2 mousePos = this.mouseService.getCursorPos();
                         if (this.canCastTime < gameTime && predictedPosition != null && gameTime - qCoolDown > 0 && qLevel > 0) {
                             this.canCastTime = gameTime + 0.25;

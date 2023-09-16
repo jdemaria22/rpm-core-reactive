@@ -7,6 +7,8 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
+import java.util.Map;
+
 @Getter
 @Setter
 @SuperBuilder
@@ -27,5 +29,5 @@ public class Champion extends Unit {
     private Boolean isAlive;
     private JsonCommunityDragon jsonCommunityDragon;
     private AiManager aiManager;
-    private SpellBook spellBook;
+    private Map<Long, Spell> spells;
 }
