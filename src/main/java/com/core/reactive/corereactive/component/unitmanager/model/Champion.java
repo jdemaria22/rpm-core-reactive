@@ -29,5 +29,5 @@ public class Champion extends Unit {
     private Boolean isAlive;
     private JsonCommunityDragon jsonCommunityDragon;
     private AiManager aiManager;
-    private Map<Long, Spell> spells;
+    private SpellBook spellBook;
 }

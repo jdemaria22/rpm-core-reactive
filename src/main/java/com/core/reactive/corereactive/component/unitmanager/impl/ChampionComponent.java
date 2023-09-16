@@ -3,10 +3,7 @@ package com.core.reactive.corereactive.component.unitmanager.impl;
 import com.core.reactive.corereactive.component.renderer.RendererComponent;
 import com.core.reactive.corereactive.component.renderer.vector.Vector3;
 import com.core.reactive.corereactive.component.unitmanager.AbstractUnitManagerComponent;
-import com.core.reactive.corereactive.component.unitmanager.model.AiManager;
-import com.core.reactive.corereactive.component.unitmanager.model.Champion;
-import com.core.reactive.corereactive.component.unitmanager.model.Spell;
-import com.core.reactive.corereactive.component.unitmanager.model.WaypointsStructure;
+import com.core.reactive.corereactive.component.unitmanager.model.*;
 import com.core.reactive.corereactive.rpm.ReadProcessMemoryService;
 import com.core.reactive.corereactive.util.DistanceCalculatorService;
 import com.core.reactive.corereactive.util.Offset;
@@ -91,7 +88,7 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
         champion.setIsVisible(memory.getByte(Offset.objVisible) != 0);
         champion.setAttackRange(memory.getFloat(Offset.objAttackRange));
         champion.setAiManager(this.findAiManager(address));
-        champion.setSpells(this.findSpellBook(address));
+        champion.setSpellBook(this.findSpellBook(address));
         return champion;
     }
 
@@ -176,7 +173,7 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
                 .build();
     }
 
-    private Map<Long, Spell> findSpellBook(long address) {
+    private SpellBook findSpellBook(long address) {
         Map<Long, Spell> spellMap = new HashMap<>();
         Memory memory = this.readProcessMemoryService.readMemory(address + Offset.objSpellBook, SIZE_SPELL_BOOK, false);
         Long pos = POS;
@@ -189,7 +186,14 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
             spellMap.put(pos, spellSlot);
             pos++;
         }
-        return spellMap;
+        return SpellBook.builder()
+                .q(spellMap.get(0L))
+                .w(spellMap.get(1L))
+                .e(spellMap.get(2L))
+                .r(spellMap.get(3L))
+                .d(spellMap.get(4L))
+                .f(spellMap.get(5L))
+                .build();
     }
 
 }

@@ -7,6 +7,7 @@ import com.core.reactive.corereactive.component.unitmanager.impl.ChampionCompone
 import com.core.reactive.corereactive.component.unitmanager.model.Champion;
 import com.core.reactive.corereactive.component.unitmanager.model.Minion;
 import com.core.reactive.corereactive.component.unitmanager.model.Spell;
+import com.core.reactive.corereactive.component.unitmanager.model.SpellBook;
 import com.core.reactive.corereactive.hook.Config;
 import com.core.reactive.corereactive.target.TargetService;
 import com.core.reactive.corereactive.util.KeyboardService;
@@ -79,7 +80,7 @@ public class OrbWalker implements ScriptLoaderService {
                                     this.canCastTime = gameTime + this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (40/2000);
                                     this.mouseService.mouseMiddleDown();
                                     this.user32.BlockInput(new WinDef.BOOL(true));
-                                    this.gameTimeComponent.sleep(10);
+                                    this.gameTimeComponent.sleep(15);
                                     this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
                                     this.gameTimeComponent.sleep(10);
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
@@ -100,14 +101,14 @@ public class OrbWalker implements ScriptLoaderService {
         return this.targetService.getBestChampionInSpell(1200.0, 2000.0, 0.25, 60.0)
                 .flatMap(predictedPosition -> {
                     Double gameTime = this.gameTimeComponent.getGameTime();
-                    Map<Long, Spell> spellMap = this.championComponent.getLocalPlayer().getSpells();
-                    Double qCoolDown = (double) spellMap.get(0L).getReadyAtSeconds();
-                    Integer qLevel = spellMap.get(0L).getLevel();
+                    SpellBook spellBook = this.championComponent.getLocalPlayer().getSpellBook();
+                    Double qCoolDown = (double) spellBook.getQ().getReadyAtSeconds();
+                    Integer qLevel = spellBook.getQ().getLevel();
                     Vector2 mousePos = this.mouseService.getCursorPos();
                         if (this.canCastTime < gameTime && predictedPosition != null && gameTime - qCoolDown > 0 && qLevel > 0) {
                             this.canCastTime = gameTime + 0.25;
                             this.user32.BlockInput(new WinDef.BOOL(true));
-                            this.gameTimeComponent.sleep(10);
+                            this.gameTimeComponent.sleep(15);
                             this.mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
                             this.gameTimeComponent.sleep(10);
                             this.keyboardService.sendKeyDown(KeyEvent.VK_Q);
