@@ -3,14 +3,13 @@ package com.core.reactive.corereactive.component.unitmanager.impl;
 import com.core.reactive.corereactive.component.renderer.RendererComponent;
 import com.core.reactive.corereactive.component.renderer.vector.Vector3;
 import com.core.reactive.corereactive.component.unitmanager.AbstractUnitManagerComponent;
-import com.core.reactive.corereactive.component.unitmanager.model.AiManager;
-import com.core.reactive.corereactive.component.unitmanager.model.Champion;
-import com.core.reactive.corereactive.component.unitmanager.model.WaypointsStructure;
+import com.core.reactive.corereactive.component.unitmanager.model.*;
 import com.core.reactive.corereactive.rpm.ReadProcessMemoryService;
 import com.core.reactive.corereactive.util.DistanceCalculatorService;
 import com.core.reactive.corereactive.util.Offset;
 import com.core.reactive.corereactive.util.api.ApiService;
 import com.sun.jna.Memory;
+import com.sun.jna.Native;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,7 +17,9 @@ import org.springframework.util.ObjectUtils;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -84,6 +85,7 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
         champion.setIsVisible(memory.getByte(Offset.objVisible) != 0);
         champion.setAttackRange(memory.getFloat(Offset.objAttackRange));
         champion.setAiManager(this.findAiManager(address));
+        champion.setSpellBook(this.findSpellBook(address));
         return champion;
     }
 
@@ -134,7 +136,37 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
                 .waypoints(this.getWaypoints(addressAiManager))
                 .build();
     }
+    private SpellBook findSpellBook(long address) {
+        Map<Integer, Spell> spellMap = updateSpellbook(address);
+        return SpellBook.builder()
+                .q(spellMap.get(0))
+                .w(spellMap.get(1))
+                .e(spellMap.get(2))
+                .r(spellMap.get(3))
+                .d(spellMap.get(4))
+                .f(spellMap.get(5))
+                .build();
+    }
+    private Map<Integer, Spell> updateSpellbook(long address) {
+        try {
+            Map<Integer, Spell> spellbook = new HashMap<>();
+            Memory memory = this.readProcessMemoryService.readMemory(address + Offset.objSpellBook, 1064, false);
+            for (int i = 0; i < 6; i++) {
+                Spell spellSlot = Spell.builder()
+                        .level(memory.getInt(Offset.spellBookSlotLevel))
+                        .value(memory.getFloat(Offset.spellBookSlotDamage))
+                        .readyAtSeconds(memory.getFloat(Offset.spellBookSlotTime))
+                        .build();
+                spellbook.put(i, spellSlot);
+            }
 
+            log.info("lvl {}", spellbook.get(0).getLevel());
+            return spellbook;
+        } catch (Exception e) {
+            System.out.println("Error in SpellBook.updateSpellbook(): " + e.toString());
+            return new HashMap<>(); // Devuelve un mapa vacío en caso de error
+        }
+    }
     private WaypointsStructure getWaypoints(Long address) {
         List<Vector3> waypoints = new ArrayList<>();
         long aiManagerArray = this.readProcessMemoryService.read(address + Offset.aiManagerWaypointArray, Long.class, false);

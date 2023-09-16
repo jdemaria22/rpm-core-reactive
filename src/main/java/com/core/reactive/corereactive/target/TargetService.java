@@ -41,7 +41,7 @@ public class TargetService {
                 if (Objects.equals(champion.getTeam(), localPLayer.getTeam())) {
                     continue;
                 }
-                boolean inDistance = this.distanceBetweenTargets(localPLayer.getPosition(), champion.getPosition()) - champion.getJsonCommunityDragon().getGameplayRadius() <= spellRange + localPLayer.getJsonCommunityDragon().getGameplayRadius();
+                boolean inDistance = this.distanceBetweenTargets(localPLayer.getPosition(), champion.getPosition()) - champion.getJsonCommunityDragon().getGameplayRadius() <= spellRange;
                 if (inDistance){
                     AiManager ai = champion.getAiManager();
                     AiManager ailocal = localPLayer.getAiManager();
@@ -54,12 +54,10 @@ public class TargetService {
                     int[] pathBounds = {-1, -1};
                     double pathTime = 0.0;
                     double targetMoveSpeed = ai.getIsDashing() ? (double) ai.getDashSpeed() : (double) ai.getMoveSpeed();
-
                     if (!(boolean) ai.getIsMoving()) {
                         Vector3 servPos = ai.getServerPos();
                         return this.rendererComponent.worldToScreen(servPos.getX(), servPos.getY(), servPos.getZ());
                     }
-
                     for (int i = 0; i < pathSize - 1; i++) {
                         Vector3 curVector = waypoints.get(i);
                         Vector3 nextVector = waypoints.get(i + 1);
@@ -67,7 +65,6 @@ public class TargetService {
                                 this.rendererComponent.worldToScreen(nextVector.getX(), nextVector.getY(), nextVector.getZ())
                                 ,this.rendererComponent.worldToScreen(curVector.getX(), curVector.getY(), curVector.getZ())
                         );
-
                         if (pathTime <= tMin && pathTime + t >= tMin) {
                             pathBounds[0] = i;
                         }
@@ -79,7 +76,6 @@ public class TargetService {
                         }
                         pathTime += t;
                     }
-
                     if (pathBounds[0] >= 0 && pathBounds[1] >= 0) {
                         int currPathIndex = pathBounds[0];
                         while (true) {

@@ -44,8 +44,7 @@ public class OrbWalker implements ScriptLoaderService {
 
         if (this.isVkSpacePressed()) {
             this.keepKeyOPressed();
-            //this.walk();
-            return castQ();
+            return walk().flatMap(as -> castQ());
         }
 
         if (this.isVkVPressed()) {
@@ -95,11 +94,13 @@ public class OrbWalker implements ScriptLoaderService {
     }
 
     private Mono<Boolean> castQ(){
-        return this.targetService.getBestChampionInSpell(1200.0, 2000.0, 0.25, 120.0)
+        return this.targetService.getBestChampionInSpell(1200.0, 2000.0, 0.25, 60.0)
                 .flatMap(predictedPosition -> {
                     Double gameTime = this.gameTimeComponent.getGameTime();
+                    Double qCoolDown = (double) this.championComponent.getLocalPlayer().getSpellBook().getQ().getReadyAtSeconds();
+                    int qLevel = this.championComponent.getLocalPlayer().getSpellBook().getQ().getLevel();
                     Vector2 mousePos = this.mouseService.getCursorPos();
-                        if (this.canCastTime < gameTime && predictedPosition != null) {
+                        if (this.canCastTime < gameTime && predictedPosition != null && gameTime - qCoolDown > 0 && qLevel > 0) {
                             this.canCastTime = gameTime + 0.25;
                             this.user32.BlockInput(new WinDef.BOOL(true));
                             this.gameTimeComponent.sleep(10);
@@ -111,10 +112,6 @@ public class OrbWalker implements ScriptLoaderService {
                             this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                             this.gameTimeComponent.sleep(10);
                             this.user32.BlockInput(new WinDef.BOOL(false));
-                            return Mono.just(Boolean.TRUE);
-                        } else if (canMoveTime < gameTime + 0.25) {
-                            this.gameTimeComponent.sleep(30);
-                            this.mouseService.mouseRightClickNoMove();
                         }
                         return Mono.just(Boolean.TRUE);
                 });
