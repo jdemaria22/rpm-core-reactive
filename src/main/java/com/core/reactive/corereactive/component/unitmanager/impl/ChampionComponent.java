@@ -69,6 +69,7 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
             } catch (Exception exception) {
                 log.info("error to get info from community dragon {}, {}", champion.getName(), exception.getMessage());
             }
+
         }
         champion.setTeam(memory.getInt(Offset.objTeam));
         champion.setName(memory.getString(Offset.objName));

@@ -41,7 +41,7 @@ public class TargetService {
                 if (Objects.equals(champion.getTeam(), localPLayer.getTeam())) {
                     continue;
                 }
-                boolean inDistance = this.distanceBetweenTargets(localPLayer.getPosition(), champion.getPosition()) - champion.getJsonCommunityDragon().getGameplayRadius() <= spellRange;
+                boolean inDistance = this.distanceBetweenTargets(localPLayer.getPosition(), champion.getPosition()) < spellRange-champion.getJsonCommunityDragon().getGameplayRadius();
                 if (inDistance){
                     AiManager ai = champion.getAiManager();
                     AiManager ailocal = localPLayer.getAiManager();
@@ -95,12 +95,14 @@ public class TargetService {
                                             .y(ai.getServerPos().getY())
                                             .z(ai.getServerPos().getZ())
                                             .build();
+
+                                    Vector3 predictedPos = addVector3(center, scaleVector3(normalizeVector3(ai.getVelocity()), extender));
                                     double flytime = this.distanceBetweenTargets(ailocal.getServerPos(), ai.getServerPos()) / spellSpeed;
                                     double t = flytime + spellDelay + (double) ping / 2000.0;
                                     double arriveTimeA = this.distanceBetweenTargets(targetServPosVector, ptA) / targetMoveSpeed;
                                     double arriveTimeB = this.distanceBetweenTargets(targetServPosVector, ptB) / targetMoveSpeed;
                                     if (Math.min(arriveTimeA, arriveTimeB) <= t && t <= Math.max(arriveTimeA, arriveTimeB)) {
-                                        return this.rendererComponent.worldToScreen(center.getX(), center.getY(), center.getZ());
+                                        return this.rendererComponent.worldToScreen(predictedPos.getX(), predictedPos.getY(), predictedPos.getZ());
                                     }
                                 }
                             }
@@ -245,16 +247,17 @@ public class TargetService {
     private List<Vector3> getFuturePoints(Champion target) {
         List<Vector3> waypoints = target.getAiManager().getWaypoints().getNavigationPath();
         List<Vector3> futurePoints = new ArrayList<>();
-        futurePoints.add(target.getAiManager().getServerPos());
+        Vector3 targetServerPos = target.getAiManager().getServerPos();
+        futurePoints.add(targetServerPos);
 
         if (waypoints.isEmpty()) {
             return futurePoints;
         }
 
-        for (int i = 1; i < waypoints.size(); i++) {
+        for (int i = target.getAiManager().getWaypoints().getPassedWaypoint(); i < waypoints.size(); i++) {
             Vector3 waypoint = waypoints.get(i);
-            double dist1 = this.distanceBetweenTargets(target.getAiManager().getServerPos(), waypoint);
-            double dist2 = this.distanceBetweenTargets(target.getAiManager().getServerPos(), waypoints.get(i - 1));
+            double dist1 = this.distanceBetweenTargets(targetServerPos, waypoint);
+            double dist2 = this.distanceBetweenTargets(targetServerPos, waypoints.get(i - 1));
             double dist3 = this.distanceBetweenTargets(waypoints.get(i - 1), waypoint);
 
             if (Math.abs(dist1 + dist2 - dist3) <= 20.0) {
