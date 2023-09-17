@@ -6,7 +6,6 @@ import com.core.reactive.corereactive.component.unitmanager.UnitInfoProvider;
 import com.core.reactive.corereactive.component.unitmanager.model.AiManager;
 import com.core.reactive.corereactive.component.unitmanager.model.Champion;
 import com.core.reactive.corereactive.component.unitmanager.model.Spell;
-import com.core.reactive.corereactive.component.unitmanager.model.SpellBook;
 import com.core.reactive.corereactive.component.unitmanager.model.WaypointsStructure;
 import com.core.reactive.corereactive.rpm.ReadProcessMemoryService;
 import com.core.reactive.corereactive.util.Offset;
@@ -45,6 +44,8 @@ public class ChampionInfoProvider implements UnitInfoProvider<Champion> {
         list.add(this.setIsTargeteable());
         list.add(this.setIsVisible());
         list.add(this.setAttackRange());
+        list.add(this.setAiManager());
+        list.add(this.setSpellBook());
         return list;
     }
     private Function<FunctionInfo<Champion>, Champion> setTeam() {
@@ -145,12 +146,12 @@ public class ChampionInfoProvider implements UnitInfoProvider<Champion> {
 
     private Function<FunctionInfo<Champion>, Champion> setSpellBook() {
         return functionInfo -> {
-            functionInfo.getUnit().setSpellBook(this.findSpellBook(functionInfo.getUnit().getAddress()));
+            functionInfo.getUnit().setSpells(this.findSpellBook(functionInfo.getUnit().getAddress()));
             return functionInfo.getUnit();
         };
     }
 
-    private Function<FunctionInfo<Champion>, Champion> setAiManage() {
+    private Function<FunctionInfo<Champion>, Champion> setAiManager() {
         return functionInfo -> {
             functionInfo.getUnit().setAiManager(this.findAiManager(functionInfo.getUnit().getAddress()));
             return functionInfo.getUnit();
@@ -227,7 +228,7 @@ public class ChampionInfoProvider implements UnitInfoProvider<Champion> {
                 .build();
     }
 
-    private SpellBook findSpellBook(long address) {
+    private Map<Long, Spell> findSpellBook(long address) {
         Map<Long, Spell> spellMap = new HashMap<>();
         Memory memory = this.readProcessMemoryService.readMemory(address + Offset.objSpellBook, SIZE_SPELL_BOOK, false);
         Long pos = POS;
@@ -240,13 +241,6 @@ public class ChampionInfoProvider implements UnitInfoProvider<Champion> {
             spellMap.put(pos, spellSlot);
             pos++;
         }
-        return SpellBook.builder()
-                .q(spellMap.get(0L))
-                .w(spellMap.get(1L))
-                .e(spellMap.get(2L))
-                .r(spellMap.get(3L))
-                .d(spellMap.get(4L))
-                .f(spellMap.get(5L))
-                .build();
+        return spellMap;
     }
 }

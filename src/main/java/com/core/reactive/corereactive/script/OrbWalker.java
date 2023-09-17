@@ -6,7 +6,7 @@ import com.core.reactive.corereactive.component.renderer.vector.Vector2;
 import com.core.reactive.corereactive.component.unitmanager.champion.ChampionComponent;
 import com.core.reactive.corereactive.component.unitmanager.model.Champion;
 import com.core.reactive.corereactive.component.unitmanager.model.Minion;
-import com.core.reactive.corereactive.component.unitmanager.model.SpellBook;
+import com.core.reactive.corereactive.component.unitmanager.model.Spell;
 import com.core.reactive.corereactive.hook.Config;
 import com.core.reactive.corereactive.target.TargetService;
 import com.core.reactive.corereactive.util.KeyboardService;
@@ -46,7 +46,7 @@ public class OrbWalker implements ScriptLoaderService {
 
         if (this.isVkSpacePressed()) {
             this.keepKeyOPressed();
-            return walk().flatMap(as -> castQ());
+            return walk();
         }
 
         if (this.isVkVPressed()) {
@@ -99,9 +99,9 @@ public class OrbWalker implements ScriptLoaderService {
         return this.targetService.getBestChampionInSpell(1200.0, 2000.0, 0.25, 60.0)
                 .flatMap(predictedPosition -> {
                     Double gameTime = this.gameTimeComponent.getGameTime();
-                    SpellBook spellBook = this.championComponent.getLocalPlayer().getSpellBook();
-                    Double qCoolDown = (double) spellBook.getQ().getReadyAtSeconds();
-                    Integer qLevel = spellBook.getQ().getLevel();
+                    Spell spellQ = this.championComponent.getLocalPlayer().getSpellQ();
+                    Double qCoolDown = (double) spellQ.getReadyAtSeconds();
+                    Integer qLevel = spellQ.getLevel();
                     Vector2 mousePos = this.mouseService.getCursorPos();
                         if (this.canCastTime < gameTime && predictedPosition != null && gameTime - qCoolDown > 0 && qLevel > 0) {
                             this.canCastTime = gameTime + 0.25;
