@@ -3,10 +3,9 @@ package com.core.reactive.corereactive.script;
 import com.core.reactive.corereactive.component.gametime.GameTimeComponent;
 import com.core.reactive.corereactive.component.renderer.RendererComponent;
 import com.core.reactive.corereactive.component.renderer.vector.Vector2;
-import com.core.reactive.corereactive.component.unitmanager.impl.ChampionComponent;
+import com.core.reactive.corereactive.component.unitmanager.champion.ChampionComponent;
 import com.core.reactive.corereactive.component.unitmanager.model.Champion;
 import com.core.reactive.corereactive.component.unitmanager.model.Minion;
-import com.core.reactive.corereactive.component.unitmanager.model.Spell;
 import com.core.reactive.corereactive.component.unitmanager.model.SpellBook;
 import com.core.reactive.corereactive.hook.Config;
 import com.core.reactive.corereactive.target.TargetService;
@@ -21,7 +20,6 @@ import org.springframework.util.ObjectUtils;
 import reactor.core.publisher.Mono;
 
 import java.awt.event.KeyEvent;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor

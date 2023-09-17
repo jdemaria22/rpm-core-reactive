@@ -1,8 +1,8 @@
-package com.core.reactive.corereactive.component.unitmanager.impl;
+package com.core.reactive.corereactive.component.unitmanager.minion;
 
 import com.core.reactive.corereactive.component.renderer.RendererComponent;
-import com.core.reactive.corereactive.component.renderer.vector.Vector3;
 import com.core.reactive.corereactive.component.unitmanager.AbstractUnitManagerComponent;
+import com.core.reactive.corereactive.component.unitmanager.FunctionInfo;
 import com.core.reactive.corereactive.component.unitmanager.model.Minion;
 import com.core.reactive.corereactive.rpm.ReadProcessMemoryService;
 import com.core.reactive.corereactive.util.DistanceCalculatorService;
@@ -13,6 +13,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,9 +24,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MinionComponent extends AbstractUnitManagerComponent<Minion> {
     private static final int SIZE_MINION = 0x4000;
     private final ConcurrentHashMap<Long, Minion> mapMinions = new ConcurrentHashMap<>();
+    private final MinionInfoProvider minionInfoProvider;
 
-    protected MinionComponent(ReadProcessMemoryService readProcessMemoryService, ApiService apiService, DistanceCalculatorService distanceCalculatorService, RendererComponent rendererComponent) {
+    protected MinionComponent(ReadProcessMemoryService readProcessMemoryService, ApiService apiService, DistanceCalculatorService distanceCalculatorService, RendererComponent rendererComponent, MinionInfoProvider minionInfoProvider) {
         super(readProcessMemoryService, apiService, distanceCalculatorService, rendererComponent);
+        this.minionInfoProvider = minionInfoProvider;
     }
 
     @Override
@@ -59,23 +62,7 @@ public class MinionComponent extends AbstractUnitManagerComponent<Minion> {
             unit = Minion.builder().address(address).build();
         }
         Memory memory = this.readProcessMemoryService.readMemory(address, SIZE_MINION, false);
-        unit.setTeam(memory.getInt(Offset.objTeam));
-        unit.setName(memory.getString(Offset.objName));
-        unit.setBaseAttack(memory.getFloat(Offset.objBaseAttack));
-        unit.setBonusAttack(memory.getFloat(Offset.objBonusAttack));
-        unit.setHealth(memory.getFloat(Offset.objHealth));
-        unit.setArmor(memory.getFloat(Offset.objArmor));
-        unit.setMagicDamage(memory.getFloat(Offset.objMagicDamage));
-        Vector3 vector3 = Vector3.builder()
-                .x(memory.getFloat(Offset.objPositionX))
-                .y(memory.getFloat(Offset.objPositionX + 0x4))
-                .z(memory.getFloat(Offset.objPositionX + 0x8))
-                .build();
-        unit.setPosition(vector3);
-        unit.setIsAlive(memory.getByte(Offset.objSpawnCount) %2 == 0 );
-        unit.setIsTargeteable(memory.getByte(Offset.objTargetable) != 0);
-        unit.setIsVisible(memory.getByte(Offset.objVisible) != 0);
-        unit.setAttackRange(memory.getFloat(Offset.objAttackRange));
-        return unit;
+        FunctionInfo<Minion> functionInfo = new FunctionInfo<>(unit, memory);
+        return Flux.fromIterable(this.minionInfoProvider.getUnitInfo()).flatMap(functionInfoMinionFunction -> Mono.just(functionInfoMinionFunction.apply(functionInfo))).blockLast();
     }
 }

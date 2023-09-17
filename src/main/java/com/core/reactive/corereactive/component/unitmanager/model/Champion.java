@@ -14,10 +14,8 @@ import java.util.Map;
 @SuperBuilder
 @ToString
 public class Champion extends Unit {
-    private Long address;
     private float attackRange;
     private Integer team;
-    private String name;
     private float baseAttack;
     private float bonusAttack;
     private float health;

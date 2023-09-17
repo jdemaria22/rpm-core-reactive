@@ -11,10 +11,8 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @ToString
 public class Minion extends Unit {
-    private Long address;
     private float attackRange;
     private Integer team;
-    private String name;
     private float baseAttack;
     private float bonusAttack;
     private float health;

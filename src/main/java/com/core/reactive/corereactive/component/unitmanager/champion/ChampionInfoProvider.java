@@ -1,106 +1,160 @@
-package com.core.reactive.corereactive.component.unitmanager.impl;
+package com.core.reactive.corereactive.component.unitmanager.champion;
 
-import com.core.reactive.corereactive.component.renderer.RendererComponent;
 import com.core.reactive.corereactive.component.renderer.vector.Vector3;
-import com.core.reactive.corereactive.component.unitmanager.AbstractUnitManagerComponent;
-import com.core.reactive.corereactive.component.unitmanager.model.*;
+import com.core.reactive.corereactive.component.unitmanager.FunctionInfo;
+import com.core.reactive.corereactive.component.unitmanager.UnitInfoProvider;
+import com.core.reactive.corereactive.component.unitmanager.model.AiManager;
+import com.core.reactive.corereactive.component.unitmanager.model.Champion;
+import com.core.reactive.corereactive.component.unitmanager.model.Spell;
+import com.core.reactive.corereactive.component.unitmanager.model.SpellBook;
+import com.core.reactive.corereactive.component.unitmanager.model.WaypointsStructure;
 import com.core.reactive.corereactive.rpm.ReadProcessMemoryService;
-import com.core.reactive.corereactive.util.DistanceCalculatorService;
 import com.core.reactive.corereactive.util.Offset;
-import com.core.reactive.corereactive.util.api.ApiService;
 import com.sun.jna.Memory;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
-import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 @Component
-@Getter
-@Slf4j
-public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
-
-    private static final int SIZE_CHAMPION = 0x4000;
+@RequiredArgsConstructor
+public class ChampionInfoProvider implements UnitInfoProvider<Champion> {
     public static final int SIZE_SPELL_BOOK = 48;
     public static final long POS = 0L;
     public static final int OFFSET = 0;
     public static final int SIZE_SPELL_ARRAY = 6;
-    private final ConcurrentHashMap<Long, Champion> mapChampion = new ConcurrentHashMap<>();
-    private Champion localPlayer = Champion.builder().build();
 
-    protected ChampionComponent(ReadProcessMemoryService readProcessMemoryService, ApiService apiService, DistanceCalculatorService distanceCalculatorService, RendererComponent rendererComponent) {
-        super(readProcessMemoryService, apiService, distanceCalculatorService, rendererComponent);
-    }
+    private final ReadProcessMemoryService readProcessMemoryService;
 
     @Override
-    public Mono<Boolean> update() {
-        return super.update()
-                .flatMap(b -> this.findLocalPlayer()
-                        .flatMap(champion -> {
-                            this.localPlayer = champion;
-                            return Mono.just(Boolean.TRUE);
-                        }));
+    public List<Function<FunctionInfo<Champion>, Champion>> getUnitInfo() {
+        List<Function<FunctionInfo<Champion>, Champion>> list = new ArrayList<>();
+        list.add(this.setTeam());
+        list.add(this.setName());
+        list.add(this.setBaseAttack());
+        list.add(this.setBonusAttack());
+        list.add(this.setHealth());
+        list.add(this.setArmor());
+        list.add(this.setMagicDamage());
+        list.add(this.setPosition());
+        list.add(this.setIsAlive());
+        list.add(this.setIsTargeteable());
+        list.add(this.setIsVisible());
+        list.add(this.setAttackRange());
+        return list;
+    }
+    private Function<FunctionInfo<Champion>, Champion> setTeam() {
+        return functionInfo -> {
+            functionInfo.getUnit().setTeam(functionInfo.getMemory().getInt(Offset.objName));
+            return functionInfo.getUnit();
+        };
     }
 
-    @Override
-    public Mono<Long> getOffset() {
-        return Mono.just(Offset.championList);
+    private Function<FunctionInfo<Champion>, Champion> setName() {
+        return functionInfo -> {
+            functionInfo.getUnit().setName(functionInfo.getMemory().getString(Offset.objName));
+            return functionInfo.getUnit();
+        };
     }
 
-    @Override
-    public ConcurrentHashMap<Long, Champion> getMapUnit() {
-        return this.mapChampion;
+    private Function<FunctionInfo<Champion>, Champion> setBaseAttack() {
+        return functionInfo -> {
+            functionInfo.getUnit().setBaseAttack(functionInfo.getMemory().getFloat(Offset.objBaseAttack));
+            return functionInfo.getUnit();
+        };
     }
 
-    @Override
-    public Champion findUnitInfo(Long address, Champion champion) {
-        Memory memory = this.readProcessMemoryService.readMemory(address, SIZE_CHAMPION, false);
-        if (ObjectUtils.isEmpty(champion)){
-            champion = Champion.builder().address(address).build();
-            champion.setName(memory.getString(Offset.objName));
-            try {
-                champion.setJsonCommunityDragon(apiService.getJsonCommunityDragon(champion).block());
-            } catch (Exception exception) {
-                log.info("error to get info from community dragon {}, {}", champion.getName(), exception.getMessage());
-            }
-        }
-        champion.setTeam(memory.getInt(Offset.objTeam));
-        champion.setName(memory.getString(Offset.objName));
-        champion.setBaseAttack(memory.getFloat(Offset.objBaseAttack));
-        champion.setBonusAttack(memory.getFloat(Offset.objBonusAttack));
-        champion.setHealth(memory.getFloat(Offset.objHealth));
-        champion.setArmor(memory.getFloat(Offset.objArmor));
-        champion.setMagicDamage(memory.getFloat(Offset.objMagicDamage));
-        Vector3 vector3 = Vector3.builder()
-                .x(memory.getFloat(Offset.objPositionX))
-                .y(memory.getFloat(Offset.objPositionX + 0x4))
-                .z(memory.getFloat(Offset.objPositionX + 0x8))
-                .build();
-        champion.setPosition(vector3);
-        champion.setIsAlive(memory.getByte(Offset.objSpawnCount) %2 == 0 );
-        champion.setIsTargeteable(memory.getByte(Offset.objTargetable) != 0);
-        champion.setIsVisible(memory.getByte(Offset.objVisible) != 0);
-        champion.setAttackRange(memory.getFloat(Offset.objAttackRange));
-        champion.setAiManager(this.findAiManager(address));
-        champion.setSpellBook(this.findSpellBook(address));
-        return champion;
+    private Function<FunctionInfo<Champion>, Champion> setBonusAttack() {
+        return functionInfo -> {
+            functionInfo.getUnit().setBonusAttack(functionInfo.getMemory().getFloat(Offset.objBonusAttack));
+            return functionInfo.getUnit();
+        };
     }
 
-    public Mono<Champion> findLocalPlayer() {
-        return this.readProcessMemoryService.reactiveRead(Offset.localPlayer, Long.class, true)
-                .flatMap(id -> {
-                    if (this.mapChampion.containsKey(id)) {
-                        Champion champion = this.mapChampion.get(id);
-                        return Mono.just(champion);
-                    }
-                    return Mono.empty();
-                });
+    private Function<FunctionInfo<Champion>, Champion> setHealth() {
+        return functionInfo -> {
+            functionInfo.getUnit().setHealth(functionInfo.getMemory().getFloat(Offset.objHealth));
+            return functionInfo.getUnit();
+        };
+    }
+
+    private Function<FunctionInfo<Champion>, Champion> setArmor() {
+        return functionInfo -> {
+            functionInfo.getUnit().setArmor(functionInfo.getMemory().getFloat(Offset.objArmor));
+            return functionInfo.getUnit();
+        };
+    }
+
+    private Function<FunctionInfo<Champion>, Champion> setMagicDamage() {
+        return functionInfo -> {
+            functionInfo.getUnit().setMagicDamage(functionInfo.getMemory().getFloat(Offset.objMagicDamage));
+            return functionInfo.getUnit();
+        };
+    }
+
+    private Function<FunctionInfo<Champion>, Champion> setPosition() {
+        return functionInfo -> {
+            Memory memory = functionInfo.getMemory();
+            Vector3 vector3 = Vector3.builder()
+                    .x(memory.getFloat(Offset.objPositionX))
+                    .y(memory.getFloat(Offset.objPositionX + 0x4))
+                    .z(memory.getFloat(Offset.objPositionX + 0x8))
+                    .build();
+            functionInfo.getUnit().setPosition(vector3);
+            return functionInfo.getUnit();
+        };
+    }
+
+    private Function<FunctionInfo<Champion>, Champion> setIsAlive() {
+        return functionInfo -> {
+            Memory memory = functionInfo.getMemory();
+            boolean isAlive = memory.getByte(Offset.objSpawnCount) % 2 == 0;
+            functionInfo.getUnit().setIsAlive(isAlive);
+            return functionInfo.getUnit();
+        };
+    }
+
+    private Function<FunctionInfo<Champion>, Champion> setIsTargeteable() {
+        return functionInfo -> {
+            Memory memory = functionInfo.getMemory();
+            boolean isTargetable = memory.getByte(Offset.objTargetable) != 0;
+            functionInfo.getUnit().setIsTargeteable(isTargetable);
+            return functionInfo.getUnit();
+        };
+    }
+
+    private Function<FunctionInfo<Champion>, Champion> setIsVisible() {
+        return functionInfo -> {
+            Memory memory = functionInfo.getMemory();
+            boolean isVisible = memory.getByte(Offset.objVisible) != 0;
+            functionInfo.getUnit().setIsVisible(isVisible);
+            return functionInfo.getUnit();
+        };
+    }
+
+    private Function<FunctionInfo<Champion>, Champion> setAttackRange() {
+        return functionInfo -> {
+            functionInfo.getUnit().setAttackRange(functionInfo.getMemory().getFloat(Offset.objAttackRange));
+            return functionInfo.getUnit();
+        };
+    }
+
+    private Function<FunctionInfo<Champion>, Champion> setSpellBook() {
+        return functionInfo -> {
+            functionInfo.getUnit().setSpellBook(this.findSpellBook(functionInfo.getUnit().getAddress()));
+            return functionInfo.getUnit();
+        };
+    }
+
+    private Function<FunctionInfo<Champion>, Champion> setAiManage() {
+        return functionInfo -> {
+            functionInfo.getUnit().setAiManager(this.findAiManager(functionInfo.getUnit().getAddress()));
+            return functionInfo.getUnit();
+        };
     }
 
     private AiManager findAiManager(Long address) {
@@ -195,5 +249,4 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
                 .f(spellMap.get(5L))
                 .build();
     }
-
 }

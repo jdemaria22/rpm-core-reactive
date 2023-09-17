@@ -1,6 +1,8 @@
 package com.core.reactive.corereactive.component.unitmanager.impl;
 
 import com.core.reactive.corereactive.component.MemoryLoaderService;
+import com.core.reactive.corereactive.component.unitmanager.champion.ChampionComponent;
+import com.core.reactive.corereactive.component.unitmanager.minion.MinionComponent;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
