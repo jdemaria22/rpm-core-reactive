@@ -52,6 +52,11 @@ public class OrbWalker implements ScriptLoaderService {
             return walk().flatMap(as -> castQ());
         }
 
+//        if (this.isVkSpacePressed()) {
+//            this.keepKeyOPressed();
+//            return walk();
+//        }
+
         if (this.isVkVPressed()) {
             this.keepKeyOPressed();
             return laneClear();
@@ -123,7 +128,7 @@ public class OrbWalker implements ScriptLoaderService {
 //    }
 
     private Mono<Boolean> castQ() {
-        return targetService.getBestChampionInSpell(1200.0, 2000.0, 0.25, 60.0)
+        return targetService.getBestChampionInSpell(950.0, 2600.0, 0.25, 60.0)
                 .flatMap(predictedPosition -> {
                     double gameTime = gameTimeComponent.getGameTime();
                     Champion localPlayer = championComponent.getLocalPlayer();

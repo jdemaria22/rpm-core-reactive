@@ -54,7 +54,7 @@ public class TargetService {
                     int[] pathBounds = {-1, -1};
                     double pathTime = 0.0;
                     double targetMoveSpeed = ai.getIsDashing() ? (double) ai.getDashSpeed() : (double) ai.getMoveSpeed();
-                    if (!(boolean) ai.getIsMoving()) {
+                    if (!ai.getIsMoving()) {
                         Vector3 servPos = ai.getServerPos();
                         return this.rendererComponent.worldToScreen(servPos.getX(), servPos.getY(), servPos.getZ());
                     }
@@ -245,27 +245,29 @@ public class TargetService {
     }
 
     private List<Vector3> getFuturePoints(Champion target) {
-        List<Vector3> waypoints = target.getAiManager().getWaypoints().getNavigationPath();
         List<Vector3> futurePoints = new ArrayList<>();
-        Vector3 targetServerPos = target.getAiManager().getServerPos();
-        futurePoints.add(targetServerPos);
-
+//        Vector3 targetServerPos = target.getAiManager().getServerPos();
+        futurePoints.add(target.getAiManager().getServerPos());
+        List<Vector3> waypoints = target.getAiManager().getWaypoints().getNavigationPath();
+        int segmentsCount = target.getAiManager().getWaypoints().getCurrentSize();
+        int currentSegments = target.getAiManager().getWaypoints().getPassedWaypoint();
         if (waypoints.isEmpty()) {
             return futurePoints;
         }
 
-        for (int i = target.getAiManager().getWaypoints().getPassedWaypoint(); i < waypoints.size(); i++) {
-            Vector3 waypoint = waypoints.get(i);
-            double dist1 = this.distanceBetweenTargets(targetServerPos, waypoint);
-            double dist2 = this.distanceBetweenTargets(targetServerPos, waypoints.get(i - 1));
-            double dist3 = this.distanceBetweenTargets(waypoints.get(i - 1), waypoint);
+        for (int i = currentSegments; i < segmentsCount; i++) {
+//            Vector3 waypoint = waypoints.get(i);
+            futurePoints.add(waypoints.get(i));
+//            double dist1 = this.distanceBetweenTargets(targetServerPos, waypoint);
+//            double dist2 = this.distanceBetweenTargets(targetServerPos, waypoints.get(i - 1));
+//            double dist3 = this.distanceBetweenTargets(waypoints.get(i - 1), waypoint);
+//
+//            if (Math.abs(dist1 + dist2 - dist3) <= 20.0) {
+//                futurePoints.add(waypoint);
+//                break;
+//            }
 
-            if (Math.abs(dist1 + dist2 - dist3) <= 20.0) {
-                futurePoints.add(waypoint);
-                break;
-            }
-
-            futurePoints.add(waypoint);
+//            futurePoints.add(waypoint);
         }
 
         return futurePoints;
