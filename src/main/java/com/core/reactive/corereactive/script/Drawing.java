@@ -36,7 +36,11 @@ public class Drawing implements ScriptLoaderService{
             float progressLength = currentProgress / maxProgress * progressBarWidth;
             GL11.glColor3f(0.0f, 1.0f, 0.0f);
             GL11.glRectf(10, val.get() + 10, 10 + progressLength, val.get() + 10 + progressBarHeight);
+            drawText(champion.getName(), val.get() + 20, 10);
             val.set(val.get() + 40);
         });
+    }
+
+    private static void drawText(String text, int x, int y) {
     }
 }

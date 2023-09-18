@@ -34,8 +34,8 @@ public class Core {
     public void run() {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(System::gc, 0, 1, TimeUnit.SECONDS);
-        long window = overlay.init();
-        while (!GLFW.glfwWindowShouldClose(window)) {
+//        long window = overlay.init();
+        while (true) {
             Flux.fromIterable(this.getMemoryLoaderServices())
                     .flatMap(MemoryLoaderService::update)
                     .all(result -> result).block();
@@ -46,7 +46,18 @@ public class Core {
 
             GLFW.glfwPollEvents();
         }
-        overlay.terminate();
+//        while (!GLFW.glfwWindowShouldClose(window)) {
+//            Flux.fromIterable(this.getMemoryLoaderServices())
+//                    .flatMap(MemoryLoaderService::update)
+//                    .all(result -> result).block();
+//
+//            Flux.fromIterable(this.getScriptLoaderService())
+//                    .flatMap(ScriptLoaderService::update)
+//                    .all(result -> result).block();
+//
+//            GLFW.glfwPollEvents();
+//        }
+//        overlay.terminate();
     }
 
     private List<MemoryLoaderService> getMemoryLoaderServices(){
@@ -60,7 +71,7 @@ public class Core {
     private List<ScriptLoaderService> getScriptLoaderService(){
         List<ScriptLoaderService> scriptLoaderServices = new ArrayList<>();
         scriptLoaderServices.add(orbWalker);
-        scriptLoaderServices.add(drawing);
+//        scriptLoaderServices.add(drawing);
         return scriptLoaderServices;
     }
 }
