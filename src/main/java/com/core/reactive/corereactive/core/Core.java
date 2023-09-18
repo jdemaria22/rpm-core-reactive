@@ -44,8 +44,8 @@ public class Core {
 
     private List<MemoryLoaderService> getMemoryLoaderServices(){
         List<MemoryLoaderService> memoryLoaderServices = new ArrayList<>();
-        memoryLoaderServices.add(unitManagerComponent);
         memoryLoaderServices.add(rendererComponent);
+        memoryLoaderServices.add(unitManagerComponent);
         memoryLoaderServices.add(gameTimeComponent);
         return memoryLoaderServices;
     }

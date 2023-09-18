@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Vector;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +25,182 @@ public class TargetService {
     private final ChampionComponent championComponent;
     private final MinionComponent minionComponent;
     private final RendererComponent rendererComponent;
+
+    Vector3 getObjectPositionAfterTime(Champion obj, double time, double distanceBuffer) {
+        AiManager aiManager = obj.getAiManager();
+        double speed = aiManager.getMoveSpeed();
+
+        if (aiManager.getIsDashing()) {
+            speed = aiManager.getDashSpeed();
+        }
+
+        List<Vector3> waypoints = new ArrayList<>();
+        waypoints.add(aiManager.getServerPos());
+
+        List<Vector3> futureWaypoints = getFuturePoints(obj);
+        waypoints.addAll(futureWaypoints);
+
+        int waypointsSize = waypoints.size();
+
+        if (time == 0 || !aiManager.getIsMoving()) {
+            return aiManager.getServerPos();
+        }
+
+        double distance = (speed * time) - distanceBuffer;
+
+        for (int i = 1; i < waypointsSize; i++) {
+            double wayDistance = this.distanceBetweenTargets(waypoints.get(i - 1), waypoints.get(i));
+
+            if (wayDistance >= distance) {
+                Vector3 prevWaypoint = waypoints.get(i - 1);
+                Vector3 currentWaypoint = waypoints.get(i);
+
+                double t = distance / wayDistance;
+
+                float newX = (float) (prevWaypoint.getX() + t * (currentWaypoint.getX() - prevWaypoint.getX()));
+                float newY = (float) (prevWaypoint.getY() + t * (currentWaypoint.getY() - prevWaypoint.getY()));
+                float newZ = (float) (prevWaypoint.getZ() + t * (currentWaypoint.getZ() - prevWaypoint.getZ()));
+
+                return Vector3.builder()
+                        .x(newX)
+                        .y(newY)
+                        .z(newZ)
+                        .build();
+            }
+
+            if (i == waypointsSize - 1) {
+                return waypoints.get(i);
+            }
+
+            distance = distance - wayDistance;
+        }
+
+        return waypoints.get(0);
+    }
+
+
+    boolean isSpecificObjectInWay(Vector3 sourcePos, Vector3 targetPos, Minion collisionObject, double projectileRadius) {
+        Vector3 sourceToTarget = subtractVector3(targetPos,sourcePos);
+        sourceToTarget.setY(0.0f);
+        float distance = length(sourceToTarget);
+
+        Vector3 objPos = collisionObject.getPosition();
+        Vector3 sourceToObj = subtractVector3(objPos,sourcePos);
+        sourceToObj.setY(0.0f);
+        if (length(sourceToObj) > distance) {
+            return false;
+        }
+
+        float dot1 = sourceToObj.getX() * sourceToTarget.getX() + sourceToObj.getZ() * sourceToTarget.getZ();
+        float dot2 = sourceToTarget.getX() * sourceToTarget.getX() + sourceToTarget.getZ() * sourceToTarget.getZ();
+
+        if (dot1 < 0.0f) {
+            return false;
+        }
+
+        float t = dot1 / dot2;
+
+        Vector3 projection = addVector3(sourcePos, Vector3.builder()
+                .x(sourceToTarget.getX() * t)
+                .y(0.0f)
+                .z(sourceToTarget.getZ() * t)
+                .build());
+        projection.setY(0.0f);
+
+        Vector3 distVector = subtractVector3(objPos, projection);
+        distVector.setY(0.0f);
+
+        return length(distVector) <= projectileRadius + 48;
+    }
+
+    float length(Vector3 pos) {
+        return (float) Math.sqrt(pos.getX() * pos.getX() + pos.getY() * pos.getY() + pos.getZ() * pos.getZ());
+    }
+
+    boolean isAnyObjectInWay(Vector3 sourcePos, Vector3 targetPos, Champion sourceObject, double projectileRadius) {
+            Vector3 sourceToTarget = subtractVector3(targetPos, sourcePos);
+            sourceToTarget.setY(0.0f);
+
+            for (Minion minion : this.minionComponent.getMapUnit().values()) {
+                if (!minion.getIsTargeteable()){
+                    continue;
+                }
+                if (!minion.getIsVisible()) {
+                    continue;
+                }
+                if (!minion.getIsAlive()) {
+                    continue;
+                }
+                if (Objects.equals(minion.getTeam(), sourceObject.getTeam())) {
+                    continue;
+                }
+                if (isSpecificObjectInWay(sourcePos, targetPos, minion, projectileRadius)) {
+                    return true;
+                }
+            }
+            return false;
+    }
+
+    boolean checkCollision(Vector3 sourcePos, Vector3 targetPos, Champion sourceObject, Double spellRadius) {
+        return !isAnyObjectInWay(sourcePos, targetPos, sourceObject, spellRadius);
+    }
+
+    public Mono<Vector2> getPrediction(Double spellRange, Double spellSpeed, Double spellDelay, Double spellRadius) {
+        Champion localPLayer = this.championComponent.getLocalPlayer();
+        return Mono.fromCallable(() -> {
+            for (Champion champion : this.championComponent.getMapUnit().values()) {
+                if (!champion.getIsTargeteable()){
+                    continue;
+                }
+                if (!champion.getIsVisible()) {
+                    continue;
+                }
+                if (!champion.getIsAlive()) {
+                    continue;
+                }
+                if (Objects.equals(champion.getTeam(), localPLayer.getTeam())) {
+                    continue;
+                }
+                boolean inDistance = this.distanceBetweenTargets(localPLayer.getPosition(), champion.getPosition()) <= spellRange-champion.getJsonCommunityDragon().getGameplayRadius();
+                if (inDistance){
+                    Vector3 sourcePos = localPLayer.getAiManager().getServerPos();
+                    AiManager targetAiManager = champion.getAiManager();
+                    double distance = this.distanceBetweenTargets(sourcePos, targetAiManager.getServerPos());
+                    if (distance > spellRange){
+                        return null;
+                    }
+                    List<Vector3> waypoints = getFuturePoints(champion);
+                    int waypointsSize = waypoints.size();
+                    if (waypointsSize == 0 || !targetAiManager.getIsMoving())
+                    {
+                        Vector3 position = targetAiManager.getServerPos();
+                        if (checkCollision(sourcePos, position, localPLayer, spellRadius)){
+                            return this.rendererComponent.worldToScreen(position.getX(), position.getY(), position.getZ());
+                        }
+                    }
+                    double travelTime = (distance / spellSpeed) + spellDelay;
+                    Vector3 predictedPos = getObjectPositionAfterTime(champion, travelTime, 0.0);
+                    distance = this.distanceBetweenTargets(predictedPos, sourcePos);
+                    double missileTime = (distance / spellSpeed) + spellDelay;
+
+                    while (Math.abs(travelTime - missileTime) > 0.01) {
+                        travelTime = missileTime;
+                        predictedPos = getObjectPositionAfterTime(champion, travelTime, 0.0f);
+
+                        distance = distanceBetweenTargets(predictedPos, sourcePos);
+                        if (distance > spellRange) {
+                            return null;
+                        }
+                        missileTime = (distance / spellSpeed) + spellDelay;
+                    }
+                    if (checkCollision(sourcePos, predictedPos, localPLayer, spellRadius)){
+                        return this.rendererComponent.worldToScreen(predictedPos.getX(), predictedPos.getY(), predictedPos.getZ());
+                    }
+                }
+            }
+            return null;
+        });
+    }
 
     public Mono<Vector2> getBestChampionInSpell(Double spellRange, Double spellSpeed, Double spellDelay, Double spellRadius) {
         Champion localPLayer = this.championComponent.getLocalPlayer();

@@ -128,7 +128,7 @@ public class OrbWalker implements ScriptLoaderService {
 //    }
 
     private Mono<Boolean> castQ() {
-        return targetService.getBestChampionInSpell(950.0, 2600.0, 0.25, 60.0)
+        return targetService.getPrediction(1200.0, 2000.0, 0.25, 60.0)
                 .flatMap(predictedPosition -> {
                     double gameTime = gameTimeComponent.getGameTime();
                     Champion localPlayer = championComponent.getLocalPlayer();
