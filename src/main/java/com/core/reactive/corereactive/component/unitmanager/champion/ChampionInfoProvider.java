@@ -37,6 +37,7 @@ public class ChampionInfoProvider implements UnitInfoProvider<Champion> {
         list.add(this.setBaseAttack());
         list.add(this.setBonusAttack());
         list.add(this.setHealth());
+        list.add(this.setMaxHealth());
         list.add(this.setArmor());
         list.add(this.setMagicDamage());
         list.add(this.setPosition());
@@ -79,6 +80,13 @@ public class ChampionInfoProvider implements UnitInfoProvider<Champion> {
     private Function<FunctionInfo<Champion>, Champion> setHealth() {
         return functionInfo -> {
             functionInfo.getUnit().setHealth(functionInfo.getMemory().getFloat(Offset.objHealth));
+            return functionInfo.getUnit();
+        };
+    }
+
+    private Function<FunctionInfo<Champion>, Champion> setMaxHealth() {
+        return functionInfo -> {
+            functionInfo.getUnit().setMaxHealth(functionInfo.getMemory().getFloat(Offset.objMaxHealth));
             return functionInfo.getUnit();
         };
     }

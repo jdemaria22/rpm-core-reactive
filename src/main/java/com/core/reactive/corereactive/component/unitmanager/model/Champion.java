@@ -19,6 +19,7 @@ public class Champion extends Unit {
     private float baseAttack;
     private float bonusAttack;
     private float health;
+    private float maxHealth;
     private float armor;
     private float magicDamage;
     private Vector3 position;

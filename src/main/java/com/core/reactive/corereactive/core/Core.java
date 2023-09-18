@@ -4,10 +4,13 @@ import com.core.reactive.corereactive.component.MemoryLoaderService;
 import com.core.reactive.corereactive.component.gametime.GameTimeComponent;
 import com.core.reactive.corereactive.component.renderer.RendererComponent;
 import com.core.reactive.corereactive.component.unitmanager.impl.UnitManagerComponent;
+import com.core.reactive.corereactive.overlay.Overlay;
+import com.core.reactive.corereactive.script.Drawing;
 import com.core.reactive.corereactive.script.OrbWalker;
 import com.core.reactive.corereactive.script.ScriptLoaderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lwjgl.glfw.GLFW;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
@@ -25,21 +28,25 @@ public class Core {
     private final RendererComponent rendererComponent;
     private final UnitManagerComponent unitManagerComponent;
     private final OrbWalker orbWalker;
+    private final Drawing drawing;
+    private final Overlay overlay;
 
     public void run() {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(System::gc, 0, 1, TimeUnit.SECONDS);
-
-        while (true) {
+        long window = overlay.init();
+        while (!GLFW.glfwWindowShouldClose(window)) {
             Flux.fromIterable(this.getMemoryLoaderServices())
                     .flatMap(MemoryLoaderService::update)
                     .all(result -> result).block();
-//            this.unitManagerComponent.getChampionComponent().getMapChampion()
-//                    .forEach((aLong, champion) -> log.info("aiManager {}", champion.getAiManager()));
+
             Flux.fromIterable(this.getScriptLoaderService())
                     .flatMap(ScriptLoaderService::update)
                     .all(result -> result).block();
+
+            GLFW.glfwPollEvents();
         }
+        overlay.terminate();
     }
 
     private List<MemoryLoaderService> getMemoryLoaderServices(){
@@ -53,6 +60,7 @@ public class Core {
     private List<ScriptLoaderService> getScriptLoaderService(){
         List<ScriptLoaderService> scriptLoaderServices = new ArrayList<>();
         scriptLoaderServices.add(orbWalker);
+        scriptLoaderServices.add(drawing);
         return scriptLoaderServices;
     }
 }
