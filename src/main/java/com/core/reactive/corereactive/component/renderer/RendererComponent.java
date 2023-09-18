@@ -38,7 +38,7 @@ public class RendererComponent implements MemoryLoaderService {
         }
 
         for (int i = 0; i < SIZE_MATRIX; i++) {
-            projMatrix[i] = memory.getFloat(0X40 + (i * 4));
+            projMatrix[i] = memory.getFloat(0x40 + (i * 4));
         }
 
         this.multiplyMatrices();

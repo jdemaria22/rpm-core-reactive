@@ -59,7 +59,7 @@ public class OrbWalker implements ScriptLoaderService {
 
         if (this.isVkVPressed()) {
             this.keepKeyOPressed();
-            return laneClear();
+            return laneClear().flatMap(as -> castQ());
         }
 
         return Mono.fromCallable(() -> {

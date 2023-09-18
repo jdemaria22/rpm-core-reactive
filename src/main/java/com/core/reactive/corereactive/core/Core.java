@@ -34,8 +34,7 @@ public class Core {
             Flux.fromIterable(this.getMemoryLoaderServices())
                     .flatMap(MemoryLoaderService::update)
                     .all(result -> result).block();
-//            this.unitManagerComponent.getChampionComponent().getMapChampion()
-//                    .forEach((aLong, champion) -> log.info("aiManager {}", champion.getAiManager()));
+
             Flux.fromIterable(this.getScriptLoaderService())
                     .flatMap(ScriptLoaderService::update)
                     .all(result -> result).block();
