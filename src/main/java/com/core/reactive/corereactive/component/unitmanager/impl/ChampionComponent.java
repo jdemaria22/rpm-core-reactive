@@ -84,7 +84,7 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
                 .z(memory.getFloat(Offset.objPositionX + 0x8))
                 .build();
         champion.setPosition(vector3);
-        champion.setIsAlive(memory.getByte(Offset.objSpawnCount) %2 == 0 );
+        champion.setIsAlive(memory.getByte(Offset.objSpawnCount) %2 == 0);
         champion.setIsTargeteable(memory.getByte(Offset.objTargetable) != 0);
         champion.setIsVisible(memory.getByte(Offset.objVisible) != 0);
         champion.setAttackRange(memory.getFloat(Offset.objAttackRange));

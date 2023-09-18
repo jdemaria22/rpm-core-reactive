@@ -50,31 +50,14 @@ public class TargetService {
 
         for (int i = 1; i < waypointsSize; i++) {
             double wayDistance = this.distanceBetweenTargets(waypoints.get(i - 1), waypoints.get(i));
-
             if (wayDistance >= distance) {
-                Vector3 prevWaypoint = waypoints.get(i - 1);
-                Vector3 currentWaypoint = waypoints.get(i);
-
-                double t = distance / wayDistance;
-
-                float newX = (float) (prevWaypoint.getX() + t * (currentWaypoint.getX() - prevWaypoint.getX()));
-                float newY = (float) (prevWaypoint.getY() + t * (currentWaypoint.getY() - prevWaypoint.getY()));
-                float newZ = (float) (prevWaypoint.getZ() + t * (currentWaypoint.getZ() - prevWaypoint.getZ()));
-
-                return Vector3.builder()
-                        .x(newX)
-                        .y(newY)
-                        .z(newZ)
-                        .build();
+                return addVector3(waypoints.get(i - 1), scaleVector3(normalizeVector3(subtractVector3(waypoints.get(i),waypoints.get(i - 1))), distance));
             }
-
             if (i == waypointsSize - 1) {
                 return waypoints.get(i);
             }
-
             distance = distance - wayDistance;
         }
-
         return waypoints.get(0);
     }
 
@@ -171,7 +154,7 @@ public class TargetService {
                     }
                     List<Vector3> waypoints = getFuturePoints(champion);
                     int waypointsSize = waypoints.size();
-                    if (waypointsSize == 0 || !targetAiManager.getIsMoving())
+                    if (waypointsSize <= 0 || !targetAiManager.getIsMoving())
                     {
                         Vector3 position = targetAiManager.getServerPos();
                         if (checkCollision(sourcePos, position, localPLayer, spellRadius)){
