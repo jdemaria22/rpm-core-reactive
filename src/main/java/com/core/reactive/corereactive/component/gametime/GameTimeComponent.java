@@ -32,7 +32,18 @@ public class    GameTimeComponent implements MemoryLoaderService {
     }
 
     @SneakyThrows
-    public void sleep(int ms){
+    public void sleeper(int ms){
         Thread.sleep(ms);
+    }
+
+    @SneakyThrows
+    public void sleep(int ms) {
+        long startNanos = System.nanoTime();
+        long targetNanos = startNanos + ms * 1_000_000L; // Convierte milisegundos a nanosegundos
+
+        while (System.nanoTime() < targetNanos) {
+            // Espera hasta que el tiempo transcurrido alcance el valor deseado
+            // No hace nada en este bucle, solo espera.
+        }
     }
 }

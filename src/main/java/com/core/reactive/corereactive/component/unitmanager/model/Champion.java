@@ -29,4 +29,5 @@ public class Champion extends Unit {
     private JsonCommunityDragon jsonCommunityDragon;
     private AiManager aiManager;
     private SpellBook spellBook;
+
 }

@@ -45,7 +45,6 @@ public class MouseService {
 
     public void mouseRightClick(int x, int y) {
         user32.SetCursorPos(x, y);
-        this.sleep(5);
         this.mouseRightClickNoMove();
     }
 
