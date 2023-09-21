@@ -7,7 +7,6 @@ import com.core.reactive.corereactive.component.renderer.vector.Vector3;
 import com.core.reactive.corereactive.component.unitmanager.impl.ChampionComponent;
 import com.core.reactive.corereactive.component.unitmanager.model.Champion;
 import com.core.reactive.corereactive.component.unitmanager.model.Minion;
-import com.core.reactive.corereactive.component.unitmanager.model.Spell;
 import com.core.reactive.corereactive.component.unitmanager.model.SpellBook;
 import com.core.reactive.corereactive.hook.Config;
 import com.core.reactive.corereactive.target.TargetService;
@@ -22,7 +21,6 @@ import org.springframework.util.ObjectUtils;
 import reactor.core.publisher.Mono;
 
 import java.awt.event.KeyEvent;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -40,6 +38,7 @@ public class OrbWalker implements ScriptLoaderService {
     private Double canAttackTime = 0.0000000000;
     private Double canMoveTime = 0.0000000000;
     private Double canCastTime = 0.0000000000;
+
 
     @Override
     public Mono<Boolean> update() {
@@ -70,6 +69,7 @@ public class OrbWalker implements ScriptLoaderService {
                     Champion localPlayer =  championComponent.getLocalPlayer();
                     Double range = (double) localPlayer.getAttackRange();
                     Double gameTime = this.gameTimeComponent.getGameTime();
+                    Double windUpTime = this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (40/2000);
                     return this.targetService.getBestChampionInRange(range)
                             .defaultIfEmpty(Champion.builder().build())
                             .flatMap(champion -> {
@@ -77,12 +77,12 @@ public class OrbWalker implements ScriptLoaderService {
                                     Vector2 position = this.rendererComponent.worldToScreen(champion.getPosition().getX(), champion.getPosition().getY(), champion.getPosition().getZ());
                                     Vector2 mousePos = this.mouseService.getCursorPos();
                                     this.canAttackTime = gameTime + 1.0 / attackSpeed;
-                                    this.canMoveTime = gameTime + this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (40/2000);
-                                    this.canCastTime = gameTime + this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (40/2000);
+                                    this.canMoveTime = gameTime + windUpTime;
+                                    this.canCastTime = gameTime + windUpTime;
                                     this.mouseService.mouseMiddleDown();
                                     this.user32.BlockInput(new WinDef.BOOL(true));
                                     this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                    this.gameTimeComponent.sleep(15);
+                                    this.gameTimeComponent.sleep(50);
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                     this.user32.BlockInput(new WinDef.BOOL(false));
                                     this.mouseService.mouseMiddleUp();
@@ -97,7 +97,11 @@ public class OrbWalker implements ScriptLoaderService {
     }
 
     private Mono<Boolean> castQ() {
-        return targetService.getPrediction(1200.0, 2000.0, 0.25, 60.0)
+        Double spellRadiusQ = 60.0;
+        Double spellDelayQ = 0.25;
+        Double spellSpeedQ = 2000.0;
+        Double spellRangeQ = 1200.0;
+        return targetService.getPrediction(spellRangeQ, spellSpeedQ, spellDelayQ, spellRadiusQ)
                 .flatMap(predictedPosition -> {
                     double gameTime = gameTimeComponent.getGameTime();
                     Champion localPlayer = championComponent.getLocalPlayer();
@@ -138,7 +142,11 @@ public class OrbWalker implements ScriptLoaderService {
     }
 
     private Mono<Boolean> castW() {
-        return targetService.getPrediction(1200.0, 2000.0, 0.25, 60.0)
+        Double spellRadiusW = 60.0;
+        Double spellDelayW = 0.25;
+        Double spellSpeedW = 2000.0;
+        Double spellRangeW = 1200.0;
+        return targetService.getPrediction(spellRangeW, spellSpeedW, spellDelayW, spellRadiusW)
                 .flatMap(predictedPosition -> {
                     double gameTime = gameTimeComponent.getGameTime();
                     Champion localPlayer = championComponent.getLocalPlayer();
@@ -195,7 +203,7 @@ public class OrbWalker implements ScriptLoaderService {
                                     this.canMoveTime = gameTime + this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (40/2000);
                                     this.user32.BlockInput(new WinDef.BOOL(true));
                                     this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                    this.gameTimeComponent.sleep(15);
+                                    this.gameTimeComponent.sleep(50);
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                     this.user32.BlockInput(new WinDef.BOOL(false));
                                     return Mono.just(Boolean.TRUE);
