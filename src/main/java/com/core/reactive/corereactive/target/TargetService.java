@@ -144,7 +144,8 @@ public class TargetService {
                 if (Objects.equals(champion.getTeam(), localPLayer.getTeam())) {
                     continue;
                 }
-                boolean inDistance = this.distanceBetweenTargets(localPLayer.getPosition(), champion.getPosition()) <= spellRange-champion.getJsonCommunityDragon().getGameplayRadius();
+                Double targetGameplayRadius = (champion.getJsonCommunityDragon() != null) ? champion.getJsonCommunityDragon().getGameplayRadius() : 65.0;
+                boolean inDistance = this.distanceBetweenTargets(localPLayer.getPosition(), champion.getPosition()) <= spellRange-targetGameplayRadius;
                 if (inDistance){
                     Vector3 sourcePos = localPLayer.getAiManager().getServerPos();
                     AiManager targetAiManager = champion.getAiManager();
@@ -295,7 +296,8 @@ public class TargetService {
                 if (Objects.equals(champion.getTeam(), localPLayer.getTeam())) {
                     continue;
                 }
-                boolean inDistance = this.distanceBetweenTargets(localPLayer.getPosition(), champion.getPosition()) - champion.getJsonCommunityDragon().getGameplayRadius() <= range + localPLayer.getJsonCommunityDragon().getGameplayRadius();
+                Double targetGameplayRadius = (champion.getJsonCommunityDragon() != null) ? champion.getJsonCommunityDragon().getGameplayRadius() : 65.0;
+                boolean inDistance = this.distanceBetweenTargets(localPLayer.getPosition(), champion.getPosition()) - targetGameplayRadius <= range + localPLayer.getJsonCommunityDragon().getGameplayRadius();
                 if (inDistance){
                     Double minAttacks = getMinAttacks(
                             (double) localPLayer.getBaseAttack(),
