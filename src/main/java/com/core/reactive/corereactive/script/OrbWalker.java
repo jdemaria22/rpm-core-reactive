@@ -21,6 +21,8 @@ import org.springframework.util.ObjectUtils;
 import reactor.core.publisher.Mono;
 
 import java.awt.event.KeyEvent;
+import java.util.Arrays;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -34,7 +36,7 @@ public class OrbWalker implements ScriptLoaderService {
     private final KeyboardService keyboardService;
     private final Config.User32 user32;
     private final TargetService targetService;
-
+    private final List<String> championsWithPredictionAbilities = Arrays.asList("Ezreal", "Morgana", "Samira");
     private Double canAttackTime = 0.0000000000;
     private Double canMoveTime = 0.0000000000;
     private Double canCastTime = 0.0000000000;
@@ -46,10 +48,17 @@ public class OrbWalker implements ScriptLoaderService {
             return Mono.just(Boolean.TRUE);
         }
 
-        if (this.isVkSpacePressed()) {
-            this.keepKeyOPressed();
-            return walk().flatMap(as -> castW().flatMap(sa -> castQ()));
+        if (isVkSpacePressed()) {
+            keepKeyOPressed();
+            return walk().flatMap(as -> {
+                if (championsWithPredictionAbilities.contains(championComponent.getLocalPlayer().getName())) {
+                    return walk().flatMap(walk -> castW().flatMap(castW -> castQ()));
+                } else {
+                    return walk();
+                }
+            });
         }
+
 
         if (this.isVkVPressed()) {
             this.keepKeyOPressed();
@@ -61,6 +70,7 @@ public class OrbWalker implements ScriptLoaderService {
         });
 
     }
+
 
     private Mono<Boolean> walk(){
         return this.apiService.getJsonActivePlayer()
