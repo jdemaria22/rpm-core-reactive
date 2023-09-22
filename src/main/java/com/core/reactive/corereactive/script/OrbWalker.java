@@ -13,7 +13,6 @@ import com.core.reactive.corereactive.target.TargetService;
 import com.core.reactive.corereactive.util.KeyboardService;
 import com.core.reactive.corereactive.util.MouseService;
 import com.core.reactive.corereactive.util.api.ApiService;
-import com.sun.jna.platform.win32.WinDef;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -47,9 +46,8 @@ public class OrbWalker implements ScriptLoaderService {
         if (!this.championComponent.getLocalPlayer().getIsAlive()){
             return Mono.just(Boolean.TRUE);
         }
-
         if (isVkSpacePressed()) {
-            keepKeyOPressed();
+            this.keepKeyOPressed();
             return attackTarget().flatMap(attackTarget -> {
                 if (championsWithPredictionAbilities.contains(championComponent.getLocalPlayer().getName())) {
                     return walk().flatMap(walk -> castW().flatMap(castW -> walk().flatMap(wakW -> castQ().flatMap(castQ -> walk()))));
@@ -58,24 +56,27 @@ public class OrbWalker implements ScriptLoaderService {
                 }
             });
         }
-
-
         if (this.isVkVPressed()) {
             this.keepKeyOPressed();
-            return laneClear().flatMap(as -> castQ());
+            return laneClear().flatMap(attackTarget -> {
+                if (championsWithPredictionAbilities.contains(championComponent.getLocalPlayer().getName())) {
+                    return walk().flatMap(walk -> castW().flatMap(castW -> walk().flatMap(wakW -> castQ().flatMap(castQ -> walk()))));
+                } else {
+                    return walk();
+                }
+            });
         }
         return Mono.fromCallable(() -> {
             this.keyboardService.sendKeyUp(KeyEvent.VK_O);
             return Boolean.TRUE;
         });
-
     }
 
     private Mono<Boolean> walk() {
         return Mono.fromCallable(() -> {
             double gameTime = gameTimeComponent.getGameTime();
             if (this.canMoveTime < gameTime) {
-                this.gameTimeComponent.sleep(50);
+                this.gameTimeComponent.sleep(35);
                 this.mouseService.mouseRightClickNoMove();
                 return Boolean.TRUE;
             }
@@ -89,7 +90,7 @@ public class OrbWalker implements ScriptLoaderService {
                     Champion localPlayer =  championComponent.getLocalPlayer();
                     Double range = (double) localPlayer.getAttackRange();
                     Double gameTime = this.gameTimeComponent.getGameTime();
-                    Double windUpTime = this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (40/1000);
+                    Double windUpTime = this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (30/1000);
                     return this.targetService.getBestChampionInRange(range)
                             .defaultIfEmpty(Champion.builder().build())
                             .flatMap(champion -> {
@@ -100,11 +101,11 @@ public class OrbWalker implements ScriptLoaderService {
                                     this.canMoveTime = gameTime + windUpTime;
                                     this.canCastTime = gameTime + windUpTime +0.1;
                                     this.mouseService.mouseMiddleDown();
-                                    this.user32.BlockInput(new WinDef.BOOL(true));
+                                    //this.user32.BlockInput(new WinDef.BOOL(true));
                                     this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                    this.gameTimeComponent.sleep(50);
+                                    this.gameTimeComponent.sleep(30);
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-                                    this.user32.BlockInput(new WinDef.BOOL(false));
+                                    //this.user32.BlockInput(new WinDef.BOOL(false));
                                     this.mouseService.mouseMiddleUp();
                                     return Mono.just(Boolean.TRUE);
                                 }
@@ -146,13 +147,13 @@ public class OrbWalker implements ScriptLoaderService {
 
     private void castQAbilitiy(Vector2 predictedPosition, Vector2 mousePos) {
         this.canCastTime = gameTimeComponent.getGameTime() + 0.25;
-        user32.BlockInput(new WinDef.BOOL(true));
-        mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
-        keyboardService.sendKeyDown(KeyEvent.VK_Q);
-        keyboardService.sendKeyUp(KeyEvent.VK_Q);
-        gameTimeComponent.sleep(15);
-        mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-        user32.BlockInput(new WinDef.BOOL(false));
+        //user32.BlockInput(new WinDef.BOOL(true));
+        this.mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
+        this.keyboardService.sendKeyDown(KeyEvent.VK_Q);
+        this.keyboardService.sendKeyUp(KeyEvent.VK_Q);
+        this.gameTimeComponent.sleep(30);
+        this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
+        //user32.BlockInput(new WinDef.BOOL(false));
     }
 
     private Mono<Boolean> castW() {
@@ -188,13 +189,13 @@ public class OrbWalker implements ScriptLoaderService {
 
     private void castWAbilitiy(Vector2 predictedPosition, Vector2 mousePos) {
         this.canCastTime = gameTimeComponent.getGameTime() + 0.25;
-        user32.BlockInput(new WinDef.BOOL(true));
-        mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
-        keyboardService.sendKeyDown(KeyEvent.VK_W);
-        keyboardService.sendKeyUp(KeyEvent.VK_W);
-        gameTimeComponent.sleep(15);
-        mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-        user32.BlockInput(new WinDef.BOOL(false));
+        //user32.BlockInput(new WinDef.BOOL(true));
+        this.mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
+        this.keyboardService.sendKeyDown(KeyEvent.VK_W);
+        this.keyboardService.sendKeyUp(KeyEvent.VK_W);
+        this.gameTimeComponent.sleep(30);
+        this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
+        //user32.BlockInput(new WinDef.BOOL(false));
     }
 
     private Mono<Boolean> laneClear(){
@@ -212,15 +213,12 @@ public class OrbWalker implements ScriptLoaderService {
                                     Vector2 mousePos = this.mouseService.getCursorPos();
                                     this.canAttackTime = gameTime + 1.0 / attackSpeed;
                                     this.canMoveTime = gameTime + this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (40/2000);
-                                    this.user32.BlockInput(new WinDef.BOOL(true));
+                                    //this.user32.BlockInput(new WinDef.BOOL(true));
                                     this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                    this.gameTimeComponent.sleep(50);
+                                    this.gameTimeComponent.sleep(30);
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-                                    this.user32.BlockInput(new WinDef.BOOL(false));
+                                    //this.user32.BlockInput(new WinDef.BOOL(false));
                                     return Mono.just(Boolean.TRUE);
-                                } else if (canMoveTime < gameTime) {
-                                    this.gameTimeComponent.sleep(25);
-                                    this.mouseService.mouseRightClickNoMove();
                                 }
                                 return Mono.just(Boolean.TRUE);
                             });
