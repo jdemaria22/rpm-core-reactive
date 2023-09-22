@@ -154,7 +154,7 @@ public class TargetService {
                     }
                     List<Vector3> waypoints = getFuturePoints(champion);
                     int waypointsSize = waypoints.size();
-                    if (waypointsSize <= 0 || !targetAiManager.getIsMoving())
+                    if (waypointsSize == 0 || !targetAiManager.getIsMoving())
                     {
                         Vector3 position = targetAiManager.getServerPos();
                         if (checkCollision(sourcePos, position, localPLayer, spellRadius)){

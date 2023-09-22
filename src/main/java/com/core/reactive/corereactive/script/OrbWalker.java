@@ -33,12 +33,12 @@ public class OrbWalker implements ScriptLoaderService {
     private final MouseService mouseService;
     private final RendererComponent rendererComponent;
     private final KeyboardService keyboardService;
-    private final Config.User32 user32;
     private final TargetService targetService;
     private final List<String> championsWithPredictionAbilities = Arrays.asList("Ezreal", "Morgana", "Samira");
     private Double canAttackTime = 0.0000000000;
     private Double canMoveTime = 0.0000000000;
     private Double canCastTime = 0.0000000000;
+    private final Double ping = 0.40;
 
 
     @Override
@@ -115,38 +115,32 @@ public class OrbWalker implements ScriptLoaderService {
     }
 
     private Mono<Boolean> castQ() {
-        Double spellRadiusQ = 60.0;
-        Double spellDelayQ = 0.25;
-        Double spellSpeedQ = 2000.0;
-        Double spellRangeQ = 1200.0;
-        return targetService.getPrediction(spellRangeQ, spellSpeedQ, spellDelayQ, spellRadiusQ)
-                .flatMap(predictedPosition -> {
-                    double gameTime = gameTimeComponent.getGameTime();
-                    Champion localPlayer = championComponent.getLocalPlayer();
-                    SpellBook spellBook = localPlayer.getSpellBook();
-                    double qCoolDown = spellBook.getQ().getReadyAtSeconds();
-                    int qLevel = spellBook.getQ().getLevel();
-                    Vector2 mousePos = mouseService.getCursorPos();
-                    Vector3 localPlayerPosition = localPlayer.getPosition();
-                    Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(localPlayerPosition.getX(), localPlayerPosition.getY(), localPlayerPosition.getZ());
-
-                    if (canCastQ(gameTime, predictedPosition, qCoolDown, qLevel, screenLocalPlayerPosition)) {
-                        castQAbilitiy(predictedPosition, mousePos);
-                    }
-                    return Mono.just(true);
-                });
-    }
-
-    private boolean canCastQ(double gameTime, Vector2 predictedPosition, double qCoolDown, int qLevel, Vector2 localPlayerPosition) {
-        return this.canCastTime < gameTime &&
-                predictedPosition != null &&
-                gameTime - qCoolDown > 0 &&
-                qLevel > 0 &&
-                distanceBetweenTargets2D(localPlayerPosition, predictedPosition) < 1200.0;
+        Champion localPlayer = championComponent.getLocalPlayer();
+        SpellBook spellBook = localPlayer.getSpellBook();
+        double gameTime = gameTimeComponent.getGameTime();
+        double qCoolDown = spellBook.getQ().getReadyAtSeconds();
+        int qLevel = spellBook.getQ().getLevel();
+        if (canCast(gameTime, qCoolDown, qLevel)) {
+            Double spellRadiusQ = 60.0;
+            Double spellDelayQ = 0.25;
+            Double spellSpeedQ = 2000.0;
+            Double spellRangeQ = 1200.0;
+            this.canCastTime = gameTimeComponent.getGameTime() + spellDelayQ + ping;
+            return targetService.getPrediction(spellRangeQ, spellSpeedQ, spellDelayQ, spellRadiusQ)
+                    .flatMap(predictedPosition -> {
+                        Vector2 mousePos = mouseService.getCursorPos();
+                        Vector3 localPlayerPosition = localPlayer.getPosition();
+                        Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(localPlayerPosition.getX(), localPlayerPosition.getY(), localPlayerPosition.getZ());
+                        if (isValidPoint(predictedPosition, screenLocalPlayerPosition, spellRangeQ)) {
+                            castQAbilitiy(predictedPosition, mousePos);
+                        }
+                        return Mono.just(true);
+                    });
+        }
+        return Mono.just(true);
     }
 
     private void castQAbilitiy(Vector2 predictedPosition, Vector2 mousePos) {
-        this.canCastTime = gameTimeComponent.getGameTime() + 0.25;
         //user32.BlockInput(new WinDef.BOOL(true));
         this.mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
         this.keyboardService.sendKeyDown(KeyEvent.VK_Q);
@@ -155,40 +149,42 @@ public class OrbWalker implements ScriptLoaderService {
         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
         //user32.BlockInput(new WinDef.BOOL(false));
     }
-
     private Mono<Boolean> castW() {
-        Double spellRadiusW = 60.0;
-        Double spellDelayW = 0.25;
-        Double spellSpeedW = 2000.0;
-        Double spellRangeW = 1200.0;
-        return targetService.getPrediction(spellRangeW, spellSpeedW, spellDelayW, spellRadiusW)
-                .flatMap(predictedPosition -> {
-                    double gameTime = gameTimeComponent.getGameTime();
-                    Champion localPlayer = championComponent.getLocalPlayer();
-                    SpellBook spellBook = localPlayer.getSpellBook();
-                    double wCoolDown = spellBook.getW().getReadyAtSeconds();
-                    int wLevel = spellBook.getW().getLevel();
-                    Vector2 mousePos = mouseService.getCursorPos();
-                    Vector3 localPlayerPosition = localPlayer.getPosition();
-                    Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(localPlayerPosition.getX(), localPlayerPosition.getY(), localPlayerPosition.getZ());
-
-                    if (canCastW(gameTime, predictedPosition, wCoolDown, wLevel, screenLocalPlayerPosition)) {
-                        castWAbilitiy(predictedPosition, mousePos);
-                    }
-                    return Mono.just(true);
-                });
+        Champion localPlayer = championComponent.getLocalPlayer();
+        SpellBook spellBook = localPlayer.getSpellBook();
+        double gameTime = gameTimeComponent.getGameTime();
+        double wCoolDown = spellBook.getW().getReadyAtSeconds();
+        int wLevel = spellBook.getW().getLevel();
+        if (canCast(gameTime, wCoolDown, wLevel)) {
+            Double spellRadiusW = 60.0;
+            Double spellDelayW = 0.25;
+            Double spellSpeedW = 2000.0;
+            Double spellRangeW = 1200.0;
+            this.canCastTime = gameTimeComponent.getGameTime() + spellDelayW + ping;
+            return targetService.getPrediction(spellRangeW, spellSpeedW, spellDelayW, spellRadiusW)
+                    .flatMap(predictedPosition -> {
+                        Vector2 mousePos = mouseService.getCursorPos();
+                        Vector3 localPlayerPosition = localPlayer.getPosition();
+                        Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(localPlayerPosition.getX(), localPlayerPosition.getY(), localPlayerPosition.getZ());
+                        if (isValidPoint(predictedPosition, screenLocalPlayerPosition, spellRangeW)) {
+                            castWAbilitiy(predictedPosition, mousePos);
+                        }
+                        return Mono.just(true);
+                    });
+        }
+        return Mono.just(true);
     }
-
-    private boolean canCastW(double gameTime, Vector2 predictedPosition, double qCoolDown, int wLevel, Vector2 localPlayerPosition) {
+    private boolean canCast(double gameTime, double coolDown, int level) {
         return this.canCastTime < gameTime &&
-                predictedPosition != null &&
-                gameTime - qCoolDown > 0 &&
-                wLevel > 0 &&
-                distanceBetweenTargets2D(localPlayerPosition, predictedPosition) < 1200.0;
+                gameTime - coolDown > 0 &&
+                level > 0;
+    }
+    private boolean isValidPoint(Vector2 predictedPosition, Vector2 localPlayerPosition, Double spellRange) {
+        return predictedPosition != null &&
+                distanceBetweenTargets2D(localPlayerPosition, predictedPosition) < spellRange;
     }
 
     private void castWAbilitiy(Vector2 predictedPosition, Vector2 mousePos) {
-        this.canCastTime = gameTimeComponent.getGameTime() + 0.25;
         //user32.BlockInput(new WinDef.BOOL(true));
         this.mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
         this.keyboardService.sendKeyDown(KeyEvent.VK_W);
