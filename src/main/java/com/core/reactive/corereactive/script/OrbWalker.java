@@ -20,6 +20,7 @@ import org.springframework.util.ObjectUtils;
 import reactor.core.publisher.Mono;
 
 import java.awt.event.KeyEvent;
+import java.sql.SQLOutput;
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,7 +35,7 @@ public class OrbWalker implements ScriptLoaderService {
     private final RendererComponent rendererComponent;
     private final KeyboardService keyboardService;
     private final TargetService targetService;
-    private final List<String> championsWithPredictionAbilities = Arrays.asList("Ezreal", "Morgana", "Samira");
+    private final List<String> championsWithPredictionAbilities = Arrays.asList("Ezreal", "Morgana", "Samira", "Ahri");
     private Double canAttackTime = 0.0000000000;
     private Double canMoveTime = 0.0000000000;
     private Double canCastTime = 0.0000000000;
@@ -50,6 +51,7 @@ public class OrbWalker implements ScriptLoaderService {
             this.keepKeyOPressed();
             return attackTarget().flatMap(attackTarget -> {
                 if (championsWithPredictionAbilities.contains(championComponent.getLocalPlayer().getName())) {
+                    //return walk().flatMap(walk -> castQ().flatMap(castQ -> walk())); //Samira
                     return walk().flatMap(walk -> castW().flatMap(castW -> walk().flatMap(wakW -> castQ().flatMap(castQ -> walk()))));
                 } else {
                     return walk();
@@ -99,13 +101,11 @@ public class OrbWalker implements ScriptLoaderService {
                                     Vector2 mousePos = this.mouseService.getCursorPos();
                                     this.canAttackTime = gameTime + 1.0 / attackSpeed;
                                     this.canMoveTime = gameTime + windUpTime;
-                                    this.canCastTime = gameTime + windUpTime +0.1;
+                                    this.canCastTime = gameTime + windUpTime + 0.1;
                                     this.mouseService.mouseMiddleDown();
-                                    //this.user32.BlockInput(new WinDef.BOOL(true));
                                     this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
                                     this.gameTimeComponent.sleep(30);
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-                                    //this.user32.BlockInput(new WinDef.BOOL(false));
                                     this.mouseService.mouseMiddleUp();
                                     return Mono.just(Boolean.TRUE);
                                 }
@@ -141,13 +141,11 @@ public class OrbWalker implements ScriptLoaderService {
     }
 
     private void castQAbilitiy(Vector2 predictedPosition, Vector2 mousePos) {
-        //user32.BlockInput(new WinDef.BOOL(true));
         this.mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
         this.keyboardService.sendKeyDown(KeyEvent.VK_Q);
         this.keyboardService.sendKeyUp(KeyEvent.VK_Q);
         this.gameTimeComponent.sleep(30);
         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-        //user32.BlockInput(new WinDef.BOOL(false));
     }
     private Mono<Boolean> castW() {
         Champion localPlayer = championComponent.getLocalPlayer();
@@ -185,13 +183,11 @@ public class OrbWalker implements ScriptLoaderService {
     }
 
     private void castWAbilitiy(Vector2 predictedPosition, Vector2 mousePos) {
-        //user32.BlockInput(new WinDef.BOOL(true));
         this.mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
-        this.keyboardService.sendKeyDown(KeyEvent.VK_W);
-        this.keyboardService.sendKeyUp(KeyEvent.VK_W);
+        this.keyboardService.sendKeyDown(KeyEvent.VK_E);
+        this.keyboardService.sendKeyUp(KeyEvent.VK_E);
         this.gameTimeComponent.sleep(30);
         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-        //user32.BlockInput(new WinDef.BOOL(false));
     }
 
     private Mono<Boolean> laneClear(){
@@ -209,11 +205,9 @@ public class OrbWalker implements ScriptLoaderService {
                                     Vector2 mousePos = this.mouseService.getCursorPos();
                                     this.canAttackTime = gameTime + 1.0 / attackSpeed;
                                     this.canMoveTime = gameTime + this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (40/2000);
-                                    //this.user32.BlockInput(new WinDef.BOOL(true));
                                     this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
                                     this.gameTimeComponent.sleep(30);
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-                                    //this.user32.BlockInput(new WinDef.BOOL(false));
                                     return Mono.just(Boolean.TRUE);
                                 }
                                 return Mono.just(Boolean.TRUE);
