@@ -126,7 +126,7 @@ public class OrbWalker implements ScriptLoaderService {
             Double spellSpeedQ = 2000.0;
             Double spellRangeQ = 1200.0;
             this.canCastTime = gameTimeComponent.getGameTime() + spellDelayQ + ping;
-            return targetService.getPrediction(spellRangeQ, spellSpeedQ, spellDelayQ, spellRadiusQ)
+            return targetService.getBestChampionInSpell(spellRangeQ, spellSpeedQ, spellDelayQ, spellRadiusQ)
                     .flatMap(predictedPosition -> {
                         Vector2 mousePos = mouseService.getCursorPos();
                         Vector3 localPlayerPosition = localPlayer.getPosition();
@@ -184,8 +184,8 @@ public class OrbWalker implements ScriptLoaderService {
 
     private void castWAbilitiy(Vector2 predictedPosition, Vector2 mousePos) {
         this.mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
-        this.keyboardService.sendKeyDown(KeyEvent.VK_E);
-        this.keyboardService.sendKeyUp(KeyEvent.VK_E);
+        this.keyboardService.sendKeyDown(KeyEvent.VK_W);
+        this.keyboardService.sendKeyUp(KeyEvent.VK_W);
         this.gameTimeComponent.sleep(30);
         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
     }

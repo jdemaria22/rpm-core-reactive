@@ -33,11 +33,10 @@ public class TargetService {
             speed = aiManager.getDashSpeed();
         }
 
-        List<Vector3> waypoints = new ArrayList<>();
-        waypoints.add(aiManager.getServerPos());
+        // waypoints.add(aiManager.getServerPos());
 
-        List<Vector3> futureWaypoints = getFuturePoints(obj);
-        waypoints.addAll(futureWaypoints);
+        //List<Vector3> futureWaypoints = getFuturePoints(obj);
+        List<Vector3> waypoints = new ArrayList<>(getFuturePoints(obj));
 
         int waypointsSize = waypoints.size();
 
@@ -214,9 +213,13 @@ public class TargetService {
                     int[] pathBounds = {-1, -1};
                     double pathTime = 0.0;
                     double targetMoveSpeed = ai.getIsDashing() ? (double) ai.getDashSpeed() : (double) ai.getMoveSpeed();
-                    if (!ai.getIsMoving()) {
-                        Vector3 servPos = ai.getServerPos();
-                        return this.rendererComponent.worldToScreen(servPos.getX(), servPos.getY(), servPos.getZ());
+                    int waypointsSize = waypoints.size();
+                    if (waypointsSize == 0 || !ai.getIsMoving())
+                    {
+                        Vector3 position = ai.getServerPos();
+                        if (checkCollision(ailocal.getServerPos(), position, localPLayer, spellRadius)){
+                            return this.rendererComponent.worldToScreen(position.getX(), position.getY(), position.getZ());
+                        }
                     }
                     for (int i = 0; i < pathSize - 1; i++) {
                         Vector3 curVector = waypoints.get(i);
@@ -255,14 +258,44 @@ public class TargetService {
                                             .y(ai.getServerPos().getY())
                                             .z(ai.getServerPos().getZ())
                                             .build();
-
                                     Vector3 predictedPos = addVector3(center, scaleVector3(normalizeVector3(ai.getVelocity()), extender));
                                     double flytime = this.distanceBetweenTargets(ailocal.getServerPos(), ai.getServerPos()) / spellSpeed;
                                     double t = flytime + spellDelay + (double) ping / 2000.0;
                                     double arriveTimeA = this.distanceBetweenTargets(targetServPosVector, ptA) / targetMoveSpeed;
                                     double arriveTimeB = this.distanceBetweenTargets(targetServPosVector, ptB) / targetMoveSpeed;
                                     if (Math.min(arriveTimeA, arriveTimeB) <= t && t <= Math.max(arriveTimeA, arriveTimeB)) {
-                                        return this.rendererComponent.worldToScreen(predictedPos.getX(), predictedPos.getY(), predictedPos.getZ());
+                                        Vector3 sourcePos = localPLayer.getAiManager().getServerPos();
+                                        AiManager targetAiManager = champion.getAiManager();
+                                        distance = this.distanceBetweenTargets(sourcePos, targetAiManager.getServerPos());
+                                        if (distance > spellRange){
+                                            return null;
+                                        }
+                                        if (waypointsSize == 0 || !targetAiManager.getIsMoving())
+                                        {
+                                            Vector3 position = targetAiManager.getServerPos();
+                                            if (checkCollision(sourcePos, position, localPLayer, spellRadius)){
+                                                return this.rendererComponent.worldToScreen(position.getX(), position.getY(), position.getZ());
+                                            }
+                                        }
+                                        double travelTime = (distance / spellSpeed) + spellDelay;
+                                        predictedPos = getObjectPositionAfterTime(champion, travelTime, 0.0);
+                                        distance = this.distanceBetweenTargets(predictedPos, sourcePos);
+                                        double missileTime = (distance / spellSpeed) + spellDelay;
+
+                                        while (Math.abs(travelTime - missileTime) > 0.01) {
+                                            travelTime = missileTime;
+                                            predictedPos = getObjectPositionAfterTime(champion, travelTime, 0.0f);
+
+                                            distance = distanceBetweenTargets(predictedPos, sourcePos);
+                                            if (distance > spellRange) {
+                                                return null;
+                                            }
+                                            missileTime = (distance / spellSpeed) + spellDelay;
+                                        }
+                                        if (checkCollision(sourcePos, predictedPos, localPLayer, spellRadius)){
+                                            return this.rendererComponent.worldToScreen(predictedPos.getX(), predictedPos.getY(), predictedPos.getZ());
+                                        }
+                                        //return this.rendererComponent.worldToScreen(predictedPos.getX(), predictedPos.getY(), predictedPos.getZ());
                                     }
                                 }
                             }
