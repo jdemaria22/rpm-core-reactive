@@ -159,7 +159,7 @@ public class OrbWalker implements ScriptLoaderService {
             Double spellSpeedW = 2000.0;
             Double spellRangeW = 1200.0;
             this.canCastTime = gameTimeComponent.getGameTime() + spellDelayW + ping;
-            return targetService.getPrediction(spellRangeW, spellSpeedW, spellDelayW, spellRadiusW)
+            return targetService.getBestChampionInSpell(spellRangeW, spellSpeedW, spellDelayW, spellRadiusW)
                     .flatMap(predictedPosition -> {
                         Vector2 mousePos = mouseService.getCursorPos();
                         Vector3 localPlayerPosition = localPlayer.getPosition();
