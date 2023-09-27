@@ -25,26 +25,70 @@ public class TargetService {
     private final MinionComponent minionComponent;
     private final RendererComponent rendererComponent;
 
-    Vector3 getObjectPositionAfterTime(Champion obj, double time, double distanceBuffer) {
-        AiManager aiManager = obj.getAiManager();
-        double speed = aiManager.getMoveSpeed();
+    public Mono<Vector2> getPrediction(Double spellRange, Double spellSpeed, Double spellDelay, Double spellRadius) {
+        Champion localPLayer = this.championComponent.getLocalPlayer();
+        return Mono.fromCallable(() -> {
+            for (Champion champion : this.championComponent.getMapUnit().values()) {
+                if (!champion.getIsTargeteable()){
+                    continue;
+                }
+                if (!champion.getIsVisible()) {
+                    continue;
+                }
+                if (!champion.getIsAlive()) {
+                    continue;
+                }
+                if (Objects.equals(champion.getTeam(), localPLayer.getTeam())) {
+                    continue;
+                }
+                Double targetGameplayRadius = (champion.getJsonCommunityDragon() != null) ? champion.getJsonCommunityDragon().getGameplayRadius() : 65.0;
+                boolean inDistance = this.distanceBetweenTargets(localPLayer.getPosition(), champion.getPosition()) <= spellRange-targetGameplayRadius;
+                if (inDistance){
+                    List<Vector3> waypoints = getFuturePoints(champion);
+                    if (waypoints.size()<=1 || !champion.getAiManager().getIsMoving()){
+                        return this.rendererComponent.worldToScreen(waypoints.get(0).getX(), waypoints.get(0).getY(), waypoints.get(0).getZ());
+                    }
+                    double travelTime = (distanceBetweenTargets(champion.getPosition(), localPLayer.getPosition()) / spellSpeed) + spellDelay /*+ spell->chanelingTime*/;
+                    Vector3 predictedPos = posAfterTime(champion, travelTime, spellRadius);
+                    double distanceMissile = distanceBetweenTargets(predictedPos, localPLayer.getPosition());
+                    double missileTime = (distanceMissile / spellSpeed) + spellDelay;
+                    while (Math.abs(travelTime - missileTime) > 0.01) {
+                        travelTime = missileTime;
+                        predictedPos = posAfterTime(champion, travelTime, spellRadius);
+                        distanceMissile = distanceBetweenTargets(predictedPos, localPLayer.getPosition());
+                        if (distanceMissile > spellRange)
+                            return null;
+                        missileTime = (distanceMissile / spellSpeed) + spellDelay /*+ spell->chanelingTime*/;
+                    }
+                    if (checkCollision(localPLayer.getPosition(), predictedPos, localPLayer, spellRadius)){
+                        return this.rendererComponent.worldToScreen(predictedPos.getX(), predictedPos.getY(), predictedPos.getZ());
+                    }
+                }
+            }
+            return null;
+        });
+    }
 
-        if (aiManager.getIsDashing()) {
-            speed = aiManager.getDashSpeed();
+    Vector3 posAfterTime(Champion obj, double time, double missileWidth) {
+        AiManager pathController = obj.getAiManager();
+        double speed = pathController.getMoveSpeed();
+        if (pathController.getIsDashing()) {
+            speed = pathController.getDashSpeed();
         }
-
-        List<Vector3> waypoints = new ArrayList<>(getFuturePoints(obj));
-
+        List<Vector3> waypoints = getFuturePoints(obj);
         int waypointsSize = waypoints.size();
 
-        if (time == 0 || !aiManager.getIsMoving()) {
-            return aiManager.getServerPos();
+        if (waypointsSize <= 1 || time == 0 || !pathController.getIsMoving()) {
+            return waypoints.get(0);
         }
-
-        double distance = (speed * time) - distanceBuffer;
-
+        double distance = (speed * time) - (missileWidth- (missileWidth * 0.1));
         for (int i = 1; i < waypointsSize; i++) {
-            double wayDistance = this.distanceBetweenTargets(waypoints.get(i - 1), waypoints.get(i));
+            double wayDistance;
+            if (i ==1){
+                wayDistance = distanceBetweenTargets(waypoints.get(0),waypoints.get(i));
+            } else {
+                wayDistance = distanceBetweenTargets(waypoints.get(i-1),waypoints.get(i));
+            }
             if (wayDistance >= distance) {
                 return addVector3(waypoints.get(i - 1), scaleVector3(normalizeVector3(subtractVector3(waypoints.get(i),waypoints.get(i - 1))), distance));
             }
@@ -55,8 +99,6 @@ public class TargetService {
         }
         return waypoints.get(0);
     }
-
-
     boolean isSpecificObjectInWay(Vector3 sourcePos, Vector3 targetPos, Minion collisionObject, double projectileRadius) {
         Vector3 sourceToTarget = subtractVector3(targetPos,sourcePos);
         sourceToTarget.setY(0.0f);
@@ -123,66 +165,10 @@ public class TargetService {
         return !isAnyObjectInWay(sourcePos, targetPos, sourceObject, spellRadius);
     }
 
-    public Mono<Vector2> getPrediction(Double spellRange, Double spellSpeed, Double spellDelay, Double spellRadius) {
-        Champion localPLayer = this.championComponent.getLocalPlayer();
-        return Mono.fromCallable(() -> {
-            for (Champion champion : this.championComponent.getMapUnit().values()) {
-                if (!champion.getIsTargeteable()){
-                    continue;
-                }
-                if (!champion.getIsVisible()) {
-                    continue;
-                }
-                if (!champion.getIsAlive()) {
-                    continue;
-                }
-                if (Objects.equals(champion.getTeam(), localPLayer.getTeam())) {
-                    continue;
-                }
-                Double targetGameplayRadius = (champion.getJsonCommunityDragon() != null) ? champion.getJsonCommunityDragon().getGameplayRadius() : 65.0;
-                boolean inDistance = this.distanceBetweenTargets(localPLayer.getPosition(), champion.getPosition()) <= spellRange-targetGameplayRadius;
-                if (inDistance){
-                    Vector3 sourcePos = localPLayer.getAiManager().getServerPos();
-                    AiManager targetAiManager = champion.getAiManager();
-                    double distance = this.distanceBetweenTargets(sourcePos, targetAiManager.getServerPos());
-                    if (distance > spellRange){
-                        return null;
-                    }
-                    List<Vector3> waypoints = getFuturePoints(champion);
-                    int waypointsSize = waypoints.size();
-                    if (waypointsSize == 0 || !targetAiManager.getIsMoving())
-                    {
-                        Vector3 position = targetAiManager.getServerPos();
-                        if (checkCollision(sourcePos, position, localPLayer, spellRadius)){
-                            return this.rendererComponent.worldToScreen(position.getX(), position.getY(), position.getZ());
-                        }
-                    }
-                    double travelTime = (distance / spellSpeed) + spellDelay;
-                    Vector3 predictedPos = getObjectPositionAfterTime(champion, travelTime, 0.0);
-                    distance = this.distanceBetweenTargets(predictedPos, sourcePos);
-                    double missileTime = (distance / spellSpeed) + spellDelay;
-
-                    while (Math.abs(travelTime - missileTime) > 0.01) {
-                        travelTime = missileTime;
-                        predictedPos = getObjectPositionAfterTime(champion, travelTime, 0.0f);
-
-                        distance = distanceBetweenTargets(predictedPos, sourcePos);
-                        if (distance > spellRange) {
-                            return null;
-                        }
-                        missileTime = (distance / spellSpeed) + spellDelay;
-                    }
-                    if (checkCollision(sourcePos, predictedPos, localPLayer, spellRadius)){
-                        return this.rendererComponent.worldToScreen(predictedPos.getX(), predictedPos.getY(), predictedPos.getZ());
-                    }
-                }
-            }
-            return null;
-        });
-    }
 
     public Mono<Vector2> getBestChampionInSpell(Double spellRange, Double spellSpeed, Double spellDelay, Double spellRadius) {
         Champion localPLayer = this.championComponent.getLocalPlayer();
+        Vector3 localPlayerPos = localPLayer.getPosition();
         return Mono.fromCallable(() -> {
             for (Champion champion : this.championComponent.getMapUnit().values()) {
                 if (!champion.getIsTargeteable()){
@@ -200,22 +186,20 @@ public class TargetService {
                 boolean inDistance = this.distanceBetweenTargets(localPLayer.getPosition(), champion.getPosition()) < spellRange-champion.getJsonCommunityDragon().getGameplayRadius();
                 if (inDistance){
                     AiManager ai = champion.getAiManager();
-                    Vector3 localServerPos = localPLayer.getAiManager().getServerPos();
+                    Vector3 targetPos = champion.getPosition();
                     int ping = 33;
-                    double flytimeMax = spellRange / spellSpeed;
+                    double flyTimeMax = spellRange / spellSpeed;
                     double tMin = spellDelay + (double) ping / 2000.0;
-                    double tMax = flytimeMax + spellDelay + (double) ping / 1000.0;
+                    double tMax = flyTimeMax + spellDelay + (double) ping / 1000.0;
                     List<Vector3> waypoints = getFuturePoints(champion);
                     int pathSize = waypoints.size();
                     int[] pathBounds = {-1, -1};
                     double pathTime = 0.0;
                     double targetMoveSpeed = ai.getIsDashing() ? (double) ai.getDashSpeed() : (double) ai.getMoveSpeed();
-                    int waypointsSize = waypoints.size();
-                    if (waypointsSize == 0 || !ai.getIsMoving())
+                    if (!ai.getIsMoving())
                     {
-                        Vector3 position = ai.getServerPos();
-                        if (checkCollision(localServerPos, position, localPLayer, spellRadius)){
-                            return this.rendererComponent.worldToScreen(position.getX(), position.getY(), position.getZ());
+                        if (checkCollision(localPlayerPos, targetPos, localPLayer, spellRadius)){
+                            return this.rendererComponent.worldToScreen(targetPos.getX(), targetPos.getY(), targetPos.getZ());
                         }
                     }
                     for (int i = 0; i < pathSize - 1; i++) {
@@ -250,18 +234,13 @@ public class TargetService {
                                     Vector3 center = addVector3(curVector, scaleVector3(direction, distance * i));
                                     Vector3 ptA = subtractVector3(center, scaleVector3(direction, extender));
                                     Vector3 ptB = addVector3(center, scaleVector3(direction, extender));
-                                    Vector3 targetServPosVector = Vector3.builder()
-                                            .x(ai.getServerPos().getX())
-                                            .y(ai.getServerPos().getY())
-                                            .z(ai.getServerPos().getZ())
-                                            .build();
-                                    Vector3 predictedPos = addVector3(center, scaleVector3(normalizeVector3(ai.getVelocity()), extender));
-                                    double flytime = this.distanceBetweenTargets(localServerPos, ai.getServerPos()) / spellSpeed;
-                                    double t = flytime + spellDelay + (double) ping / 2000.0;
-                                    double arriveTimeA = this.distanceBetweenTargets(targetServPosVector, ptA) / targetMoveSpeed;
-                                    double arriveTimeB = this.distanceBetweenTargets(targetServPosVector, ptB) / targetMoveSpeed;
+                                    //Vector3 predictedPos = addVector3(center, scaleVector3(normalizeVector3(ai.getVelocity()), extender));
+                                    double flyTime = this.distanceBetweenTargets(localPlayerPos, targetPos) / spellSpeed;
+                                    double t = flyTime + spellDelay + (double) ping / 2000.0;
+                                    double arriveTimeA = this.distanceBetweenTargets(targetPos, ptA) / targetMoveSpeed;
+                                    double arriveTimeB = this.distanceBetweenTargets(targetPos, ptB) / targetMoveSpeed;
                                     if (Math.min(arriveTimeA, arriveTimeB) <= t && t <= Math.max(arriveTimeA, arriveTimeB)) {
-                                        return this.rendererComponent.worldToScreen(predictedPos.getX(), predictedPos.getY(), predictedPos.getZ());
+                                        return this.rendererComponent.worldToScreen(center.getX(), center.getY(), center.getZ());
                                     }
                                 }
                             }
