@@ -51,7 +51,7 @@ public class OrbWalker implements ScriptLoaderService {
             return attackTarget().flatMap(attackTarget -> {
                 if (championsWithPredictionAbilities.contains(championComponent.getLocalPlayer().getName())) {
                     //return walk().flatMap(walk -> castQ().flatMap(castQ -> walk())); //Samira
-                    return walk().flatMap(walk -> castW().flatMap(castW -> walk().flatMap(walk2 -> castQ().flatMap(castQ -> walk()))));
+                    return walk().flatMap(walk -> castW().flatMap(castW -> castQ()));
                 } else {
                     return walk();
                 }
@@ -104,10 +104,10 @@ public class OrbWalker implements ScriptLoaderService {
                                         Vector2 mousePos = this.mouseService.getCursorPos();
                                         this.mouseService.mouseMiddleDown();
                                         this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                        this.gameTimeComponent.sleep(20);
+                                        this.gameTimeComponent.sleep(30);
                                         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.mouseMiddleUp();
-                                        this.gameTimeComponent.sleep(20);
+                                        this.gameTimeComponent.sleep(30);
                                         return Mono.just(Boolean.TRUE);
                                     }
                                     return Mono.just(Boolean.TRUE);
@@ -130,12 +130,12 @@ public class OrbWalker implements ScriptLoaderService {
             Double spellRangeQ = 1200.0;
             return targetService.getPrediction(spellRangeQ, spellSpeedQ, spellDelayQ, spellRadiusQ)
                     .flatMap(predictedPosition -> {
+                        this.canCastTime = gameTime + spellDelayQ + ping;
+                        this.lastCast = gameTime;
+                        this.canMoveTime = gameTime + spellDelayQ;
                         Vector3 localPlayerPosition = localPlayer.getPosition();
                         Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(localPlayerPosition.getX(), localPlayerPosition.getY(), localPlayerPosition.getZ());
                         if (isValidPoint(predictedPosition, screenLocalPlayerPosition, spellRangeQ)) {
-                            this.canCastTime = gameTime + spellDelayQ + ping;
-                            this.lastCast = gameTime;
-                            this.canMoveTime = gameTime + spellDelayQ;
                             cast(predictedPosition, KeyEvent.VK_Q);
                         }
                         return Mono.just(Boolean.TRUE);
@@ -156,12 +156,12 @@ public class OrbWalker implements ScriptLoaderService {
             Double spellRangeW = 1200.0;
             return targetService.getPrediction(spellRangeW, spellSpeedW, spellDelayW, spellRadiusW)
                     .flatMap(predictedPosition -> {
+                        this.canCastTime = gameTime + spellDelayW + ping;
+                        this.lastCast = gameTime;
+                        this.canMoveTime = gameTime + spellDelayW;
                         Vector3 localPlayerPosition = localPlayer.getPosition();
                         Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(localPlayerPosition.getX(), localPlayerPosition.getY(), localPlayerPosition.getZ());
                         if (isValidPoint(predictedPosition, screenLocalPlayerPosition, spellRangeW)) {
-                            this.canCastTime = gameTime + spellDelayW + ping;
-                            this.lastCast = gameTime;
-                            this.canMoveTime = gameTime + spellDelayW;
                             cast(predictedPosition,KeyEvent.VK_W);
                         }
                         return Mono.just(Boolean.TRUE);
@@ -174,10 +174,11 @@ public class OrbWalker implements ScriptLoaderService {
         Vector2 mousePos = mouseService.getCursorPos();
         this.mouseService.blockInput(Boolean.TRUE);
         this.mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
+        this.gameTimeComponent.sleep(5);
         this.keyboardService.sendKeyDown(key);
-        this.gameTimeComponent.sleep(20);
+        this.gameTimeComponent.sleep(5);
         this.keyboardService.sendKeyUp(key);
-        this.gameTimeComponent.sleep(40);
+        this.gameTimeComponent.sleep(30);
         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
         this.mouseService.blockInput(Boolean.FALSE);
     }
@@ -197,6 +198,8 @@ public class OrbWalker implements ScriptLoaderService {
                                     this.canAttackTime = gameTime + 1.0 / attackSpeed;
                                     this.canMoveTime = gameTime + this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (40/2000);
                                     this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
+                                    this.gameTimeComponent.sleep(30);
+                                    this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                     this.gameTimeComponent.sleep(30);
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                     return Mono.just(Boolean.TRUE);
