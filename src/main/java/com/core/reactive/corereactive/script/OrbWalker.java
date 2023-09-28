@@ -81,7 +81,7 @@ public class OrbWalker implements ScriptLoaderService {
                 this.mouseService.mouseRightClickNoMove();
                 return Boolean.TRUE;
             }
-            return Boolean.FALSE;
+            return Boolean.TRUE;
         });
     }
     private Mono<Boolean> attackTarget(){
@@ -128,20 +128,20 @@ public class OrbWalker implements ScriptLoaderService {
             Double spellDelayQ = 0.25;
             Double spellSpeedQ = 2000.0;
             Double spellRangeQ = 1200.0;
-            this.canCastTime = gameTime + spellDelayQ + ping;
-            this.lastCast = gameTime;
-            this.canMoveTime = gameTime + spellDelayQ;
             return targetService.getPrediction(spellRangeQ, spellSpeedQ, spellDelayQ, spellRadiusQ)
                     .flatMap(predictedPosition -> {
                         Vector3 localPlayerPosition = localPlayer.getPosition();
                         Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(localPlayerPosition.getX(), localPlayerPosition.getY(), localPlayerPosition.getZ());
                         if (isValidPoint(predictedPosition, screenLocalPlayerPosition, spellRangeQ)) {
+                            this.canCastTime = gameTime + spellDelayQ + ping;
+                            this.lastCast = gameTime;
+                            this.canMoveTime = gameTime + spellDelayQ;
                             cast(predictedPosition, KeyEvent.VK_Q);
                         }
-                        return Mono.just(true);
+                        return Mono.just(Boolean.TRUE);
                     });
         }
-        return Mono.just(true);
+        return Mono.just(Boolean.TRUE);
     }
     private Mono<Boolean> castW() {
         Double gameTime = gameTimeComponent.getGameTime();
@@ -154,31 +154,32 @@ public class OrbWalker implements ScriptLoaderService {
             Double spellDelayW = 0.25;
             Double spellSpeedW = 2000.0;
             Double spellRangeW = 1200.0;
-            this.canCastTime = gameTime + spellDelayW + ping;
-            this.lastCast = gameTime;
-            this.canMoveTime = gameTime + spellDelayW;
             return targetService.getPrediction(spellRangeW, spellSpeedW, spellDelayW, spellRadiusW)
                     .flatMap(predictedPosition -> {
                         Vector3 localPlayerPosition = localPlayer.getPosition();
                         Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(localPlayerPosition.getX(), localPlayerPosition.getY(), localPlayerPosition.getZ());
                         if (isValidPoint(predictedPosition, screenLocalPlayerPosition, spellRangeW)) {
+                            this.canCastTime = gameTime + spellDelayW + ping;
+                            this.lastCast = gameTime;
+                            this.canMoveTime = gameTime + spellDelayW;
                             cast(predictedPosition,KeyEvent.VK_W);
                         }
-                        return Mono.just(true);
+                        return Mono.just(Boolean.TRUE);
                     });
         }
-        return Mono.just(true);
+        return Mono.just(Boolean.TRUE);
     }
 
     private void cast(Vector2 predictedPosition, int key) {
         Vector2 mousePos = mouseService.getCursorPos();
-        this.mouseService.blockInput(true);
+        this.mouseService.blockInput(Boolean.TRUE);
         this.mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
         this.keyboardService.sendKeyDown(key);
-        this.gameTimeComponent.sleep(5);
+        this.gameTimeComponent.sleep(20);
         this.keyboardService.sendKeyUp(key);
+        this.gameTimeComponent.sleep(40);
         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-        this.mouseService.blockInput(false);
+        this.mouseService.blockInput(Boolean.FALSE);
     }
     private Mono<Boolean> laneClear(){
         return this.apiService.getJsonActivePlayer()
