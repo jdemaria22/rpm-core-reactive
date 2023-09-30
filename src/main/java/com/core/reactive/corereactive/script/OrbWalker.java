@@ -50,7 +50,6 @@ public class OrbWalker implements ScriptLoaderService {
             this.keepKeyOPressed();
             return attackTarget().flatMap(attackTarget -> {
                 if (championsWithPredictionAbilities.contains(championComponent.getLocalPlayer().getName())) {
-                    //return walk().flatMap(walk -> castQ().flatMap(castQ -> walk())); //Samira
                     return walk().flatMap(walk -> castW().flatMap(castW -> castQ()));
                 } else {
                     return walk();
@@ -61,7 +60,7 @@ public class OrbWalker implements ScriptLoaderService {
             this.keepKeyOPressed();
             return laneClear().flatMap(attackTarget -> {
                 if (championsWithPredictionAbilities.contains(championComponent.getLocalPlayer().getName())) {
-                    return walk().flatMap(walk -> castW().flatMap(castW -> walk().flatMap(wakW -> castQ().flatMap(castQ -> walk()))));
+                    return walk().flatMap(walk -> castW().flatMap(castW -> castQ()));
                 } else {
                     return walk();
                 }
@@ -74,15 +73,18 @@ public class OrbWalker implements ScriptLoaderService {
     }
 
     private Mono<Boolean> walk() {
-        return Mono.fromCallable(() -> {
-            double gameTime = gameTimeComponent.getGameTime();
-            if (this.canMoveTime < gameTime) {
-                this.gameTimeComponent.sleep(40);
-                this.mouseService.mouseRightClickNoMove();
+        Double gameTime = this.gameTimeComponent.getGameTime();
+        if (gameTime - lastCast > 0.1) {
+            return Mono.fromCallable(() -> {
+                if (this.canMoveTime < gameTime) {
+                    this.gameTimeComponent.sleep(40);
+                    this.mouseService.mouseRightClickNoMove();
+                    return Boolean.TRUE;
+                }
                 return Boolean.TRUE;
-            }
-            return Boolean.TRUE;
-        });
+            });
+        }
+        return Mono.just(Boolean.FALSE);
     }
     private Mono<Boolean> attackTarget(){
         Double gameTime = this.gameTimeComponent.getGameTime();
@@ -110,11 +112,11 @@ public class OrbWalker implements ScriptLoaderService {
                                         this.gameTimeComponent.sleep(30);
                                         return Mono.just(Boolean.TRUE);
                                     }
-                                    return Mono.just(Boolean.TRUE);
+                                    return Mono.just(Boolean.FALSE);
                                 });
                     });
         }
-        return Mono.just(Boolean.TRUE);
+        return Mono.just(Boolean.FALSE);
     }
 
     private Mono<Boolean> castQ() {
@@ -123,24 +125,36 @@ public class OrbWalker implements ScriptLoaderService {
         SpellBook spellBook = localPlayer.getSpellBook();
         double qCoolDown = spellBook.getQ().getReadyAtSeconds();
         int qLevel = spellBook.getQ().getLevel();
-        if (canCast(gameTime, qCoolDown, qLevel)) {
-            Double spellRadiusQ = 80.0;
+
+        if (canCast(gameTime, qCoolDown, qLevel) && gameTime - lastCast > 0.6) {
+            Double spellRadiusQ = 120.0;
             Double spellDelayQ = 0.25;
             Double spellSpeedQ = 2000.0;
             Double spellRangeQ = 1200.0;
+
+            // Use flatMap to work with the result of targetService.getPrediction
             return targetService.getPrediction(spellRangeQ, spellSpeedQ, spellDelayQ, spellRadiusQ)
                     .flatMap(predictedPosition -> {
                         this.canCastTime = gameTime + spellDelayQ + ping;
                         this.lastCast = gameTime;
                         this.canMoveTime = gameTime + spellDelayQ;
+
                         Vector3 localPlayerPosition = localPlayer.getPosition();
-                        Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(localPlayerPosition.getX(), localPlayerPosition.getY(), localPlayerPosition.getZ());
+                        Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(
+                                localPlayerPosition.getX(), localPlayerPosition.getY(), localPlayerPosition.getZ()
+                        );
+
                         if (isValidPoint(predictedPosition, screenLocalPlayerPosition, spellRangeQ)) {
-                            cast(predictedPosition, KeyEvent.VK_Q);
+                            // Assuming cast returns Mono<Boolean>
+                            return Mono.just(cast(predictedPosition, KeyEvent.VK_Q));
+                        } else {
+                            // Returning Mono.just(Boolean.FALSE) if isValidPoint check fails
+                            return Mono.just(Boolean.FALSE);
                         }
-                        return Mono.just(Boolean.TRUE);
-                    });
+                    })
+                    .defaultIfEmpty(Boolean.FALSE); // Handling the case when prediction returns null
         }
+
         return Mono.just(Boolean.TRUE);
     }
     private Mono<Boolean> castW() {
@@ -149,28 +163,41 @@ public class OrbWalker implements ScriptLoaderService {
         SpellBook spellBook = localPlayer.getSpellBook();
         double wCoolDown = spellBook.getW().getReadyAtSeconds();
         int wLevel = spellBook.getW().getLevel();
-        if (canCast(gameTime, wCoolDown, wLevel)) {
-            Double spellRadiusW = 80.0;
+
+        if (canCast(gameTime, wCoolDown, wLevel)  && gameTime - lastCast > 0.6) {
+            Double spellRadiusW = 160.0;
             Double spellDelayW = 0.25;
-            Double spellSpeedW = 2000.0;
+            Double spellSpeedW = 1700.0;
             Double spellRangeW = 1200.0;
+
+            // Use flatMap to work with the result of targetService.getPrediction
             return targetService.getPrediction(spellRangeW, spellSpeedW, spellDelayW, spellRadiusW)
                     .flatMap(predictedPosition -> {
                         this.canCastTime = gameTime + spellDelayW + ping;
                         this.lastCast = gameTime;
                         this.canMoveTime = gameTime + spellDelayW;
+
                         Vector3 localPlayerPosition = localPlayer.getPosition();
-                        Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(localPlayerPosition.getX(), localPlayerPosition.getY(), localPlayerPosition.getZ());
+                        Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(
+                                localPlayerPosition.getX(), localPlayerPosition.getY(), localPlayerPosition.getZ()
+                        );
+
                         if (isValidPoint(predictedPosition, screenLocalPlayerPosition, spellRangeW)) {
-                            cast(predictedPosition,KeyEvent.VK_W);
+                            // Assuming cast returns Mono<Boolean>
+                            return Mono.just(cast(predictedPosition, KeyEvent.VK_W));
+                        } else {
+                            // Returning Mono.just(Boolean.FALSE) if isValidPoint check fails
+                            return Mono.just(Boolean.FALSE);
                         }
-                        return Mono.just(Boolean.TRUE);
-                    });
+                    })
+                    .defaultIfEmpty(Boolean.FALSE); // Handling the case when prediction returns null
         }
+
         return Mono.just(Boolean.TRUE);
     }
 
-    private void cast(Vector2 predictedPosition, int key) {
+
+    private boolean cast(Vector2 predictedPosition, int key) {
         Vector2 mousePos = mouseService.getCursorPos();
         this.mouseService.blockInput(Boolean.TRUE);
         this.mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
@@ -181,6 +208,9 @@ public class OrbWalker implements ScriptLoaderService {
         this.gameTimeComponent.sleep(30);
         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
         this.mouseService.blockInput(Boolean.FALSE);
+
+        // Return true for success, or false for failure
+        return true;
     }
     private Mono<Boolean> laneClear(){
         return this.apiService.getJsonActivePlayer()

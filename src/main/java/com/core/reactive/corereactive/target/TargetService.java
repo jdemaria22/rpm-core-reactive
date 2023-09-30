@@ -46,7 +46,9 @@ public class TargetService {
                 if (inDistance){
                     List<Vector3> waypoints = getFuturePoints(champion);
                     if (waypoints.size()<=1 || !champion.getAiManager().getIsMoving()){
-                        return this.rendererComponent.worldToScreen(waypoints.get(0).getX(), waypoints.get(0).getY(), waypoints.get(0).getZ());
+                        if (checkCollision(localPLayer.getPosition(), waypoints.get(0), localPLayer, spellRadius)){
+                            return this.rendererComponent.worldToScreen(waypoints.get(0).getX(), waypoints.get(0).getY(), waypoints.get(0).getZ());
+                        }
                     }
                     double travelTime = (distanceBetweenTargets(champion.getPosition(), localPLayer.getPosition()) / spellSpeed) + spellDelay /*+ spell->chanelingTime*/;
                     Vector3 predictedPos = posAfterTime(champion, travelTime, spellRadius);
