@@ -62,13 +62,40 @@ public class TargetService {
                             return null;
                         missileTime = (distanceMissile / spellSpeed) + spellDelay /*+ spell->chanelingTime*/;
                     }
-                    if (checkCollision(localPLayer.getPosition(), predictedPos, localPLayer, spellRadius)){
+                    Integer hitChance = getHitChances(champion,targetGameplayRadius, spellSpeed, spellDelay, spellRadius, localPLayer,predictedPos);
+                    if (checkCollision(localPLayer.getPosition(), predictedPos, localPLayer, spellRadius) && hitChance > 2){
                         return this.rendererComponent.worldToScreen(predictedPos.getX(), predictedPos.getY(), predictedPos.getZ());
                     }
                 }
             }
             return null;
         });
+    }
+
+    Integer getHitChances(Champion champion,double targetGameplayRadius, double spellSpeed, double spellDelay, double spellWidth, Champion localPLayer, Vector3 predictedPos){
+        List<Vector3> navigationPath = champion.getAiManager().getWaypoints().getNavigationPath();
+        Vector3 lastWaypoint = navigationPath.get(navigationPath.size()-1);
+        boolean isMovingSameDirection = isMovingInSameDirection(localPLayer, champion);
+        double distanceToWaypoint = distanceBetweenTargets(champion.getPosition(), lastWaypoint);
+        Vector3 pos1 = subtractVector3(lastWaypoint, champion.getPosition());
+        Vector3 pos2 = subtractVector3(predictedPos, champion.getPosition());
+        double angle = calculateAngle(pos1, pos2);
+        double timeTillHit = ((distanceBetweenTargets(champion.getPosition(), localPLayer.getPosition()) - targetGameplayRadius) / spellSpeed) + spellDelay;
+        if (timeTillHit < 0.05 || !champion.getAiManager().getIsMoving()) {
+            return 3;
+        }
+        if (distanceBetweenTargets(champion.getPosition(), lastWaypoint) <250){
+            return 3;
+        } else if (angle > 105 && angle < 150 && distanceToWaypoint < 600){
+            return 1;
+        } else if (spellWidth >= 90 && spellSpeed > 2999 && spellDelay < 0.7){
+            return 3;
+        } else if (isMovingSameDirection || distanceToWaypoint > 600){
+            if (angle > 130 || angle < 15) {
+                return 3;
+            }
+        }
+        return 2;
     }
 
     Vector3 posAfterTime(Champion obj, double time, double missileWidth) {
@@ -421,4 +448,48 @@ public class TargetService {
         }
     }
 
+    public double calculateAngle(Vector3 origin, Vector3 target) {
+        double deltaX = target.getX() - origin.getX();
+        double deltaY = target.getY() - origin.getY();
+
+        // Calcular el ángulo en radianes
+        double angleRad = Math.atan2(deltaY, deltaX);
+
+        // Convertir el ángulo a grados
+        double angleDegree = Math.toDegrees(angleRad);
+
+        // Asegurarse de que el ángulo esté en el rango [0, 360)
+        angleDegree = (angleDegree + 360) % 360;
+
+        return angleDegree;
+    }
+
+    public boolean isMovingInSameDirection(Champion source, Champion target) {
+        List<Vector3> sourceWaypoints = source.getAiManager().getWaypoints().getNavigationPath();
+
+        if (sourceWaypoints.isEmpty())
+            return false;
+
+        Vector3 sourceLastWaypoint = sourceWaypoints.get(sourceWaypoints.size() - 1);
+
+        if (sourceLastWaypoint.equals(source.getPosition()) || !source.getAiManager().getIsMoving())
+            return false;
+
+        List<Vector3> targetWaypoints = target.getAiManager().getWaypoints().getNavigationPath();
+
+        if (targetWaypoints.isEmpty())
+            return false;
+
+        Vector3 targetLastWaypoint = targetWaypoints.get(targetWaypoints.size() - 1);
+
+        if (targetLastWaypoint.equals(target.getPosition()) || !target.getAiManager().getIsMoving())
+            return false;
+
+        Vector3 pos1 = subtractVector3(sourceLastWaypoint, source.getPosition());
+        Vector3 pos2 = subtractVector3(targetLastWaypoint, target.getPosition());
+        double angle = calculateAngle(pos1, pos2);
+
+        return angle < 20;
+    }
 }
+
