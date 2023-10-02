@@ -81,10 +81,13 @@ public class TargetService {
         Vector3 pos2 = subtractVector3(predictedPos, champion.getPosition());
         double angle = calculateAngle(pos1, pos2);
         double timeTillHit = ((distanceBetweenTargets(champion.getPosition(), localPLayer.getPosition()) - targetGameplayRadius) / spellSpeed) + spellDelay;
+        boolean frequentDirectionChanges = detectFrequentDirectionChanges(champion.getMovementHistory());
         if (timeTillHit < 0.05 || !champion.getAiManager().getIsMoving()) {
             return 3;
         }
-        if (distanceBetweenTargets(champion.getPosition(), lastWaypoint) <250){
+        if (frequentDirectionChanges){
+            return 1;
+        } else if (distanceBetweenTargets(champion.getPosition(), lastWaypoint) <250){
             return 3;
         } else if (angle > 105 && angle < 150 && distanceToWaypoint < 600){
             return 1;
@@ -490,6 +493,30 @@ public class TargetService {
         double angle = calculateAngle(pos1, pos2);
 
         return angle < 20;
+    }
+
+    boolean detectFrequentDirectionChanges(List<Vector3> movementHistory) {
+        if (movementHistory.size() < 3) {
+            // No hay suficientes datos para determinar cambios de dirección
+            return false;
+        }
+
+        int changesCount = 0;
+        double angleThreshold = 200.0; // Umbral de ángulo para considerar un cambio de dirección
+
+        for (int i = 2; i < movementHistory.size(); i++) {
+            Vector3 previousDirection = normalizeVector3(subtractVector3(movementHistory.get(i - 1), movementHistory.get(i - 2)));
+            Vector3 currentDirection = normalizeVector3(subtractVector3(movementHistory.get(i), movementHistory.get(i - 1)));
+
+            double angle = calculateAngle(previousDirection, currentDirection);
+            // Si el ángulo entre las direcciones es mayor que el umbral, considerarlo como un cambio de dirección
+            if (angle > angleThreshold) {
+                changesCount++;
+            }
+        }
+
+        int requiredChanges = 5; // Número mínimo de cambios para considerar "frecuente"
+        return changesCount >= requiredChanges;
     }
 }
 

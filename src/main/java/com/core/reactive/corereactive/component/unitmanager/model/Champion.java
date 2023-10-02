@@ -7,6 +7,8 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
+import java.util.List;
+
 
 @Getter
 @Setter
@@ -29,5 +31,6 @@ public class Champion extends Unit {
     private JsonCommunityDragon jsonCommunityDragon;
     private AiManager aiManager;
     private SpellBook spellBook;
+    private List<Vector3> movementHistory;
 
 }

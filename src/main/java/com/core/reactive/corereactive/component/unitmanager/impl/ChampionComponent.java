@@ -84,6 +84,7 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
                 .z(memory.getFloat(Offset.objPositionX + 0x8))
                 .build();
         champion.setPosition(vector3);
+        champion.setMovementHistory(this.findHistoryPos(champion));
         champion.setIsAlive(memory.getByte(Offset.objSpawnCount) %2 == 0);
         champion.setIsTargeteable(memory.getByte(Offset.objTargetable) != 0);
         champion.setIsVisible(memory.getByte(Offset.objVisible) != 0);
@@ -139,6 +140,20 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
                 .dashSpeed(memory.getFloat(Offset.aiManagerDashSpeed))
                 .waypoints(this.getWaypoints(addressAiManager))
                 .build();
+    }
+
+    private List<Vector3> findHistoryPos(Champion champion) {
+        List<Vector3> result = new ArrayList<>();
+        if (champion.getMovementHistory() == null){
+            result.add(champion.getPosition());
+            return result;
+        }
+        if (champion.getMovementHistory().size() > 10) {
+            champion.getMovementHistory().remove(0);
+        }
+        result = champion.getMovementHistory();
+        result.add(champion.getPosition());
+        return result;
     }
 
     private WaypointsStructure getWaypoints(Long address) {

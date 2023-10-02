@@ -74,18 +74,18 @@ public class OrbWalker implements ScriptLoaderService {
 
     private Mono<Boolean> walk() {
         Double gameTime = this.gameTimeComponent.getGameTime();
-        if (gameTime - lastCast > 0.1) {
-            return Mono.fromCallable(() -> {
-                if (this.canMoveTime < gameTime) {
-                    this.gameTimeComponent.sleep(40);
-                    this.mouseService.mouseRightClickNoMove();
-                    return Boolean.TRUE;
-                }
-                return Boolean.TRUE;
-            });
+
+        if (gameTime - lastCast > 0.3) {
+            if (this.canMoveTime < gameTime) {
+                this.gameTimeComponent.sleep(40);
+                this.mouseService.mouseRightClickNoMove();
+                return Mono.just(Boolean.TRUE);
+            }
         }
+
         return Mono.just(Boolean.FALSE);
     }
+
     private Mono<Boolean> attackTarget(){
         Double gameTime = this.gameTimeComponent.getGameTime();
         if (gameTime - lastCast > 0.6){
@@ -120,6 +120,7 @@ public class OrbWalker implements ScriptLoaderService {
     }
 
     private Mono<Boolean> castQ() {
+
         Double gameTime = gameTimeComponent.getGameTime();
         Champion localPlayer = championComponent.getLocalPlayer();
         SpellBook spellBook = localPlayer.getSpellBook();
@@ -145,14 +146,12 @@ public class OrbWalker implements ScriptLoaderService {
                         );
 
                         if (isValidPoint(predictedPosition, screenLocalPlayerPosition, spellRangeQ)) {
-                            // Assuming cast returns Mono<Boolean>
                             return Mono.just(cast(predictedPosition, KeyEvent.VK_Q));
                         } else {
-                            // Returning Mono.just(Boolean.FALSE) if isValidPoint check fails
                             return Mono.just(Boolean.FALSE);
                         }
                     })
-                    .defaultIfEmpty(Boolean.FALSE); // Handling the case when prediction returns null
+                    .defaultIfEmpty(Boolean.FALSE);
         }
 
         return Mono.just(Boolean.TRUE);
