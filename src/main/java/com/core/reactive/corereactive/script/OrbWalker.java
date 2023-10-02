@@ -66,9 +66,9 @@ public class OrbWalker implements ScriptLoaderService {
                 }
             });
         }
-        return Mono.fromCallable(() -> {
+        return Mono.defer(() -> {
             this.keyboardService.sendKeyUp(KeyEvent.VK_O);
-            return Boolean.TRUE;
+            return Mono.just(Boolean.TRUE);
         });
     }
 

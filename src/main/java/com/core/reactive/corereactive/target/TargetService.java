@@ -74,7 +74,10 @@ public class TargetService {
 
     Integer getHitChances(Champion champion,double targetGameplayRadius, double spellSpeed, double spellDelay, double spellWidth, Champion localPLayer, Vector3 predictedPos){
         List<Vector3> navigationPath = champion.getAiManager().getWaypoints().getNavigationPath();
-        Vector3 lastWaypoint = navigationPath.get(navigationPath.size()-1);
+        Vector3 lastWaypoint = (!navigationPath.isEmpty()) ? navigationPath.get(navigationPath.size() - 1) : null;
+        if (lastWaypoint == null){
+            return 0;
+        }
         boolean isMovingSameDirection = isMovingInSameDirection(localPLayer, champion);
         double distanceToWaypoint = distanceBetweenTargets(champion.getPosition(), lastWaypoint);
         Vector3 pos1 = subtractVector3(lastWaypoint, champion.getPosition());
