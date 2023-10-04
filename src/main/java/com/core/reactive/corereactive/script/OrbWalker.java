@@ -48,23 +48,53 @@ public class OrbWalker implements ScriptLoaderService {
         }
         if (isVkSpacePressed()) {
             this.keepKeyOPressed();
-            return attackTarget().flatMap(attackTarget -> {
-                if (championsWithPredictionAbilities.contains(championComponent.getLocalPlayer().getName())) {
-                    return walk().flatMap(walk -> castW().flatMap(castW -> castQ()));
-                } else {
-                    return walk();
-                }
-            });
+            return attackTarget()
+                    .zipWith(walk())
+                    .flatMap(tuple2 -> {
+                        boolean attackTargetResult = tuple2.getT1();
+                        boolean walkResult = tuple2.getT2();
+
+                        if (championsWithPredictionAbilities.contains(championComponent.getLocalPlayer().getName())) {
+                            return castW()
+                                    .zipWith(castQ())
+                                    .map(tuple -> {
+                                        boolean castWResult = tuple.getT1();
+                                        boolean castQResult = tuple.getT2();
+
+                                        // Aplica la lógica según tus necesidades
+                                        boolean allResults = attackTargetResult && walkResult && castWResult && castQResult;
+                                        return allResults ? Boolean.TRUE : Boolean.FALSE;
+                                    });
+                        } else {
+                            // Aplica la lógica según tus necesidades si no tienes habilidades de predicción
+                            return Mono.just(attackTargetResult && walkResult);
+                        }
+                    });
         }
         if (this.isVkVPressed()) {
             this.keepKeyOPressed();
-            return laneClear().flatMap(attackTarget -> {
-                if (championsWithPredictionAbilities.contains(championComponent.getLocalPlayer().getName())) {
-                    return walk().flatMap(walk -> castW().flatMap(castW -> castQ()));
-                } else {
-                    return walk();
-                }
-            });
+            return laneClear()
+                    .zipWith(walk())
+                    .flatMap(tuple2 -> {
+                        boolean laneClearResult = tuple2.getT1();
+                        boolean walkResult = tuple2.getT2();
+
+                        if (championsWithPredictionAbilities.contains(championComponent.getLocalPlayer().getName())) {
+                            return castW()
+                                    .zipWith(castQ())
+                                    .map(tuple -> {
+                                        boolean castWResult = tuple.getT1();
+                                        boolean castQResult = tuple.getT2();
+
+                                        // Aplica la lógica según tus necesidades
+                                        boolean allResults = laneClearResult && walkResult && castWResult && castQResult;
+                                        return allResults ? Boolean.TRUE : Boolean.FALSE;
+                                    });
+                        } else {
+                            // Aplica la lógica según tus necesidades si no tienes habilidades de predicción
+                            return Mono.just(laneClearResult && walkResult);
+                        }
+                    });
         }
         return Mono.defer(() -> {
             this.keyboardService.sendKeyUp(KeyEvent.VK_O);

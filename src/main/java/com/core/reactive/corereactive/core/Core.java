@@ -10,7 +10,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -29,20 +31,30 @@ public class Core {
     public void run() {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(System::gc, 0, 1, TimeUnit.SECONDS);
-        while (true) {
-            //long a = System.currentTimeMillis();
-            Flux.fromIterable(this.getMemoryLoaderServices())
-                    .flatMap(MemoryLoaderService::update)
-                    .all(result -> result).blockOptional();
 
-            Flux.fromIterable(this.getScriptLoaderService())
-                    .flatMap(ScriptLoaderService::update)
-                    .all(result -> result).blockOptional();
-            //System.out.println(System.currentTimeMillis() - a);
+        while (true) {
+            Flux.fromIterable(getMemoryLoaderServices())
+                    .flatMap(MemoryLoaderService::update)
+                    .all(result -> result)
+                    .flatMapMany(memoryResult -> Flux.fromIterable(getScriptLoaderService())
+                            .flatMap(ScriptLoaderService::update)
+                            .all(scriptResult -> scriptResult)
+                    )
+                    .subscribeOn(Schedulers.boundedElastic())  // Ejecutar en un hilo separado
+                    .blockLast();  // Bloquear hasta que el flujo se complete
+
+            try {
+                Thread.sleep(1000 / 33);  // Limita la tasa a 33 TPS
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    private List<MemoryLoaderService> getMemoryLoaderServices(){
+
+
+
+    private List<MemoryLoaderService> getMemoryLoaderServices() {
         List<MemoryLoaderService> memoryLoaderServices = new ArrayList<>();
         memoryLoaderServices.add(rendererComponent);
         memoryLoaderServices.add(unitManagerComponent);
@@ -50,7 +62,7 @@ public class Core {
         return memoryLoaderServices;
     }
 
-    private List<ScriptLoaderService> getScriptLoaderService(){
+    private List<ScriptLoaderService> getScriptLoaderService() {
         List<ScriptLoaderService> scriptLoaderServices = new ArrayList<>();
         scriptLoaderServices.add(orbWalker);
         return scriptLoaderServices;

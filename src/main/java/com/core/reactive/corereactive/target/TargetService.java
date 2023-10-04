@@ -292,71 +292,84 @@ public class TargetService {
     }
     public Mono<Champion> getBestChampionInRange(Double range) {
         Champion localPLayer = this.championComponent.getLocalPlayer();
-        return Mono.fromCallable(() -> {
-            double minAutos = 0.0;
-            Champion championFinal = Champion.builder().build();
-            for (Champion champion : this.championComponent.getMapUnit().values()) {
-                if (!champion.getIsTargeteable()){
-                    continue;
-                }
-                if (!champion.getIsVisible()) {
-                    continue;
-                }
-                if (!champion.getIsAlive()) {
-                    continue;
-                }
-                if (Objects.equals(champion.getTeam(), localPLayer.getTeam())) {
-                    continue;
-                }
-                Double targetGameplayRadius = (champion.getJsonCommunityDragon() != null) ? champion.getJsonCommunityDragon().getGameplayRadius() : 65.0;
-                boolean inDistance = this.distanceBetweenTargets(localPLayer.getPosition(), champion.getPosition()) - targetGameplayRadius <= range + localPLayer.getJsonCommunityDragon().getGameplayRadius();
-                if (inDistance){
-                    Double minAttacks = getMinAttacks(
-                            (double) localPLayer.getBaseAttack(),
-                            (double) localPLayer.getBonusAttack(),
-                            (double) champion.getHealth(),
-                            (double) champion.getArmor()
-                    );
-                    if (minAttacks < minAutos || minAutos == 0.0){
-                        minAutos = minAttacks;
-                        championFinal = champion;
-                    }
+        double minAutos = 0.0;
+        Champion championFinal = Champion.builder().build();
+
+        for (Champion champion : this.championComponent.getMapUnit().values()) {
+            if (!champion.getIsTargeteable()) {
+                continue;
+            }
+            if (!champion.getIsVisible()) {
+                continue;
+            }
+            if (!champion.getIsAlive()) {
+                continue;
+            }
+            if (Objects.equals(champion.getTeam(), localPLayer.getTeam())) {
+                continue;
+            }
+
+            Double targetGameplayRadius = (champion.getJsonCommunityDragon() != null) ?
+                    champion.getJsonCommunityDragon().getGameplayRadius() : 65.0;
+            boolean inDistance = this.distanceBetweenTargets(localPLayer.getPosition(), champion.getPosition())
+                    - targetGameplayRadius <= range + localPLayer.getJsonCommunityDragon().getGameplayRadius();
+
+            if (inDistance) {
+                Double minAttacks = getMinAttacks(
+                        (double) localPLayer.getBaseAttack(),
+                        (double) localPLayer.getBonusAttack(),
+                        (double) champion.getHealth(),
+                        (double) champion.getArmor()
+                );
+
+                if (minAttacks < minAutos || minAutos == 0.0) {
+                    minAutos = minAttacks;
+                    championFinal = champion;
                 }
             }
-            return championFinal;
-        });
+        }
+
+        return Mono.just(championFinal);
+    }
+    public Mono<Minion> getBestMinionInRange(Double range) {
+        Champion localPLayer = this.championComponent.getLocalPlayer();
+        double minAutos = 0.0;
+        Minion minionFinal = Minion.builder().build();
+
+        for (Minion minion : this.minionComponent.getMapUnit().values()) {
+            if (!minion.getIsTargeteable()) {
+                continue;
+            }
+            if (!minion.getIsVisible()) {
+                continue;
+            }
+            if (!minion.getIsAlive()) {
+                continue;
+            }
+            if (Objects.equals(minion.getTeam(), localPLayer.getTeam())) {
+                continue;
+            }
+
+            boolean inDistance = (this.distanceBetweenTargets(localPLayer.getPosition(), minion.getPosition())).compareTo(range + localPLayer.getJsonCommunityDragon().getGameplayRadius()) < 0;
+
+            if (inDistance) {
+                Double minAttacks = getMinAttacks(
+                        (double) localPLayer.getBaseAttack(),
+                        (double) localPLayer.getBonusAttack(),
+                        (double) minion.getHealth(),
+                        (double) minion.getArmor()
+                );
+
+                if (minAttacks.compareTo(minAutos) < 0 || minAutos == 0.0) {
+                    minAutos = minAttacks;
+                    minionFinal = minion;
+                }
+            }
+        }
+
+        return Mono.just(minionFinal);
     }
 
-    public Mono<Minion> getBestMinionInRange(Double range) {
-        return Mono.fromCallable(() -> {
-            Champion localPLayer = this.championComponent.getLocalPlayer();
-            double minAutos = 0.0;
-            Minion minionFinal = Minion.builder().build();
-            for (Minion minion : this.minionComponent.getMapUnit().values()) {
-                if (!minion.getIsTargeteable()){
-                    continue;
-                }
-                if (!minion.getIsVisible()) {
-                    continue;
-                }
-                if (!minion.getIsAlive()) {
-                    continue;
-                }
-                if (Objects.equals(minion.getTeam(), localPLayer.getTeam())) {
-                    continue;
-                }
-                boolean inDistance = (this.distanceBetweenTargets(localPLayer.getPosition(), minion.getPosition())).compareTo(range + localPLayer.getJsonCommunityDragon().getGameplayRadius()) < 0;
-                if (inDistance){
-                    Double minAttacks = getMinAttacks((double) localPLayer.getBaseAttack(), (double) localPLayer.getBonusAttack(), (double) minion.getHealth(), (double) minion.getArmor());
-                    if (minAttacks.compareTo(minAutos) < 0 || minAutos == 0.0){
-                        minAutos = minAttacks;
-                        minionFinal = minion;
-                    }
-                }
-            }
-            return minionFinal;
-        });
-    }
 
     private Double distanceBetweenTargets(Vector3 position, Vector3 position2) {
         Double xDiff = (double) Math.abs(position.getX() - position2.getX());
