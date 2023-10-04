@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -43,11 +42,8 @@ public class Core {
                     .subscribeOn(Schedulers.boundedElastic())  // Ejecutar en un hilo separado
                     .blockLast();  // Bloquear hasta que el flujo se complete
 
-            try {
-                Thread.sleep(1000 / 33);  // Limita la tasa a 33 TPS
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            this.gameTimeComponent.sleep(1000 / 33); // Limita la tasa a 33 TPS
+
         }
     }
 

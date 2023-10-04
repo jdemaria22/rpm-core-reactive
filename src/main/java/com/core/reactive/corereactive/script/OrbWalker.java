@@ -70,8 +70,7 @@ public class OrbWalker implements ScriptLoaderService {
                             return Mono.just(attackTargetResult && walkResult);
                         }
                     });
-        }
-        if (this.isVkVPressed()) {
+        } else if (this.isVkVPressed()) {
             this.keepKeyOPressed();
             return laneClear()
                     .zipWith(walk())
@@ -104,34 +103,27 @@ public class OrbWalker implements ScriptLoaderService {
 
     private Mono<Boolean> walk() {
         Double gameTime = this.gameTimeComponent.getGameTime();
-
-        if (gameTime - lastCast > 0.3) {
             if (this.canMoveTime < gameTime) {
                 this.gameTimeComponent.sleep(40);
                 this.mouseService.mouseRightClickNoMove();
                 return Mono.just(Boolean.TRUE);
             }
-        }
-
         return Mono.just(Boolean.FALSE);
     }
 
     private Mono<Boolean> attackTarget(){
         Double gameTime = this.gameTimeComponent.getGameTime();
-        if (gameTime - lastCast > 0.6){
+        if (gameTime - lastCast > 0.5){
             return this.apiService.getJsonActivePlayer()
                     .flatMap(jsonActivePlayer -> Mono.just(jsonActivePlayer.championStats.getAttackSpeed()))
                     .flatMap(attackSpeed -> {
                         Champion localPlayer =  championComponent.getLocalPlayer();
                         Double range = (double) localPlayer.getAttackRange();
-                        Double windUpTime = this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (30/1000);
+                        double windUpTime = this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (30/1000);
                         return this.targetService.getBestChampionInRange(range)
                                 .defaultIfEmpty(Champion.builder().build())
                                 .flatMap(champion -> {
                                     if (this.canAttackTime < gameTime && !ObjectUtils.isEmpty(champion.getPosition())) {
-                                        this.canAttackTime = gameTime + 1.0 / attackSpeed;
-                                        this.canMoveTime = gameTime + windUpTime;
-                                        this.canCastTime = gameTime + windUpTime + 0.1;
                                         Vector2 position = this.rendererComponent.worldToScreen(champion.getPosition().getX(), champion.getPosition().getY(), champion.getPosition().getZ());
                                         Vector2 mousePos = this.mouseService.getCursorPos();
                                         this.mouseService.mouseMiddleDown();
@@ -140,6 +132,9 @@ public class OrbWalker implements ScriptLoaderService {
                                         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.mouseMiddleUp();
                                         this.gameTimeComponent.sleep(30);
+                                        this.canAttackTime = gameTime + 1.0 / attackSpeed;
+                                        this.canMoveTime = gameTime + windUpTime + 0.1;
+                                        this.canCastTime = gameTime + windUpTime + 0.1;
                                         return Mono.just(Boolean.TRUE);
                                     }
                                     return Mono.just(Boolean.FALSE);
@@ -248,19 +243,20 @@ public class OrbWalker implements ScriptLoaderService {
                     Champion localPlayer =  championComponent.getLocalPlayer();
                     Double range = (double) localPlayer.getAttackRange();
                     Double gameTime = this.gameTimeComponent.getGameTime();
+                    double windUpTime = this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (40/2000);
                     return this.targetService.getBestMinionInRange(range)
                             .defaultIfEmpty(Minion.builder().build())
                             .flatMap(minion -> {
                                 if (this.canAttackTime < gameTime && !ObjectUtils.isEmpty(minion.getPosition())) {
                                     Vector2 position = this.rendererComponent.worldToScreen(minion.getPosition().getX(), minion.getPosition().getY(), minion.getPosition().getZ());
                                     Vector2 mousePos = this.mouseService.getCursorPos();
-                                    this.canAttackTime = gameTime + 1.0 / attackSpeed;
-                                    this.canMoveTime = gameTime + this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (40/2000);
                                     this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
                                     this.gameTimeComponent.sleep(30);
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                     this.gameTimeComponent.sleep(30);
-                                    this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
+                                    this.canAttackTime = gameTime + 1.0 / attackSpeed;
+                                    this.canMoveTime = gameTime + windUpTime + 0.1;
+                                    this.canCastTime = gameTime + windUpTime + 0.1;
                                     return Mono.just(Boolean.TRUE);
                                 }
                                 return Mono.just(Boolean.TRUE);
