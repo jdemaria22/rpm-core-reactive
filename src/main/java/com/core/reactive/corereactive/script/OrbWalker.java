@@ -133,8 +133,8 @@ public class OrbWalker implements ScriptLoaderService {
                                         this.mouseService.mouseMiddleUp();
                                         this.gameTimeComponent.sleep(30);
                                         this.canAttackTime = gameTime + 1.0 / attackSpeed;
-                                        this.canMoveTime = gameTime + windUpTime + 0.1;
-                                        this.canCastTime = gameTime + windUpTime + 0.1;
+                                        this.canMoveTime = gameTime + windUpTime + 0.09;
+                                        this.canCastTime = gameTime + windUpTime + 0.09;
                                         return Mono.just(Boolean.TRUE);
                                     }
                                     return Mono.just(Boolean.FALSE);
@@ -255,8 +255,8 @@ public class OrbWalker implements ScriptLoaderService {
                                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                     this.gameTimeComponent.sleep(30);
                                     this.canAttackTime = gameTime + 1.0 / attackSpeed;
-                                    this.canMoveTime = gameTime + windUpTime + 0.1;
-                                    this.canCastTime = gameTime + windUpTime + 0.1;
+                                    this.canMoveTime = gameTime + windUpTime + 0.09;
+                                    this.canCastTime = gameTime + windUpTime + 0.09;
                                     return Mono.just(Boolean.TRUE);
                                 }
                                 return Mono.just(Boolean.TRUE);
