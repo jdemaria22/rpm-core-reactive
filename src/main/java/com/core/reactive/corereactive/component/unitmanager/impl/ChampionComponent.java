@@ -3,7 +3,11 @@ package com.core.reactive.corereactive.component.unitmanager.impl;
 import com.core.reactive.corereactive.component.renderer.RendererComponent;
 import com.core.reactive.corereactive.component.renderer.vector.Vector3;
 import com.core.reactive.corereactive.component.unitmanager.AbstractUnitManagerComponent;
-import com.core.reactive.corereactive.component.unitmanager.model.*;
+import com.core.reactive.corereactive.component.unitmanager.model.AiManager;
+import com.core.reactive.corereactive.component.unitmanager.model.Champion;
+import com.core.reactive.corereactive.component.unitmanager.model.Spell;
+import com.core.reactive.corereactive.component.unitmanager.model.SpellBook;
+import com.core.reactive.corereactive.component.unitmanager.model.WaypointsStructure;
 import com.core.reactive.corereactive.rpm.ReadProcessMemoryService;
 import com.core.reactive.corereactive.util.DistanceCalculatorService;
 import com.core.reactive.corereactive.util.Offset;
@@ -32,6 +36,7 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
     public static final int OFFSET = 0;
     public static final int SIZE_SPELL_ARRAY = 6;
     private final ConcurrentHashMap<Long, Champion> mapChampion = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, Champion> enemyChamps = new ConcurrentHashMap<>();
     private Champion localPlayer = Champion.builder().build();
 
     protected ChampionComponent(ReadProcessMemoryService readProcessMemoryService, ApiService apiService, DistanceCalculatorService distanceCalculatorService, RendererComponent rendererComponent) {
@@ -76,6 +81,7 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
         champion.setBaseAttack(memory.getFloat(Offset.objBaseAttack));
         champion.setBonusAttack(memory.getFloat(Offset.objBonusAttack));
         champion.setHealth(memory.getFloat(Offset.objHealth));
+        champion.setMaxHealth(memory.getFloat(Offset.objMaxHealth));
         champion.setArmor(memory.getFloat(Offset.objArmor));
         champion.setMagicDamage(memory.getFloat(Offset.objMagicDamage));
         Vector3 vector3 = Vector3.builder()
