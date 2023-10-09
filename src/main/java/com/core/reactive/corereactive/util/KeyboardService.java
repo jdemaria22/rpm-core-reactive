@@ -4,7 +4,7 @@ import com.core.reactive.corereactive.hook.Config;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
-import java.awt.*;
+import java.awt.Robot;
 
 @Service
 public class KeyboardService {

@@ -173,27 +173,27 @@ public class TargetService {
     }
 
     boolean isAnyObjectInWay(Vector3 sourcePos, Vector3 targetPos, Champion sourceObject, double projectileRadius) {
-            Vector3 sourceToTarget = subtractVector3(targetPos, sourcePos);
-            sourceToTarget.setY(0.0f);
+        Vector3 sourceToTarget = subtractVector3(targetPos, sourcePos);
+        sourceToTarget.setY(0.0f);
 
-            for (Minion minion : this.minionComponent.getMapUnit().values()) {
-                if (!minion.getIsTargeteable()){
-                    continue;
-                }
-                if (!minion.getIsVisible()) {
-                    continue;
-                }
-                if (!minion.getIsAlive()) {
-                    continue;
-                }
-                if (Objects.equals(minion.getTeam(), sourceObject.getTeam())) {
-                    continue;
-                }
-                if (isSpecificObjectInWay(sourcePos, targetPos, minion, projectileRadius)) {
-                    return true;
-                }
+        for (Minion minion : this.minionComponent.getMapUnit().values()) {
+            if (!minion.getIsTargeteable()){
+                continue;
             }
-            return false;
+            if (!minion.getIsVisible()) {
+                continue;
+            }
+            if (!minion.getIsAlive()) {
+                continue;
+            }
+            if (Objects.equals(minion.getTeam(), sourceObject.getTeam())) {
+                continue;
+            }
+            if (isSpecificObjectInWay(sourcePos, targetPos, minion, projectileRadius)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     boolean checkCollision(Vector3 sourcePos, Vector3 targetPos, Champion sourceObject, Double spellRadius) {
