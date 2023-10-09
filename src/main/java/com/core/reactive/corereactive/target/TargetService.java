@@ -84,13 +84,13 @@ public class TargetService {
         Vector3 pos2 = subtractVector3(predictedPos, champion.getPosition());
         double angle = calculateAngle(pos1, pos2);
         double timeTillHit = ((distanceBetweenTargets(champion.getPosition(), localPLayer.getPosition()) - targetGameplayRadius) / spellSpeed) + spellDelay;
-        boolean frequentDirectionChanges = detectFrequentDirectionChanges(champion.getMovementHistory());
+        //boolean frequentDirectionChanges = detectFrequentDirectionChanges(champion.getMovementHistory());
         if (timeTillHit < 0.05 || !champion.getAiManager().getIsMoving()) {
             return 3;
         }
-        if (frequentDirectionChanges){
+        /*if (frequentDirectionChanges){
             return 1;
-        } else if (distanceBetweenTargets(champion.getPosition(), lastWaypoint) <250){
+        } else*/ if (distanceBetweenTargets(champion.getPosition(), lastWaypoint) <250){
             return 3;
         } else if (angle > 105 && angle < 150 && distanceToWaypoint < 600){
             return 1;

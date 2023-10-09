@@ -42,7 +42,7 @@ public class Core {
                     .subscribeOn(Schedulers.boundedElastic())  // Ejecutar en un hilo separado
                     .blockLast();  // Bloquear hasta que el flujo se complete
 
-            this.gameTimeComponent.sleep(1000 / 33); // Limita la tasa a 33 TPS
+            this.gameTimeComponent.sleep(1000 / 50); // Limita la tasa a 33 TPS
 
         }
     }
