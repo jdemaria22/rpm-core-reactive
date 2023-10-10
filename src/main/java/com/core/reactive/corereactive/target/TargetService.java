@@ -72,36 +72,37 @@ public class TargetService {
         });
     }
 
-    Integer getHitChances(Champion champion,double targetGameplayRadius, double spellSpeed, double spellDelay, double spellWidth, Champion localPLayer, Vector3 predictedPos){
-        List<Vector3> navigationPath = champion.getAiManager().getWaypoints().getNavigationPath();
+    Integer getHitChances(Champion target,double targetGameplayRadius, double spellSpeed, double spellDelay, double spellWidth, Champion localPLayer, Vector3 predictedPos){
+        List<Vector3> navigationPath = target.getAiManager().getWaypoints().getNavigationPath();
         Vector3 lastWaypoint = (!navigationPath.isEmpty()) ? navigationPath.get(navigationPath.size() - 1) : null;
+        boolean isMovingSameDirection = isMovingInSameDirection(localPLayer, target);
+        double timeTillHit = ((distanceBetweenTargets(target.getPosition(), localPLayer.getPosition()) - targetGameplayRadius) / spellSpeed) + spellDelay;
         if (lastWaypoint == null){
             return 0;
         }
-        boolean isMovingSameDirection = isMovingInSameDirection(localPLayer, champion);
-        double distanceToWaypoint = distanceBetweenTargets(champion.getPosition(), lastWaypoint);
-        Vector3 pos1 = subtractVector3(lastWaypoint, champion.getPosition());
-        Vector3 pos2 = subtractVector3(predictedPos, champion.getPosition());
+        Vector3 pos1 = subtractVector3(lastWaypoint, target.getPosition());
+        Vector3 pos2 = subtractVector3(predictedPos, target.getPosition());
         double angle = calculateAngle(pos1, pos2);
-        double timeTillHit = ((distanceBetweenTargets(champion.getPosition(), localPLayer.getPosition()) - targetGameplayRadius) / spellSpeed) + spellDelay;
+        double distanceToWaypoint = distanceBetweenTargets(target.getPosition(), lastWaypoint);
         //boolean frequentDirectionChanges = detectFrequentDirectionChanges(champion.getMovementHistory());
-        if (timeTillHit < 0.05 || !champion.getAiManager().getIsMoving()) {
-            return 3;
-        }
         /*if (frequentDirectionChanges){
             return 1;
-        } else*/ if (distanceBetweenTargets(champion.getPosition(), lastWaypoint) <250){
-            return 3;
+        } else*/
+        if (timeTillHit < 0.05 || !target.getAiManager().getIsMoving()) {
+            //TODO: Control si esta casteando y validación de tiempo para retornar 3 (VeryHigh) - Necesitamos buffs y activeSpell
+            return 2;//Medium
+        } else if (distanceBetweenTargets(target.getPosition(), lastWaypoint) <250){
+            return 3;//High
         } else if (angle > 105 && angle < 150 && distanceToWaypoint < 600){
-            return 1;
+            return 1;//Low
         } else if (spellWidth >= 90 && spellSpeed > 2999 && spellDelay < 0.7){
-            return 3;
+            return 3;//High
         } else if (isMovingSameDirection || distanceToWaypoint > 600){
             if (angle > 130 || angle < 15) {
-                return 3;
+                return 3;//High
             }
         }
-        return 2;
+        return 2;//Medium
     }
 
     Vector3 posAfterTime(Champion obj, double time, double missileWidth) {
@@ -432,15 +433,28 @@ public class TargetService {
     }
 
     private List<Vector3> getFuturePoints(Champion target) {
+        List<Vector3> waypoints = target.getAiManager().getWaypoints().getNavigationPath();
+        double waypointsSize = waypoints.size();
         List<Vector3> futurePoints = new ArrayList<>();
         futurePoints.add(target.getAiManager().getServerPos());
-        List<Vector3> waypoints = target.getAiManager().getWaypoints().getNavigationPath();
-        if (waypoints.isEmpty()) {
+        if (waypointsSize == 0.0) {
             return futurePoints;
         }
-        for (int i = target.getAiManager().getWaypoints().getPassedWaypoint(); i < target.getAiManager().getWaypoints().getCurrentSize(); i++) {
-            futurePoints.add(waypoints.get(i));
+        boolean found = false;
+        for (int i = 1; i < waypointsSize; i++) {
+            if (!found){
+               if (Math.abs(distanceBetweenTargets(target.getAiManager().getServerPos(),waypoints.get(i)) + distanceBetweenTargets(target.getAiManager().getServerPos(),waypoints.get(i-1)) -distanceBetweenTargets(waypoints.get(i-1),waypoints.get(i))) <= 20.0){
+                   futurePoints.add(waypoints.get(i));
+                   found = true;
+               }
+            } else {
+                futurePoints.add(waypoints.get(i));
+            }
+
         }
+//        for (int i = target.getAiManager().getWaypoints().getPassedWaypoint(); i < target.getAiManager().getWaypoints().getCurrentSize(); i++) {
+//            futurePoints.add(waypoints.get(i));
+//        }
         return futurePoints;
     }
 
@@ -485,21 +499,21 @@ public class TargetService {
 
     public boolean isMovingInSameDirection(Champion source, Champion target) {
         List<Vector3> sourceWaypoints = source.getAiManager().getWaypoints().getNavigationPath();
-
-        if (sourceWaypoints.isEmpty())
+        int sourceWaypointsSize = sourceWaypoints.size();
+        if (sourceWaypointsSize < 1)
             return false;
 
-        Vector3 sourceLastWaypoint = sourceWaypoints.get(sourceWaypoints.size() - 1);
+        Vector3 sourceLastWaypoint = sourceWaypoints.get(sourceWaypointsSize - 1);
 
         if (sourceLastWaypoint.equals(source.getPosition()) || !source.getAiManager().getIsMoving())
             return false;
 
         List<Vector3> targetWaypoints = target.getAiManager().getWaypoints().getNavigationPath();
-
-        if (targetWaypoints.isEmpty())
+        int targetWaypointsSize = targetWaypoints.size();
+        if (targetWaypointsSize < 1)
             return false;
 
-        Vector3 targetLastWaypoint = targetWaypoints.get(targetWaypoints.size() - 1);
+        Vector3 targetLastWaypoint = targetWaypoints.get(targetWaypointsSize - 1);
 
         if (targetLastWaypoint.equals(target.getPosition()) || !target.getAiManager().getIsMoving())
             return false;

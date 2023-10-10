@@ -38,7 +38,7 @@ public class OrbWalker implements ScriptLoaderService {
     private Double canMoveTime = 0.0000000000;
     private Double canCastTime = 0.0000000000;
     private Double lastCast = 0.0000000000;
-    private final Double ping = 0.33;
+
 
 
     @Override
@@ -161,7 +161,7 @@ public class OrbWalker implements ScriptLoaderService {
             // Use flatMap to work with the result of targetService.getPrediction
             return targetService.getPrediction(spellRangeQ, spellSpeedQ, spellDelayQ, spellRadiusQ)
                     .flatMap(predictedPosition -> {
-                        this.canCastTime = gameTime + spellDelayQ + ping;
+                        this.canCastTime = gameTime + spellDelayQ;
                         this.lastCast = gameTime;
                         this.canMoveTime = gameTime + spellDelayQ;
 
@@ -197,7 +197,7 @@ public class OrbWalker implements ScriptLoaderService {
             // Use flatMap to work with the result of targetService.getPrediction
             return targetService.getPrediction(spellRangeW, spellSpeedW, spellDelayW, spellRadiusW)
                     .flatMap(predictedPosition -> {
-                        this.canCastTime = gameTime + spellDelayW + ping;
+                        this.canCastTime = gameTime + spellDelayW;
                         this.lastCast = gameTime;
                         this.canMoveTime = gameTime + spellDelayW;
 
