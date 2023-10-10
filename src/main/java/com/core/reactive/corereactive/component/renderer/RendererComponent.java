@@ -23,13 +23,19 @@ public class RendererComponent implements MemoryLoaderService {
     private final Float[] viewProjMatrix = new Float[SIZE_MATRIX];
     private final Float[] projMatrix = new Float[SIZE_MATRIX];
     private final Float[] viewMatrix = new Float[SIZE_MATRIX];
+    private Vector2 minimapPos;
+    private Vector2 minimapSize;
     private final float width = 1920.0F;
     private final float height = 1080.0F;
 
     @Override
     public Mono<Boolean> update() {
-        this.updateMatrix(this.readProcessMemoryService.readMemory(Offset.viewProjMatrix, 128, true));
-        return Mono.just(Boolean.TRUE);
+        return Mono.fromCallable(() -> {
+            this.updateMatrix(this.readProcessMemoryService.readMemory(Offset.viewProjMatrix, 128, true));
+            this.updateMinimap();
+            return Boolean.TRUE;
+        });
+
     }
 
     private void updateMatrix(Memory memory) {
@@ -42,6 +48,23 @@ public class RendererComponent implements MemoryLoaderService {
         }
 
         this.multiplyMatrices();
+    }
+
+    private void updateMinimap() {
+        Long minimapObj  = this.readProcessMemoryService.read(Offset.minimapObject, Long.class, true);
+        Long minimapHud  = this.readProcessMemoryService.read(minimapObj + Offset.minimapObjectHud, Long.class, false);
+//        log.info("minimapObj {}", minimapObj);
+//        log.info("minimapHud {}", minimapHud);
+        Memory memoryPos = this.readProcessMemoryService.readMemory(minimapHud, 0x80, false);
+        this.minimapPos = Vector2.builder()
+                .x(memoryPos.getFloat(Offset.minimapHudPos))
+                .y(memoryPos.getFloat(Offset.minimapHudPos+0x4))
+                .build();
+
+        this.minimapSize = Vector2.builder()
+                .x(memoryPos.getFloat(Offset.minimapHudSize))
+                .y(memoryPos.getFloat(Offset.minimapHudSize+0x4))
+                .build();
     }
     public Vector2 worldToScreen(Vector3 vector3) {
         float cordX = vector3.getX() * viewProjMatrix[0] + vector3.getY() * viewProjMatrix[4] + vector3.getZ() * viewProjMatrix[8] + viewProjMatrix[12];
@@ -74,6 +97,16 @@ public class RendererComponent implements MemoryLoaderService {
         float out_x = (width / 2.0f) * M_x + (M_x + width / 2.0f);
         float out_y = -(height / 2.0f) * M_y + (M_y + height / 2.0f);
         return Vector2.builder().x(out_x).y(out_y).build();
+    }
+
+    public Vector2 worldToMinimap(Vector3 pos) {
+        Vector2 result = Vector2.builder()
+                .x(pos.getX()/15000.0f)
+                .y(pos.getZ()/15000.0f)
+                .build();
+        result.setX(this.minimapPos.getX() + result.getX() * this.minimapSize.getX());
+        result.setY(this.minimapPos.getY() + this.minimapSize.getY() - (result.getY() * this.minimapSize.getY()));
+        return result;
     }
 
     private void multiplyMatrices() {

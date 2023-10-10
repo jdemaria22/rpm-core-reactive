@@ -1,6 +1,7 @@
 package com.core.reactive.corereactive.overlay;
 
 import com.core.reactive.corereactive.component.gametime.GameTimeComponent;
+import com.core.reactive.corereactive.component.renderer.RendererComponent;
 import com.core.reactive.corereactive.component.unitmanager.impl.ChampionComponent;
 import com.core.reactive.corereactive.component.unitmanager.model.Champion;
 import com.sun.jna.Native;
@@ -24,8 +25,10 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
@@ -34,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Overlay {
 
     public static final String OVERLAY = "Overlay";
-    public static final JFrame FRAME = new JFrame(OVERLAY);
+    public static JFrame FRAME = new JFrame(OVERLAY);
     public static final int WIDTH = 1920;
     public static final int HEIGHT = 1080;
     public static final String ARIAL = "Arial";
@@ -46,9 +49,11 @@ public class Overlay {
     public static final String SPELL_R = "R";
     private boolean isCreated = false;
     private final Map<String, JProgressBar> progressBarMap = new HashMap<>();
+    private Map<String, CirclePanel> circleMap = new HashMap<>();
     private final Map<String, Map<String, JPanel>> squareSpellBookMap = new HashMap<>();
     private final ChampionComponent championComponent;
     private final GameTimeComponent gameTime;
+    private final RendererComponent rendererComponent;
 
     public Mono<Boolean> update() {
         SwingUtilities.invokeLater(() -> {
@@ -74,7 +79,7 @@ public class Overlay {
 
     private static void setWindowTransparentAndClickThrough() {
         User32 user32 = User32.INSTANCE;
-        WinDef.HWND hwnd = new WinDef.HWND(Native.getWindowPointer(Overlay.FRAME));
+        WinDef.HWND hwnd = new WinDef.HWND(Native.getWindowPointer(FRAME));
         int styles = user32.GetWindowLong(hwnd, WinUser.GWL_EXSTYLE);
         styles = styles | WinUser.WS_EX_LAYERED | WinUser.WS_EX_TRANSPARENT;
         user32.SetWindowLong(hwnd, WinUser.GWL_EXSTYLE, styles);
@@ -83,16 +88,16 @@ public class Overlay {
 
     private void createProgressBar() {
         JPanel progressBarPanel = new JPanel(new BorderLayout());
-        progressBarPanel.setOpaque(false); // Hace que el panel sea transparente
+        progressBarPanel.setOpaque(false);
 
         JPanel contentPanel = new JPanel();
-        contentPanel.setOpaque(false); // Hace que el panel sea transparente
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS)); // Organiza las barras de progreso de arriba hacia abajo
+        contentPanel.setOpaque(false);
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         AtomicInteger i = new AtomicInteger();
         championComponent.getMapChampion().forEach((aLong, champion) -> {
-//            if (Objects.equals(champion.getTeam(), this.championComponent.getLocalPlayer().getTeam())) {
-//                return;
-//            }
+            if (Objects.equals(champion.getTeam(), this.championComponent.getLocalPlayer().getTeam())) {
+                return;
+            }
             JPanel progressBarWithTitlePanel = new JPanel(new BorderLayout());
             progressBarWithTitlePanel.setOpaque(false);
 
@@ -112,26 +117,26 @@ public class Overlay {
             progressBar.setForeground(Color.GREEN);
 
             progressBarWithTitlePanel.add(titleLabel, BorderLayout.NORTH);
-            progressBarWithTitlePanel.add(progressBar, BorderLayout.CENTER); // Coloca la barra de progreso en el centro
-            progressBarWithTitlePanel.add(squarePanelContainer, BorderLayout.EAST); // Coloca los cuadrados a la derecha
+            progressBarWithTitlePanel.add(progressBar, BorderLayout.CENTER);
+            progressBarWithTitlePanel.add(squarePanelContainer, BorderLayout.EAST);
 
             contentPanel.add(progressBarWithTitlePanel);
 
-            // Aumenta el espacio vertical entre las barras de progreso (excepto después de la última)
             if (i.get() < championComponent.getMapChampion().size() - 1) {
-                contentPanel.add(Box.createVerticalStrut(20)); // Ajusta el espacio entre las barras de progreso
+                contentPanel.add(Box.createVerticalStrut(20));
             }
             i.getAndIncrement();
         });
         progressBarPanel.add(contentPanel, BorderLayout.WEST);
-        Overlay.FRAME.add(progressBarPanel, BorderLayout.SOUTH);
+        FRAME.add(progressBarPanel, BorderLayout.SOUTH);
+
     }
 
     private void updateInfo(){
         championComponent.getMapChampion().forEach((aLong, champion) -> {
-//            if (!Objects.equals(champion.getTeam(), this.championComponent.getLocalPlayer().getTeam())) {
-//                return;
-//            }
+            if (Objects.equals(champion.getTeam(), this.championComponent.getLocalPlayer().getTeam())) {
+                return;
+            }
             Float maxHealth = champion.getMaxHealth();
             Float currentHealth = champion.getHealth();
             int percentage = (int) (currentHealth / maxHealth * 100);
@@ -141,6 +146,7 @@ public class Overlay {
     }
 
     private void updateSpell(Champion champion) {
+        log.info("champ name {}, {}, {}",champion.getName(), champion.getSpellBook().getQ().getLevel(), champion.getSpellBook().getQ().getReadyAtSeconds());
         if (champion.getSpellBook().getQ().getLevel() > 0 && this.gameTime.getGameTime() - champion.getSpellBook().getQ().getReadyAtSeconds() > 0) {
             this.squareSpellBookMap.get(champion.getName()).get(SPELL_Q).setBackground(Color.green);
             this.squareSpellBookMap.get(champion.getName()).get(SPELL_Q).repaint();
@@ -237,5 +243,16 @@ public class Overlay {
         squarePanel.setPreferredSize(new Dimension(30, 30));
         squarePanel.setBackground(color);
         return squarePanel;
+    }
+
+    private JPanel createCirclePanel(int x, int y, int radius) {
+        return new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.setColor(Color.RED);
+                g.fillOval(x - radius, y - radius, radius * 2, radius * 2);
+            }
+        };
     }
 }
