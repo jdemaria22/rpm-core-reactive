@@ -146,7 +146,7 @@ public class Overlay {
     }
 
     private void updateSpell(Champion champion) {
-        log.info("champ name {}, {}, {}",champion.getName(), champion.getSpellBook().getQ().getLevel(), champion.getSpellBook().getQ().getReadyAtSeconds());
+        //log.info("champ name {}, {}, {}",champion.getName(), champion.getSpellBook().getQ().getLevel(), champion.getSpellBook().getQ().getReadyAtSeconds());
         if (champion.getSpellBook().getQ().getLevel() > 0 && this.gameTime.getGameTime() - champion.getSpellBook().getQ().getReadyAtSeconds() > 0) {
             this.squareSpellBookMap.get(champion.getName()).get(SPELL_Q).setBackground(Color.green);
             this.squareSpellBookMap.get(champion.getName()).get(SPELL_Q).repaint();
