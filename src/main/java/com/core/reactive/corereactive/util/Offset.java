@@ -1,6 +1,8 @@
 package com.core.reactive.corereactive.util;
 
 public class Offset {
+    //CTRL + ALT + S ->> Generar Firma en IDA
+    //ALT + B ->> Binary Search en IDA
     //    namespace CharacterIntermediate {
     //        static constexpr auto flatArmorPenetration = 0x3D8;
     //        static constexpr auto physicalLethality = 0x3F0;
@@ -27,6 +29,7 @@ public class Offset {
     public static final long minionList = 0x21BA380; //48 8B 0D ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 48 8B C8
     public static final long objIndex = 0x10;
     public static final long objName = 0x3868;
+    public static final long objSkinName = 0x35E8; //48 81 C1 ? ? ? ? E8 ? ? ? ? F2 0F 10
     public static final long objTeam = 0x3C;
     public static final long objLevel = 0x3FD0;
     public static final long objHealth = 0x1068;

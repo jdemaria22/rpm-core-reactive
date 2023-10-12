@@ -59,8 +59,9 @@ public class MinionComponent extends AbstractUnitManagerComponent<Minion> {
             unit = Minion.builder().address(address).build();
         }
         Memory memory = this.readProcessMemoryService.readMemory(address, SIZE_MINION, false);
+        Memory name = this.readProcessMemoryService.readMemory(memory.getLong(Offset.objSkinName), 0x200, false);
         unit.setTeam(memory.getInt(Offset.objTeam));
-        unit.setName(memory.getString(Offset.objName));
+        unit.setName(name.getString(0x0));
         unit.setBaseAttack(memory.getFloat(Offset.objBaseAttack));
         unit.setBonusAttack(memory.getFloat(Offset.objBonusAttack));
         unit.setHealth(memory.getFloat(Offset.objHealth));

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -24,7 +25,30 @@ public class TargetService {
     private final ChampionComponent championComponent;
     private final MinionComponent minionComponent;
     private final RendererComponent rendererComponent;
-
+    private static final List<String> BLACKLIST = Arrays.asList(
+            "SennaSoul",
+            "CaitlynTrap",
+            "BardPickup",
+            "BardFollower",
+            "IllaoiMinion",
+            "ShenSpirit",
+            "TeemoMushroom",
+            "ZedShadow",
+            "TrundleWall",
+            "SRU_Plant_Satchel",
+            "SRU_Plant_Health",
+            "SRU_Plant_Vision",
+            "JhinTrap",
+            "KalistaSpawn",
+            "NidaleeSpear",
+            "NunuSnowball",
+            "OlafAxe",
+            "SightWard",
+            "JammerDevice",
+            "YellowTrinket",
+            "GangplankBarrel",
+            "TestCubeRender"
+    );
     public Mono<Vector2> getPrediction(Double spellRange, Double spellSpeed, Double spellDelay, Double spellRadius) {
         Champion localPLayer = this.championComponent.getLocalPlayer();
         return Mono.fromCallable(() -> {
@@ -389,6 +413,9 @@ public class TargetService {
             if (Objects.equals(minion.getTeam(), localPLayer.getTeam())) {
                 continue;
             }
+            if (BLACKLIST.contains(minion.getName())) {
+                continue;
+            }
 
             boolean inDistance = (this.distanceBetweenTargets(localPLayer.getPosition(), minion.getPosition())).compareTo(range + localPLayer.getJsonCommunityDragon().getGameplayRadius()) < 0;
 
@@ -403,6 +430,14 @@ public class TargetService {
                 if (minAttacks.compareTo(minAutos) < 0 || minAutos == 0.0){
                     minAutos = minAttacks;
                     minionFinal = minion;
+                    log.info(minion.getName());
+                    log.info("Armor {}", minion.getArmor());
+                    log.info("Targetable {}",minion.getIsTargeteable());
+                    log.info("BonusArmor {}",minion.getBonusArmor());
+                    log.info("getBaseAttack {}",minion.getBaseAttack());
+                    log.info("getHealth {}",minion.getHealth());
+                    log.info("getAttackRange {}",minion.getAttackRange());
+                    log.info("getMagicDamage {}",minion.getMagicDamage());
                 }
             }
         }

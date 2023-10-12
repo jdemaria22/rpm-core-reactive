@@ -66,9 +66,11 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
     @Override
     public Champion findUnitInfo(Long address, Champion champion) {
         Memory memory = this.readProcessMemoryService.readMemory(address, SIZE_CHAMPION, false);
+        Memory name = this.readProcessMemoryService.readMemory(memory.getLong(Offset.objSkinName), 0x200, false);
+
         if (ObjectUtils.isEmpty(champion)){
             champion = Champion.builder().address(address).build();
-            champion.setName(memory.getString(Offset.objName));
+            champion.setName(name.getString(0x0));
             try {
                 champion.setJsonCommunityDragon(apiService.getJsonCommunityDragon(champion).block());
             } catch (Exception exception) {
