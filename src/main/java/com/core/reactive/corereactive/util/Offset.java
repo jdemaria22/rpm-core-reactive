@@ -46,7 +46,7 @@ public class Offset {
     public static final long objTargetable = 0xEC0;
     public static final long objVisible = 0x320;
     public static final long objPositionX = 0x220;
-    public static final long objSpellBook = 0x29F8;
+    public static final long objSpellBook = 0x30C8;
     public static final long spellInstanceClient = 0x38;
     public static final long spellCastInfo = 0x8;
     public static final long spellCastData = 0x0;
