@@ -65,7 +65,8 @@ public class MinionComponent extends AbstractUnitManagerComponent<Minion> {
         unit.setBonusAttack(memory.getFloat(Offset.objBonusAttack));
         unit.setHealth(memory.getFloat(Offset.objHealth));
         unit.setArmor(memory.getFloat(Offset.objArmor));
-        unit.setMagicDamage(memory.getFloat(Offset.objMagicDamage));
+        unit.setBonusArmor(memory.getFloat(Offset.objBonusArmor));
+        unit.setMagicDamage(memory.getFloat(Offset.objAbilityPower));
         Vector3 vector3 = Vector3.builder()
                 .x(memory.getFloat(Offset.objPositionX))
                 .y(memory.getFloat(Offset.objPositionX + 0x4))

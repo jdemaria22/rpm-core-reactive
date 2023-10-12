@@ -19,6 +19,7 @@ public class Minion extends Unit {
     private float bonusAttack;
     private float health;
     private float armor;
+    private float bonusArmor;
     private float magicDamage;
     private Vector3 position;
     private Boolean isVisible;

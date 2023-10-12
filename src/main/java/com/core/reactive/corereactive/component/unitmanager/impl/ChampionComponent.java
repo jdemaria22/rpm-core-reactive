@@ -83,7 +83,11 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
         champion.setHealth(memory.getFloat(Offset.objHealth));
         champion.setMaxHealth(memory.getFloat(Offset.objMaxHealth));
         champion.setArmor(memory.getFloat(Offset.objArmor));
-        champion.setMagicDamage(memory.getFloat(Offset.objMagicDamage));
+        champion.setLevel(memory.getFloat(Offset.objLevel));
+        champion.setLethality(memory.getFloat(Offset.objLethality));
+        champion.setAbilityPower(memory.getFloat(Offset.objAbilityPower));
+        champion.setArmorPen(memory.getFloat(Offset.objArmorPen));
+        champion.setBonusArmor(memory.getFloat(Offset.objBonusArmor));
         Vector3 vector3 = Vector3.builder()
                 .x(memory.getFloat(Offset.objPositionX))
                 .y(memory.getFloat(Offset.objPositionX + 0x4))
@@ -203,7 +207,7 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
             Spell spellSlot = Spell.builder()
                     .level(this.readProcessMemoryService.read(l + Offset.spellBookSlotLevel, Long.class, false).intValue())
                     .value(this.readProcessMemoryService.read(l + Offset.spellBookSlotDamage, Float.class, false))
-                    .readyAtSeconds(this.readProcessMemoryService.read(l + Offset.spellBookSlotTime, Float.class, false))
+                    .readyAtSeconds(this.readProcessMemoryService.read(l + Offset.spellBookSpellTime, Float.class, false))
                     .build();
             spellMap.put(pos, spellSlot);
             pos++;

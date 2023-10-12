@@ -72,29 +72,49 @@ public class OrbWalker implements ScriptLoaderService {
                     });
         } else if (this.isVkVPressed()) {
             this.keepKeyOPressed();
-            return laneClear()
+            return attackTarget()
                     .zipWith(walk())
-                    .flatMap(tuple2 -> {
-                        boolean laneClearResult = tuple2.getT1();
-                        boolean walkResult = tuple2.getT2();
-
+                    .flatMap(tupleAttackWalk -> {
+                        boolean attackResult = tupleAttackWalk.getT1();
+                        boolean walkResult = tupleAttackWalk.getT2();
+                        if (attackResult && walkResult){
+                            return Mono.just(Boolean.TRUE);
+                        }
                         if (championsWithPredictionAbilities.contains(championComponent.getLocalPlayer().getName())) {
                             return castW()
                                     .zipWith(castQ())
-                                    .map(tuple -> {
-                                        boolean castWResult = tuple.getT1();
-                                        boolean castQResult = tuple.getT2();
-
-                                        // Aplica la lógica según tus necesidades
-                                        boolean allResults = laneClearResult && walkResult && castWResult && castQResult;
-                                        return allResults ? Boolean.TRUE : Boolean.FALSE;
+                                    .flatMap(tupleCast -> {
+                                        boolean castWResult = tupleCast.getT1();
+                                        boolean castQResult = tupleCast.getT2();
+                                        if (castWResult || castQResult){
+                                            return Mono.just(Boolean.TRUE);
+                                        }
+                                        return laneClear()
+                                                .zipWith(walk())
+                                                .flatMap(tupleLaneClearWalk -> {
+                                                    boolean laneClearResult = tupleLaneClearWalk.getT1();
+                                                    boolean walkResult2 = tupleLaneClearWalk.getT2();
+                                                    if (laneClearResult || walkResult2){
+                                                        return Mono.just(Boolean.TRUE);
+                                                    }
+                                                    return castAbility();
+                                                });
                                     });
                         } else {
-                            // Aplica la lógica según tus necesidades si no tienes habilidades de predicción
-                            return Mono.just(laneClearResult && walkResult);
+                            return laneClear()
+                                    .zipWith(walk())
+                                    .map(tupleLaneClearWalk -> {
+                                        boolean laneClearResult = tupleLaneClearWalk.getT1();
+                                        boolean walkResult2 = tupleLaneClearWalk.getT2();
+                                            // Aplica la lógica según tus necesidades
+                                            boolean allResults = laneClearResult && walkResult2;
+                                            return allResults ? Boolean.TRUE : Boolean.FALSE;
+                                        });
                         }
                     });
         }
+
+
         return Mono.defer(() -> {
             this.keyboardService.sendKeyUp(KeyEvent.VK_O);
             return Mono.just(Boolean.TRUE);
@@ -163,7 +183,7 @@ public class OrbWalker implements ScriptLoaderService {
                     .flatMap(predictedPosition -> {
                         this.canCastTime = gameTime + spellDelayQ;
                         this.lastCast = gameTime;
-                        this.canMoveTime = gameTime + spellDelayQ;
+                        //this.canMoveTime = gameTime + spellDelayQ;
 
                         Vector3 localPlayerPosition = localPlayer.getPosition();
                         Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(
@@ -179,7 +199,7 @@ public class OrbWalker implements ScriptLoaderService {
                     .defaultIfEmpty(Boolean.FALSE);
         }
 
-        return Mono.just(Boolean.TRUE);
+        return Mono.just(Boolean.FALSE);
     }
     private Mono<Boolean> castW() {
         Double gameTime = gameTimeComponent.getGameTime();
@@ -199,7 +219,7 @@ public class OrbWalker implements ScriptLoaderService {
                     .flatMap(predictedPosition -> {
                         this.canCastTime = gameTime + spellDelayW;
                         this.lastCast = gameTime;
-                        this.canMoveTime = gameTime + spellDelayW;
+                        //this.canMoveTime = gameTime + spellDelayW;
 
                         Vector3 localPlayerPosition = localPlayer.getPosition();
                         Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(
@@ -217,10 +237,47 @@ public class OrbWalker implements ScriptLoaderService {
                     .defaultIfEmpty(Boolean.FALSE); // Handling the case when prediction returns null
         }
 
-        return Mono.just(Boolean.TRUE);
+        return Mono.just(Boolean.FALSE);
     }
 
+    private Mono<Boolean> castAbility() {
+        //TODO: Laneclear
+        Double gameTime = gameTimeComponent.getGameTime();
+        Champion localPlayer = championComponent.getLocalPlayer();
+        SpellBook spellBook = localPlayer.getSpellBook();
+        double qCoolDown = spellBook.getQ().getReadyAtSeconds();
 
+        int qLevel = spellBook.getQ().getLevel();
+        double qDamage = getEzrealDamageQ(qLevel);
+        if (canCast(gameTime, qCoolDown, qLevel) && gameTime - lastCast > 0.6) {
+            Double spellDelayQ = 0.25;
+            Double spellRangeQ = 1200.0;
+            return this.targetService.getMinionToLastHitBySpell(spellRangeQ, qDamage)
+                                        .defaultIfEmpty(Minion.builder().build())
+                                        .flatMap(minion -> {
+                                            if (minion.getPosition() != null){
+                                                this.canCastTime = gameTime + spellDelayQ;
+                                                this.lastCast = gameTime;
+                                                //this.canMoveTime = gameTime + spellDelayQ;
+
+                                                Vector3 localPlayerPosition = localPlayer.getPosition();
+                                                Vector2 minionPosition = rendererComponent.worldToScreen(minion.getPosition().getX(), minion.getPosition().getY(), minion.getPosition().getZ());
+                                                Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(
+                                                        localPlayerPosition.getX(), localPlayerPosition.getY(), localPlayerPosition.getZ()
+                                                );
+
+                                                if (isValidPoint(minionPosition, screenLocalPlayerPosition, spellRangeQ)) {
+                                                    return Mono.just(cast(minionPosition, KeyEvent.VK_Q));
+                                                } else {
+                                                    return Mono.just(Boolean.FALSE);
+                                                }
+                                            }
+                                            return Mono.just(Boolean.FALSE);
+                                        });
+        }
+
+        return Mono.just(Boolean.TRUE);
+    }
     private boolean cast(Vector2 predictedPosition, int key) {
         Vector2 mousePos = mouseService.getCursorPos();
         this.mouseService.blockInput(Boolean.TRUE);
@@ -237,12 +294,13 @@ public class OrbWalker implements ScriptLoaderService {
         return true;
     }
     private Mono<Boolean> laneClear(){
+        Double gameTime = this.gameTimeComponent.getGameTime();
+        if (gameTime - lastCast > 0.5){
         return this.apiService.getJsonActivePlayer()
                 .flatMap(jsonActivePlayer -> Mono.just(jsonActivePlayer.championStats.getAttackSpeed()))
                 .flatMap(attackSpeed -> {
                     Champion localPlayer =  championComponent.getLocalPlayer();
                     Double range = (double) localPlayer.getAttackRange();
-                    Double gameTime = this.gameTimeComponent.getGameTime();
                     double windUpTime = this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (40/2000);
                     return this.targetService.getBestMinionInRange(range)
                             .defaultIfEmpty(Minion.builder().build())
@@ -262,6 +320,8 @@ public class OrbWalker implements ScriptLoaderService {
                                 return Mono.just(Boolean.TRUE);
                             });
                 });
+        }
+        return Mono.just(Boolean.FALSE);
     }
     private Double getWindUpTime(Double baseAs, Double windup, Double windupMod, Double cAttackSpeed) {
         double baseWindupTime = (1.0 / baseAs) * windup;
@@ -304,5 +364,22 @@ public class OrbWalker implements ScriptLoaderService {
         double sumOfSquares = xDiff * xDiff + yDiff * yDiff;
 
         return Math.sqrt(sumOfSquares);
+    }
+
+    private Double getEzrealDamageQ(int qLvl){
+        Champion localPlayer =  championComponent.getLocalPlayer();
+     return switch (qLvl) {
+            case 1 ->
+                    20 + ((localPlayer.getBaseAttack() + localPlayer.getBonusAttack()) * 1.3) + ((localPlayer.getAbilityPower()) * 0.15);
+            case 2 ->
+                    45 + ((localPlayer.getBaseAttack() + localPlayer.getBonusAttack()) * 1.3) + ((localPlayer.getAbilityPower()) * 0.15);
+            case 3 ->
+                    70 + ((localPlayer.getBaseAttack() + localPlayer.getBonusAttack()) * 1.3) + ((localPlayer.getAbilityPower()) * 0.15);
+            case 4 ->
+                    95 + ((localPlayer.getBaseAttack() + localPlayer.getBonusAttack()) * 1.3) + ((localPlayer.getAbilityPower()) * 0.15);
+            case 5 ->
+                    120 + ((localPlayer.getBaseAttack() + localPlayer.getBonusAttack()) * 1.3) + ((localPlayer.getAbilityPower()) * 0.15);
+            default -> 0.0;
+        };
     }
 }

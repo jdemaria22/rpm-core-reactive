@@ -23,8 +23,12 @@ public class Champion extends Unit {
     private float bonusAttack;
     private float health;
     private float maxHealth;
+    private float lethality;
+    private float level;
     private float armor;
-    private float magicDamage;
+    private float bonusArmor;
+    private float armorPen;
+    private float abilityPower;
     private Vector3 position;
     private Boolean isVisible;
     private Boolean isTargeteable;

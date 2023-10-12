@@ -103,17 +103,17 @@ public class Overlay {
 
             JLabel titleLabel = new JLabel(champion.getName());
             titleLabel.setForeground(Color.WHITE);
-            titleLabel.setFont(new Font(ARIAL, Font.PLAIN, 25));
+            titleLabel.setFont(new Font(ARIAL, Font.PLAIN, 12));
 
             JPanel squarePanelContainer = new JPanel();
             squarePanelContainer.setOpaque(false);
-            squarePanelContainer.setLayout(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+            squarePanelContainer.setLayout(new FlowLayout(FlowLayout.RIGHT, 15, 0));
             this.drawSpells(squarePanelContainer, champion);
 
             JProgressBar progressBar = new JProgressBar();
             this.progressBarMap.put(champion.getName(), progressBar);
             progressBar.setValue(50);
-            progressBar.setPreferredSize(new Dimension(200, 20));
+            progressBar.setPreferredSize(new Dimension(200, 15));
             progressBar.setForeground(Color.GREEN);
 
             progressBarWithTitlePanel.add(titleLabel, BorderLayout.NORTH);
@@ -240,7 +240,7 @@ public class Overlay {
 
     private JPanel createSquare(Color color) {
         JPanel squarePanel = new JPanel();
-        squarePanel.setPreferredSize(new Dimension(30, 30));
+        squarePanel.setPreferredSize(new Dimension(15, 15));
         squarePanel.setBackground(color);
         return squarePanel;
     }

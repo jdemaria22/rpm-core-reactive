@@ -371,7 +371,44 @@ public class TargetService {
         return Mono.just(minionFinal);
     }
 
+    public Mono<Minion> getMinionToLastHitBySpell(Double range, Double damage) {
+        Champion localPLayer = this.championComponent.getLocalPlayer();
+        double minAutos = 0.0;
+        Minion minionFinal = Minion.builder().build();
 
+        for (Minion minion : this.minionComponent.getMapUnit().values()) {
+            if (!minion.getIsTargeteable()) {
+                continue;
+            }
+            if (!minion.getIsVisible()) {
+                continue;
+            }
+            if (!minion.getIsAlive()) {
+                continue;
+            }
+            if (Objects.equals(minion.getTeam(), localPLayer.getTeam())) {
+                continue;
+            }
+
+            boolean inDistance = (this.distanceBetweenTargets(localPLayer.getPosition(), minion.getPosition())).compareTo(range + localPLayer.getJsonCommunityDragon().getGameplayRadius()) < 0;
+
+            if (inDistance) {
+                Double minAttacks = getMinAttacks(
+                        damage,
+                        0.0,
+                        (double) minion.getHealth(),
+                        (double) minion.getArmor()+minion.getBonusArmor()
+                );
+
+                if (minAttacks.compareTo(minAutos) < 0 || minAutos == 0.0){
+                    minAutos = minAttacks;
+                    minionFinal = minion;
+                }
+            }
+        }
+
+        return Mono.just(minionFinal);
+    }
     private Double distanceBetweenTargets(Vector3 position, Vector3 position2) {
         Double xDiff = (double) Math.abs(position.getX() - position2.getX());
         Double yDiff = (double) Math.abs(position.getY() - position2.getY());
