@@ -197,7 +197,7 @@ public class OrbWalker implements ScriptLoaderService {
         double qCoolDown = spellBook.getQ().getReadyAtSeconds();
         int qLevel = spellBook.getQ().getLevel();
 
-        if (canCast(gameTime, qCoolDown, qLevel) && gameTime - lastCast > 0.6) {
+        if (canCast(gameTime, qCoolDown, qLevel) && gameTime - lastCast > 0.5) {
             Double spellRadiusQ = 120.0;
             Double spellDelayQ = 0.25;
             Double spellSpeedQ = 2000.0;
@@ -233,7 +233,7 @@ public class OrbWalker implements ScriptLoaderService {
         double wCoolDown = spellBook.getW().getReadyAtSeconds();
         int wLevel = spellBook.getW().getLevel();
 
-        if (canCast(gameTime, wCoolDown, wLevel)  && gameTime - lastCast > 0.6) {
+        if (canCast(gameTime, wCoolDown, wLevel)  && gameTime - lastCast > 0.5) {
             Double spellRadiusW = 160.0;
             Double spellDelayW = 0.25;
             Double spellSpeedW = 1700.0;
@@ -274,7 +274,7 @@ public class OrbWalker implements ScriptLoaderService {
 
         int qLevel = spellBook.getQ().getLevel();
         double qDamage = getEzrealDamageQ(qLevel);
-        if (canCast(gameTime, qCoolDown, qLevel) && gameTime - lastCast > 0.6) {
+        if (canCast(gameTime, qCoolDown, qLevel) && gameTime - lastCast > 0.5) {
             Double spellDelayQ = 0.25;
             Double spellRangeQ = 1200.0;
             return this.targetService.getMinionToLastHitBySpell(spellRangeQ, qDamage)

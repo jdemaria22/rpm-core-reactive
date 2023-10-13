@@ -430,14 +430,6 @@ public class TargetService {
                 if (minAttacks.compareTo(minAutos) < 0 || minAutos == 0.0){
                     minAutos = minAttacks;
                     minionFinal = minion;
-                    log.info(minion.getName());
-                    log.info("Armor {}", minion.getArmor());
-                    log.info("Targetable {}",minion.getIsTargeteable());
-                    log.info("BonusArmor {}",minion.getBonusArmor());
-                    log.info("getBaseAttack {}",minion.getBaseAttack());
-                    log.info("getHealth {}",minion.getHealth());
-                    log.info("getAttackRange {}",minion.getAttackRange());
-                    log.info("getMagicDamage {}",minion.getMagicDamage());
                 }
             }
         }
