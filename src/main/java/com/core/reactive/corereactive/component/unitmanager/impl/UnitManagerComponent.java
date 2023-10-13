@@ -20,6 +20,7 @@ import java.util.List;
 public class UnitManagerComponent implements MemoryLoaderService {
     private final ChampionComponent championComponent;
     private final MinionComponent minionComponent;
+    private final TowerComponent towerComponent;
 
     @Override
     public Mono<Boolean> update() {
@@ -32,6 +33,7 @@ public class UnitManagerComponent implements MemoryLoaderService {
         List<MemoryLoaderService> memoryLoaderServices = new ArrayList<>();
         memoryLoaderServices.add(championComponent);
         memoryLoaderServices.add(minionComponent);
+        memoryLoaderServices.add(towerComponent);
         return memoryLoaderServices;
     }
 }

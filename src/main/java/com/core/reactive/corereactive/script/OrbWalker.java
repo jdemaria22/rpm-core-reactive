@@ -8,6 +8,7 @@ import com.core.reactive.corereactive.component.unitmanager.impl.ChampionCompone
 import com.core.reactive.corereactive.component.unitmanager.model.Champion;
 import com.core.reactive.corereactive.component.unitmanager.model.Minion;
 import com.core.reactive.corereactive.component.unitmanager.model.SpellBook;
+import com.core.reactive.corereactive.component.unitmanager.model.Tower;
 import com.core.reactive.corereactive.target.TargetService;
 import com.core.reactive.corereactive.util.KeyboardService;
 import com.core.reactive.corereactive.util.MouseService;
@@ -53,21 +54,23 @@ public class OrbWalker implements ScriptLoaderService {
                     .flatMap(tuple2 -> {
                         boolean attackTargetResult = tuple2.getT1();
                         boolean walkResult = tuple2.getT2();
-
+                        if (attackTargetResult && walkResult){
+                            return Mono.just(Boolean.TRUE);
+                        }
                         if (championsWithPredictionAbilities.contains(championComponent.getLocalPlayer().getName())) {
                             return castW()
                                     .zipWith(castQ())
                                     .map(tuple -> {
                                         boolean castWResult = tuple.getT1();
                                         boolean castQResult = tuple.getT2();
-
-                                        // Aplica la lógica según tus necesidades
-                                        boolean allResults = attackTargetResult && walkResult && castWResult && castQResult;
-                                        return allResults ? Boolean.TRUE : Boolean.FALSE;
+                                        if (castWResult && castQResult){
+                                            return Boolean.TRUE;
+                                        }
+                                        return Boolean.FALSE;
                                     });
                         } else {
                             // Aplica la lógica según tus necesidades si no tienes habilidades de predicción
-                            return Mono.just(attackTargetResult && walkResult);
+                            return Mono.just(Boolean.FALSE);
                         }
                     });
         } else if (this.isVkVPressed()) {
@@ -119,7 +122,7 @@ public class OrbWalker implements ScriptLoaderService {
     private Mono<Boolean> walk() {
         Double gameTime = this.gameTimeComponent.getGameTime();
             if (this.canMoveTime < gameTime) {
-                this.gameTimeComponent.sleep(40);
+                this.gameTimeComponent.sleep(30);
                 this.mouseService.mouseRightClickNoMove();
                 return Mono.just(Boolean.TRUE);
             }
@@ -139,17 +142,16 @@ public class OrbWalker implements ScriptLoaderService {
                                 .defaultIfEmpty(Champion.builder().build())
                                 .flatMap(champion -> {
                                     if (this.canAttackTime < gameTime && !ObjectUtils.isEmpty(champion.getPosition())) {
-                                        this.canMoveTime = gameTime + windUpTime + 0.07;
-                                        this.canCastTime = gameTime + windUpTime + 0.2;
+                                        this.canMoveTime = gameTime + windUpTime + 0.08;
+                                        this.canCastTime = gameTime + windUpTime + 0.25;
                                         this.canAttackTime = gameTime + 1.0 / attackSpeed;
                                         Vector2 position = this.rendererComponent.worldToScreen(champion.getPosition().getX(), champion.getPosition().getY(), champion.getPosition().getZ());
                                         Vector2 mousePos = this.mouseService.getCursorPos();
                                         this.mouseService.mouseMiddleDown();
                                         this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                        this.gameTimeComponent.sleep(30);
+                                        this.gameTimeComponent.sleep(10);
                                         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.mouseMiddleUp();
-                                        this.gameTimeComponent.sleep(30);
                                         return Mono.just(Boolean.TRUE);
                                     }
                                     return Mono.just(Boolean.FALSE);
@@ -158,37 +160,61 @@ public class OrbWalker implements ScriptLoaderService {
         }
         return Mono.just(Boolean.FALSE);
     }
-    private Mono<Boolean> laneClear(){
+    private Mono<Boolean> laneClear() {
         Double gameTime = this.gameTimeComponent.getGameTime();
-        if (gameTime - lastCast > 0.5){
+        if (gameTime - lastCast > 0.5) {
             return this.apiService.getJsonActivePlayer()
                     .flatMap(jsonActivePlayer -> Mono.just(jsonActivePlayer.championStats.getAttackSpeed()))
                     .flatMap(attackSpeed -> {
-                        Champion localPlayer =  championComponent.getLocalPlayer();
+                        Champion localPlayer = championComponent.getLocalPlayer();
                         Double range = (double) localPlayer.getAttackRange();
-                        double windUpTime = this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (40/2000);
-                        return this.targetService.getBestMinionInRange(range)
+                        double windUpTime = this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (40 / 2000);
+
+                        Mono<Boolean> towerAttack = this.targetService.getBestTowerInRange(range)
+                                .defaultIfEmpty(Tower.builder().build())
+                                .flatMap(tower -> {
+                                    if (this.canAttackTime < gameTime && !ObjectUtils.isEmpty(tower.getPosition())) {
+                                        this.canMoveTime = gameTime + windUpTime + 0.08;
+                                        this.canCastTime = gameTime + windUpTime + 0.25;
+                                        this.canAttackTime = gameTime + 1.0 / attackSpeed;
+                                        Vector2 position = this.rendererComponent.worldToScreen(tower.getPosition().getX(), tower.getPosition().getY(), tower.getPosition().getZ());
+                                        Vector2 mousePos = this.mouseService.getCursorPos();
+                                        this.mouseService.mouseRightClick((int) position.getX(), (int) position.getY());
+                                        this.gameTimeComponent.sleep(10);
+                                        this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
+                                        return Mono.just(Boolean.TRUE);
+                                    }
+                                    return Mono.just(Boolean.FALSE);
+                                });
+
+                        Mono<Boolean> minionAttack = this.targetService.getBestMinionInRange(range)
                                 .defaultIfEmpty(Minion.builder().build())
                                 .flatMap(minion -> {
                                     if (this.canAttackTime < gameTime && !ObjectUtils.isEmpty(minion.getPosition())) {
-                                        this.canMoveTime = gameTime + windUpTime + 0.07;
-                                        this.canCastTime = gameTime + windUpTime + 0.2;
+                                        this.canMoveTime = gameTime + windUpTime + 0.08;
+                                        this.canCastTime = gameTime + windUpTime + 0.25;
                                         this.canAttackTime = gameTime + 1.0 / attackSpeed;
                                         Vector2 position = this.rendererComponent.worldToScreen(minion.getPosition().getX(), minion.getPosition().getY(), minion.getPosition().getZ());
                                         Vector2 mousePos = this.mouseService.getCursorPos();
-                                        this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                        this.gameTimeComponent.sleep(30);
+                                        this.mouseService.mouseRightClick((int) position.getX(), (int) position.getY());
+                                        this.gameTimeComponent.sleep(10);
                                         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-                                        this.gameTimeComponent.sleep(30);
-
                                         return Mono.just(Boolean.TRUE);
                                     }
-                                    return Mono.just(Boolean.TRUE);
+                                    return Mono.just(Boolean.FALSE);
+                                });
+
+                        return towerAttack.zipWith(minionAttack)
+                                .flatMap(tupleAttackWalk -> {
+                                    boolean attackResult = tupleAttackWalk.getT1();
+                                    boolean walkResult = tupleAttackWalk.getT2();
+                                    return Mono.just(attackResult && walkResult);
                                 });
                     });
         }
         return Mono.just(Boolean.FALSE);
     }
+
     private Mono<Boolean> castQ() {
 
         Double gameTime = gameTimeComponent.getGameTime();
@@ -307,11 +333,9 @@ public class OrbWalker implements ScriptLoaderService {
         Vector2 mousePos = mouseService.getCursorPos();
         this.mouseService.blockInput(Boolean.TRUE);
         this.mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
-        this.gameTimeComponent.sleep(5);
         this.keyboardService.sendKeyDown(key);
-        this.gameTimeComponent.sleep(5);
         this.keyboardService.sendKeyUp(key);
-        this.gameTimeComponent.sleep(30);
+        this.gameTimeComponent.sleep(10);
         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
         this.mouseService.blockInput(Boolean.FALSE);
 

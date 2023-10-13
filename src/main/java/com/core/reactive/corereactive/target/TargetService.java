@@ -5,9 +5,8 @@ import com.core.reactive.corereactive.component.renderer.vector.Vector2;
 import com.core.reactive.corereactive.component.renderer.vector.Vector3;
 import com.core.reactive.corereactive.component.unitmanager.impl.ChampionComponent;
 import com.core.reactive.corereactive.component.unitmanager.impl.MinionComponent;
-import com.core.reactive.corereactive.component.unitmanager.model.AiManager;
-import com.core.reactive.corereactive.component.unitmanager.model.Champion;
-import com.core.reactive.corereactive.component.unitmanager.model.Minion;
+import com.core.reactive.corereactive.component.unitmanager.impl.TowerComponent;
+import com.core.reactive.corereactive.component.unitmanager.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,6 +23,7 @@ import java.util.Objects;
 public class TargetService {
     private final ChampionComponent championComponent;
     private final MinionComponent minionComponent;
+    private final TowerComponent towerComponent;
     private final RendererComponent rendererComponent;
     private static final List<String> BLACKLIST = Arrays.asList(
             "SennaSoul",
@@ -225,7 +225,6 @@ public class TargetService {
         return !isAnyObjectInWay(sourcePos, targetPos, sourceObject, spellRadius);
     }
 
-
     public Mono<Vector2> getBestChampionInSpell(Double spellRange, Double spellSpeed, Double spellDelay, Double spellRadius) {
         Champion localPLayer = this.championComponent.getLocalPlayer();
         Vector3 localPlayerPos = localPLayer.getPosition();
@@ -356,6 +355,8 @@ public class TargetService {
 
         return Mono.just(championFinal);
     }
+
+
     public Mono<Minion> getBestMinionInRange(Double range) {
         Champion localPLayer = this.championComponent.getLocalPlayer();
         double minAutos = 0.0;
@@ -393,6 +394,44 @@ public class TargetService {
         }
 
         return Mono.just(minionFinal);
+    }
+    public Mono<Tower> getBestTowerInRange(Double range) {
+        Champion localPLayer = this.championComponent.getLocalPlayer();
+        double minAutos = 0.0;
+        Tower towerFinal = Tower.builder().build();
+
+        for (Tower tower : this.towerComponent.getMapUnit().values()) {
+            if (!tower.getIsTargeteable()) {
+                continue;
+            }
+            if (!tower.getIsVisible()) {
+                continue;
+            }
+            if (!tower.getIsAlive()) {
+                continue;
+            }
+            if (Objects.equals(tower.getTeam(), localPLayer.getTeam())) {
+                continue;
+            }
+
+            boolean inDistance = (this.distanceBetweenTargets(localPLayer.getPosition(), tower.getPosition())).compareTo(range + localPLayer.getJsonCommunityDragon().getGameplayRadius()) < 0;
+
+            if (inDistance) {
+                Double minAttacks = getMinAttacks(
+                        (double) localPLayer.getBaseAttack(),
+                        (double) localPLayer.getBonusAttack(),
+                        (double) tower.getHealth(),
+                        (double) tower.getArmor()
+                );
+
+                if (minAttacks.compareTo(minAutos) < 0 || minAutos == 0.0) {
+                    minAutos = minAttacks;
+                    towerFinal = tower;
+                }
+            }
+        }
+
+        return Mono.just(towerFinal);
     }
 
     public Mono<Minion> getMinionToLastHitBySpell(Double range, Double damage) {

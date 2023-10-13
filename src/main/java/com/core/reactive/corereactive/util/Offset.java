@@ -17,7 +17,6 @@ public class Offset {
     //    }
     //constexpr inline uintptr_t MissileManager = 0x21D3E78;				    //48 8B 0D ? ? ? ? 48 8D 54 24 ? E8 ? ? ? ? 48 8B 7C 24 ?
     //constexpr inline uintptr_t PingNet = 0x21B7370;							//48 8B 05 ? ? ? ? 4C 8B CA 48 8B D9
-    //constexpr inline uintptr_t TurretList = 0x21C0C80;						//48 8B 1D ? ? ? ? 48 8B 5B 28
     //constexpr inline uintptr_t InhibList = 0x21D4078;							//48 8B 05 ? ? ? ? 48 89 7C 24 ? 48 8B 58 08
     //constexpr inline uintptr_t ChatClient = 0x21D3F18;						//48 8B 05 ? ? ? ? 88 90 ? ? ? ? C3
     //constexpr inline uintptr_t HudInstance = 0x21B7390;						//48 8B 0D ? ? ? ? 8B 57 10
@@ -27,13 +26,14 @@ public class Offset {
     public static final long viewProjMatrix = 0x221C0E0; //48 8D 0D ? ? ? ? 0F 10 00
     public static final long championList = 0x21B74A0; //48 8B 05 ? ? ? ? 45 33 E4 0F 57 C0
     public static final long minionList = 0x21BA380; //48 8B 0D ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 48 8B C8
+    public static final long towerList = 0x21C0C80; //48 8B 1D ? ? ? ? 48 8B 5B 28
     public static final long objIndex = 0x10;
     public static final long objName = 0x3868;
     public static final long objSkinName = 0x35E8; //48 81 C1 ? ? ? ? E8 ? ? ? ? F2 0F 10
     public static final long objTeam = 0x3C;
     public static final long objLevel = 0x3FD0;
     public static final long objHealth = 0x1068;
-    public static final long objMaxHealth = 0x1070;
+    public static final long objMaxHealth = 0x1080;
     public static final long objArmor = 0x1694;
     public static final long objBonusArmor = 0x16A8;
     public static final long objArmorPen = 0x1590;
