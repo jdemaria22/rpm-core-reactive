@@ -88,7 +88,11 @@ public class TargetService {
                     }
                     Integer hitChance = getHitChances(champion,targetGameplayRadius, spellSpeed, spellDelay, spellRadius, localPLayer,predictedPos);
                     if (checkCollision(localPLayer.getPosition(), predictedPos, localPLayer, spellRadius) && hitChance > 2){
-                        return this.rendererComponent.worldToScreen(predictedPos.getX(), predictedPos.getY(), predictedPos.getZ());
+                        Vector2 predictedPos2 = rendererComponent.worldToScreen(predictedPos);
+                        if (isOutScreen(predictedPos2)){
+                            return this.rendererComponent.worldToMinimap(predictedPos);
+                        }
+                        return predictedPos2;
                     }
                 }
             }
@@ -116,14 +120,14 @@ public class TargetService {
             //TODO: Control si esta casteando y validación de tiempo para retornar 3 (VeryHigh) - Necesitamos buffs y activeSpell
             return 2;//Medium
         } else if (distanceBetweenTargets(target.getPosition(), lastWaypoint) <250){
-            return 3;//High
+            return 3;//VeryHigh
         } else if (angle > 105 && angle < 150 && distanceToWaypoint < 600){
             return 1;//Low
         } else if (spellWidth >= 90 && spellSpeed > 2999 && spellDelay < 0.7){
-            return 3;//High
+            return 3;//VeryHigh
         } else if (isMovingSameDirection || distanceToWaypoint > 600){
             if (angle > 130 || angle < 15) {
-                return 3;//High
+                return 3;//VeryHigh
             }
         }
         return 2;//Medium
@@ -628,6 +632,9 @@ public class TargetService {
         return angle < 20;
     }
 
+    private Boolean isOutScreen(Vector2 position){
+        return position.getX() > 1920 || position.getY() >1080;
+    }
     boolean detectFrequentDirectionChanges(List<Vector3> movementHistory) {
         if (movementHistory.size() < 3) {
             // No hay suficientes datos para determinar cambios de dirección
