@@ -34,7 +34,7 @@ public class OrbWalker implements ScriptLoaderService {
     private final RendererComponent rendererComponent;
     private final KeyboardService keyboardService;
     private final TargetService targetService;
-    private final List<String> championsWithPredictionAbilities = Arrays.asList("Ezreal", "Morgana", "Samira", "Ahri");
+    private final List<String> championsWithPredictionAbilities = Arrays.asList("Ezreal", "Morgana", "Samira");
     private Double canAttackTime = 0.0000000000;
     private Double canMoveTime = 0.0000000000;
     private Double canCastTime = 0.0000000000;
@@ -128,7 +128,7 @@ public class OrbWalker implements ScriptLoaderService {
 
     private Mono<Boolean> walk() {
         Double gameTime = this.gameTimeComponent.getGameTime();
-            if (this.canMoveTime < gameTime) {
+            if (this.canMoveTime + 0.15 < gameTime) {
                 this.gameTimeComponent.sleep(30);
                 this.mouseService.mouseRightClickNoMove();
                 return Mono.just(Boolean.TRUE);
@@ -144,13 +144,13 @@ public class OrbWalker implements ScriptLoaderService {
                     .flatMap(attackSpeed -> {
                         Champion localPlayer =  championComponent.getLocalPlayer();
                         Double range = (double) localPlayer.getAttackRange();
-                        double windUpTime = this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (30/1000);
+                        double windUpTime = this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) ;
                         return this.targetService.getBestChampionInRange(range)
                                 .defaultIfEmpty(Champion.builder().build())
                                 .flatMap(champion -> {
                                     if (this.canAttackTime < gameTime && !ObjectUtils.isEmpty(champion.getPosition())) {
-                                        this.canMoveTime = gameTime + windUpTime + 0.08;
-                                        this.canCastTime = gameTime + windUpTime + 0.15;
+                                        this.canMoveTime = gameTime + windUpTime;
+                                        this.canCastTime = gameTime + windUpTime;
                                         this.canAttackTime = gameTime + 1.0 / attackSpeed;
                                         Vector2 position = this.rendererComponent.worldToScreen(champion.getPosition().getX(), champion.getPosition().getY(), champion.getPosition().getZ());
                                         Vector2 mousePos = this.mouseService.getCursorPos();
@@ -175,14 +175,14 @@ public class OrbWalker implements ScriptLoaderService {
                     .flatMap(attackSpeed -> {
                         Champion localPlayer = championComponent.getLocalPlayer();
                         Double range = (double) localPlayer.getAttackRange();
-                        double windUpTime = this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) + (40 / 2000);
+                        double windUpTime = this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) ;
 
                         Mono<Boolean> towerAttack = this.targetService.getBestTowerInRange(range)
                                 .defaultIfEmpty(Tower.builder().build())
                                 .flatMap(tower -> {
                                     if (this.canAttackTime < gameTime && !ObjectUtils.isEmpty(tower.getPosition())) {
-                                        this.canMoveTime = gameTime + windUpTime + 0.08;
-                                        this.canCastTime = gameTime + windUpTime + 0.15;
+                                        this.canMoveTime = gameTime + windUpTime;
+                                        this.canCastTime = gameTime + windUpTime;
                                         this.canAttackTime = gameTime + 1.0 / attackSpeed;
                                         Vector2 position = this.rendererComponent.worldToScreen(tower.getPosition().getX(), tower.getPosition().getY(), tower.getPosition().getZ());
                                         Vector2 mousePos = this.mouseService.getCursorPos();
@@ -198,8 +198,8 @@ public class OrbWalker implements ScriptLoaderService {
                                 .defaultIfEmpty(Minion.builder().build())
                                 .flatMap(minion -> {
                                     if (this.canAttackTime < gameTime && !ObjectUtils.isEmpty(minion.getPosition())) {
-                                        this.canMoveTime = gameTime + windUpTime + 0.08;
-                                        this.canCastTime = gameTime + windUpTime + 0.15;
+                                        this.canMoveTime = gameTime + windUpTime;
+                                        this.canCastTime = gameTime + windUpTime;
                                         this.canAttackTime = gameTime + 1.0 / attackSpeed;
                                         Vector2 position = this.rendererComponent.worldToScreen(minion.getPosition().getX(), minion.getPosition().getY(), minion.getPosition().getZ());
                                         Vector2 mousePos = this.mouseService.getCursorPos();
@@ -391,7 +391,7 @@ public class OrbWalker implements ScriptLoaderService {
         } else {
             part2 = divide2TimesWindupMinusPart1;
         }
-
+        //return (1.0 / cAttackSpeed) * ((windupMod != 0) ? (windup / windupMod) :windup));
         return baseWindupTime + part2;
     }
     private boolean isVkSpacePressed() {
@@ -406,7 +406,7 @@ public class OrbWalker implements ScriptLoaderService {
         }
     }
     private boolean canCast(double gameTime, double coolDown, int level) {
-        return this.canCastTime < gameTime &&
+        return this.canCastTime + 0.15 < gameTime &&
                 gameTime - coolDown > 0 &&
                 level > 0;
     }
@@ -439,20 +439,20 @@ public class OrbWalker implements ScriptLoaderService {
             default -> 0.0;
         };
     }
-    private Double getEzrealDamageW(int wLvl){
-        Champion localPlayer =  championComponent.getLocalPlayer();
-        return switch (wLvl) {
-            case 1 ->
-                    80 + ((localPlayer.getBaseAttack() + localPlayer.getBonusAttack()) * 0.6) + ((localPlayer.getAbilityPower()) * 0.7);
-            case 2 ->
-                    135 + ((localPlayer.getBaseAttack() + localPlayer.getBonusAttack()) * 0.6) + ((localPlayer.getAbilityPower()) * 0.75);
-            case 3 ->
-                    190 + ((localPlayer.getBaseAttack() + localPlayer.getBonusAttack()) * 0.6) + ((localPlayer.getAbilityPower()) * 0.80);
-            case 4 ->
-                    245 + ((localPlayer.getBaseAttack() + localPlayer.getBonusAttack()) * 0.6) + ((localPlayer.getAbilityPower()) * 0.85);
-            case 5 ->
-                    300 + ((localPlayer.getBaseAttack() + localPlayer.getBonusAttack()) * 0.6) + ((localPlayer.getAbilityPower()) * 0.90);
-            default -> 0.0;
-        };
-    }
+//    private Double getEzrealDamageW(int wLvl){
+//        Champion localPlayer =  championComponent.getLocalPlayer();
+//        return switch (wLvl) {
+//            case 1 ->
+//                    80 + ((localPlayer.getBaseAttack() + localPlayer.getBonusAttack()) * 0.6) + ((localPlayer.getAbilityPower()) * 0.7);
+//            case 2 ->
+//                    135 + ((localPlayer.getBaseAttack() + localPlayer.getBonusAttack()) * 0.6) + ((localPlayer.getAbilityPower()) * 0.75);
+//            case 3 ->
+//                    190 + ((localPlayer.getBaseAttack() + localPlayer.getBonusAttack()) * 0.6) + ((localPlayer.getAbilityPower()) * 0.80);
+//            case 4 ->
+//                    245 + ((localPlayer.getBaseAttack() + localPlayer.getBonusAttack()) * 0.6) + ((localPlayer.getAbilityPower()) * 0.85);
+//            case 5 ->
+//                    300 + ((localPlayer.getBaseAttack() + localPlayer.getBonusAttack()) * 0.6) + ((localPlayer.getAbilityPower()) * 0.90);
+//            default -> 0.0;
+//        };
+//    }
 }
