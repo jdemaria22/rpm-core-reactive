@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 @Getter
 @RequiredArgsConstructor
 @Slf4j
-public class    GameTimeComponent implements MemoryLoaderService {
+public class GameTimeComponent implements MemoryLoaderService {
     private Double gameTime;
     private final ReadProcessMemoryService readProcessMemoryService;
 
