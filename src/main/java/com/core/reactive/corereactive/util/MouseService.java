@@ -13,6 +13,19 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class MouseService {
     private final Config.User32 user32;
+
+    public void clipCursor(int x, int y) {
+        WinUser.INPUT input = new WinUser.INPUT();
+        input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_MOUSE);
+        input.input.mi.dx = new WinDef.LONG(x);
+        input.input.mi.dy = new WinDef.LONG(y);
+        input.input.mi.dwFlags = new WinDef.DWORD(MOUSEEVENTF_MOVE);
+
+        user32.SendInput(new WinDef.DWORD(1), new WinUser.INPUT[]{input}, input.size());
+    }
+    public void releaseCursor() {
+        clipCursor(0, 0); // Reset the cursor position to release the clip
+    }
     private static void zeroMemory(WinUser.INPUT input) {
         input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_MOUSE);
         input.input.setType("mi");

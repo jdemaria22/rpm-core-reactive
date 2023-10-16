@@ -128,7 +128,7 @@ public class OrbWalker implements ScriptLoaderService {
 
     private Mono<Boolean> walk() {
             if (this.canMoveTime < this.getTimer()) {
-                this.gameTimeComponent.sleep(30);
+                this.gameTimeComponent.sleep(20);
                 this.mouseService.mouseRightClickNoMove();
                 return Mono.just(Boolean.TRUE);
             }
@@ -152,10 +152,12 @@ public class OrbWalker implements ScriptLoaderService {
                                         this.canAttackTime = this.getTimer() + 1.0 / attackSpeed;
                                         Vector2 position = this.rendererComponent.worldToScreen(champion.getPosition().getX(), champion.getPosition().getY(), champion.getPosition().getZ());
                                         Vector2 mousePos = this.mouseService.getCursorPos();
+                                        this.mouseService.clipCursor((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.blockInput(true);
                                         this.mouseService.mouseMiddleDown();
                                         this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                        this.gameTimeComponent.sleep(10);
+                                        this.gameTimeComponent.sleep(20);
+                                        this.mouseService.releaseCursor();
                                         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.mouseMiddleUp();
                                         this.mouseService.blockInput(false);
@@ -185,9 +187,11 @@ public class OrbWalker implements ScriptLoaderService {
                                         this.canAttackTime = this.getTimer() + 1.0 / attackSpeed;
                                         Vector2 position = this.rendererComponent.worldToScreen(tower.getPosition().getX(), tower.getPosition().getY(), tower.getPosition().getZ());
                                         Vector2 mousePos = this.mouseService.getCursorPos();
+                                        this.mouseService.clipCursor((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.blockInput(true);
                                         this.mouseService.mouseRightClick((int) position.getX(), (int) position.getY());
-                                        this.gameTimeComponent.sleep(10);
+                                        this.gameTimeComponent.sleep(20);
+                                        this.mouseService.releaseCursor();
                                         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.blockInput(false);
                                         return Mono.just(Boolean.TRUE);
@@ -204,9 +208,11 @@ public class OrbWalker implements ScriptLoaderService {
                                         this.canAttackTime = this.getTimer() + 1.0 / attackSpeed;
                                         Vector2 position = this.rendererComponent.worldToScreen(minion.getPosition().getX(), minion.getPosition().getY(), minion.getPosition().getZ());
                                         Vector2 mousePos = this.mouseService.getCursorPos();
+                                        this.mouseService.clipCursor((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.blockInput(true);
                                         this.mouseService.mouseRightClick((int) position.getX(), (int) position.getY());
-                                        this.gameTimeComponent.sleep(10);
+                                        this.gameTimeComponent.sleep(20);
+                                        this.mouseService.releaseCursor();
                                         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.blockInput(false);
                                         return Mono.just(Boolean.TRUE);
@@ -369,12 +375,14 @@ public class OrbWalker implements ScriptLoaderService {
         return Mono.just(Boolean.TRUE);
     }
     private boolean cast(Vector2 predictedPosition, int key) {
-        Vector2 mousePos = mouseService.getCursorPos();
         this.mouseService.blockInput(true);
+        Vector2 mousePos = mouseService.getCursorPos();
+        this.mouseService.clipCursor((int) mousePos.getX(), (int) mousePos.getY());
         this.mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
         this.keyboardService.sendKeyDown(key);
         this.keyboardService.sendKeyUp(key);
-        this.gameTimeComponent.sleep(15);
+        this.gameTimeComponent.sleep(20);
+        this.mouseService.releaseCursor();
         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
         this.mouseService.blockInput(false);
 
@@ -408,7 +416,7 @@ public class OrbWalker implements ScriptLoaderService {
     }
     private boolean canCast(double coolDown, int level) {
         return this.canCastTime + 0.15 < this.getTimer() &&
-                this.getTimer() - coolDown > 0 &&
+                this.gameTimeComponent.getGameTime() - coolDown > 0 &&
                 level > 0;
     }
     private boolean isValidPoint(Vector2 predictedPosition, Vector2 localPlayerPosition, Double spellRange) {
