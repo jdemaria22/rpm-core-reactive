@@ -39,6 +39,7 @@ public class OrbWalker implements ScriptLoaderService {
     private Double canMoveTime = 0.0000000000;
     private Double canCastTime = 0.0000000000;
     private Double lastCast = 0.0000000000;
+    private Double lastAttack = 0.0000000000;
 
 
 
@@ -50,75 +51,47 @@ public class OrbWalker implements ScriptLoaderService {
 
         if (isVkSpacePressed()) {
             this.keepKeyOPressed();
-            return attackTarget()
-                    .zipWith(walk())
-                    .flatMap(tuple2 -> {
-                        boolean attackTargetResult = tuple2.getT1();
-                        boolean walkResult = tuple2.getT2();
-                        if (attackTargetResult && walkResult) {
-                            return Mono.just(Boolean.TRUE);
-                        }
-                        if (championsWithPredictionAbilities.contains(championComponent.getLocalPlayer().getName())) {
-                            return castW()
-                                    .zipWith(castQ())
-                                    .map(tuple -> {
-                                        boolean castWResult = tuple.getT1();
-                                        boolean castQResult = tuple.getT2();
-                                        return castWResult && castQResult;
-                                    });
-                        } else {
-                            // Aplica la lógica según tus necesidades si no tienes habilidades de predicción
-                            return Mono.just(Boolean.FALSE);
-                        }
-                    });
+            boolean attackTargetResult = Boolean.TRUE.equals(attackTarget().block());
+            boolean walkResult = Boolean.TRUE.equals(walk().block());
+            if (attackTargetResult && walkResult) {
+                return Mono.just(Boolean.TRUE);
+            }
+            if (championsWithPredictionAbilities.contains(championComponent.getLocalPlayer().getName())) {
+                boolean castWResult = Boolean.TRUE.equals(castW().block());
+                boolean castQResult = Boolean.TRUE.equals(castQ().block());
+                return Mono.just(castWResult && castQResult);
+            }
+            return Mono.just(Boolean.TRUE);
         } else if (this.isVkVPressed()) {
-            this.keepKeyOPressed();
-            return attackTarget()
-                    .zipWith(walk())
-                    .flatMap(tupleAttackWalk -> {
-                        boolean attackResult = tupleAttackWalk.getT1();
-                        boolean walkResult = tupleAttackWalk.getT2();
-                        if (attackResult && walkResult) {
-                            return Mono.just(Boolean.TRUE);
-                        }
-                        if (championsWithPredictionAbilities.contains(championComponent.getLocalPlayer().getName())) {
-                            return castW()
-                                    .zipWith(castQ())
-                                    .flatMap(tupleCast -> {
-                                        boolean castWResult = tupleCast.getT1();
-                                        boolean castQResult = tupleCast.getT2();
-                                        if (castWResult || castQResult) {
-                                            return Mono.just(Boolean.TRUE);
-                                        }
-                                        return laneClear()
-                                                .zipWith(walk())
-                                                .flatMap(tupleLaneClearWalk -> {
-                                                    boolean laneClearResult = tupleLaneClearWalk.getT1();
-                                                    boolean walkQResult = tupleLaneClearWalk.getT2();
-                                                    if (laneClearResult && walkQResult) {
-                                                        return Mono.just(Boolean.TRUE);
-                                                    }
-                                                    return ezrealCastWtoTowers().zipWith(ezrealCastQtoMinions())
-                                                            .map(tuplecastWCastQ -> {
-                                                                boolean castWresult = tuplecastWCastQ.getT1();
-                                                                boolean castQresult = tuplecastWCastQ.getT2();
-                                                                return castWresult && castQresult;
-                                                            });
-                                                });
-                                    });
-                        } else {
-                            return laneClear()
-                                    .zipWith(walk())
-                                    .map(tupleLaneClearWalk -> {
-                                        boolean laneClearResult = tupleLaneClearWalk.getT1();
-                                        boolean walkResult2 = tupleLaneClearWalk.getT2();
-                                        // Aplica la lógica según tus necesidades
-                                        return laneClearResult && walkResult2;
-                                    });
-                        }
-                    });
+                this.keepKeyOPressed();
+                boolean attackTargetResult = Boolean.TRUE.equals(attackTarget().block());
+                boolean walkResult = Boolean.TRUE.equals(walk().block());
+                if (attackTargetResult && walkResult) {
+                    return Mono.just(Boolean.TRUE);
+                }
+                if (championsWithPredictionAbilities.contains(championComponent.getLocalPlayer().getName())) {
+                    boolean castWResult = Boolean.TRUE.equals(castW().block());
+                    boolean castQResult = Boolean.TRUE.equals(castQ().block());
+                    if (castWResult && castQResult) {
+                        return Mono.just(Boolean.TRUE);
+                    }
+                    boolean laneClearResult = Boolean.TRUE.equals(laneClear().block());
+                    boolean walk2 = Boolean.TRUE.equals(walk().block());
+                    if (laneClearResult && walk2) {
+                        return Mono.just(Boolean.TRUE);
+                    }
+                    // Realizar las operaciones de manera síncrona
+                    boolean castWtoTowersResult = Boolean.TRUE.equals(ezrealCastWtoTowers().block());
+                    boolean castQtoMinionsResult = Boolean.TRUE.equals(ezrealCastQtoMinions().block());
+                    return Mono.just(castWtoTowersResult && castQtoMinionsResult);
+                } else {
+                    // Realizar operaciones de manera síncrona
+                    boolean laneClearResult = Boolean.TRUE.equals(laneClear().block());
+                    boolean walkResult2 = Boolean.TRUE.equals(walk().block());
+                    // Aplicar lógica según tus necesidades
+                    return Mono.just(laneClearResult && walkResult2);
+                }
         }
-
         return Mono.defer(() -> {
             this.keyboardService.sendKeyUp(KeyEvent.VK_O);
             return Mono.just(Boolean.TRUE);
@@ -136,7 +109,7 @@ public class OrbWalker implements ScriptLoaderService {
     }
 
     private Mono<Boolean> attackTarget(){
-        if (this.getTimer() - lastCast > 0.35){
+        if (this.getTimer() - this.lastCast > 0.35){
             return this.apiService.getJsonActivePlayer()
                     .flatMap(jsonActivePlayer -> Mono.just(jsonActivePlayer.championStats.getAttackSpeed()))
                     .flatMap(attackSpeed -> {
@@ -150,13 +123,14 @@ public class OrbWalker implements ScriptLoaderService {
                                         this.canMoveTime = this.getTimer() + windUpTime;
                                         this.canCastTime = this.getTimer() + windUpTime;
                                         this.canAttackTime = this.getTimer() + 1.0 / attackSpeed;
+                                        this.lastAttack = this.getTimer();
                                         Vector2 position = this.rendererComponent.worldToScreen(champion.getPosition().getX(), champion.getPosition().getY(), champion.getPosition().getZ());
                                         Vector2 mousePos = this.mouseService.getCursorPos();
                                         this.mouseService.clipCursor((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.blockInput(true);
                                         this.mouseService.mouseMiddleDown();
                                         this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                        this.gameTimeComponent.sleep(20);
+                                        this.gameTimeComponent.sleep(10);
                                         this.mouseService.releaseCursor();
                                         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.mouseMiddleUp();
@@ -170,7 +144,7 @@ public class OrbWalker implements ScriptLoaderService {
         return Mono.just(Boolean.FALSE);
     }
     private Mono<Boolean> laneClear() {
-        if (this.getTimer() - lastCast > 0.35) {
+        if (this.getTimer() - this.lastCast > 0.35) {
             return this.apiService.getJsonActivePlayer()
                     .flatMap(jsonActivePlayer -> Mono.just(jsonActivePlayer.championStats.getAttackSpeed()))
                     .flatMap(attackSpeed -> {
@@ -190,7 +164,7 @@ public class OrbWalker implements ScriptLoaderService {
                                         this.mouseService.clipCursor((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.blockInput(true);
                                         this.mouseService.mouseRightClick((int) position.getX(), (int) position.getY());
-                                        this.gameTimeComponent.sleep(20);
+                                        this.gameTimeComponent.sleep(10);
                                         this.mouseService.releaseCursor();
                                         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.blockInput(false);
@@ -211,7 +185,7 @@ public class OrbWalker implements ScriptLoaderService {
                                         this.mouseService.clipCursor((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.blockInput(true);
                                         this.mouseService.mouseRightClick((int) position.getX(), (int) position.getY());
-                                        this.gameTimeComponent.sleep(20);
+                                        this.gameTimeComponent.sleep(10);
                                         this.mouseService.releaseCursor();
                                         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.blockInput(false);
@@ -237,7 +211,7 @@ public class OrbWalker implements ScriptLoaderService {
         double qCoolDown = spellBook.getQ().getReadyAtSeconds();
         int qLevel = spellBook.getQ().getLevel();
 
-        if (canCast(qCoolDown, qLevel) && this.getTimer() - lastCast > 0.35) {
+        if (canCast(qCoolDown, qLevel)) {
             Double spellRadiusQ = 120.0;
             Double spellDelayQ = 0.25;
             Double spellSpeedQ = 2000.0;
@@ -272,7 +246,7 @@ public class OrbWalker implements ScriptLoaderService {
         double wCoolDown = spellBook.getW().getReadyAtSeconds();
         int wLevel = spellBook.getW().getLevel();
 
-        if (canCast(wCoolDown, wLevel)  && this.getTimer() - lastCast > 0.35) {
+        if (canCast(wCoolDown, wLevel)) {
             Double spellRadiusW = 160.0;
             Double spellDelayW = 0.25;
             Double spellSpeedW = 1700.0;
@@ -308,11 +282,11 @@ public class OrbWalker implements ScriptLoaderService {
         //TODO: Laneclear
         Champion localPlayer = championComponent.getLocalPlayer();
         SpellBook spellBook = localPlayer.getSpellBook();
-        double qCoolDown = spellBook.getQ().getReadyAtSeconds();
+        double wCoolDown = spellBook.getW().getReadyAtSeconds();
 
         int wLevel = spellBook.getW().getLevel();
         //double wDamage = getEzrealDamageW(wLevel);
-        if (canCast(qCoolDown, wLevel) && this.getTimer() - lastCast > 0.35) {
+        if (canCast(wCoolDown, wLevel)) {
             Double spellDelayW = 0.25;
             Double spellRangeW = (double) localPlayer.getAttackRange();
             return this.targetService.getBestTowerInRange(spellRangeW)
@@ -347,7 +321,7 @@ public class OrbWalker implements ScriptLoaderService {
 
         int qLevel = spellBook.getQ().getLevel();
         double qDamage = getEzrealDamageQ(qLevel);
-        if (canCast(qCoolDown, qLevel) && this.getTimer() - lastCast > 0.35) {
+        if (canCast(qCoolDown, qLevel)) {
             Double spellDelayQ = 0.25;
             Double spellRangeQ = 1200.0;
             return this.targetService.getMinionToLastHitBySpell(spellRangeQ, qDamage)
@@ -381,7 +355,7 @@ public class OrbWalker implements ScriptLoaderService {
         this.mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
         this.keyboardService.sendKeyDown(key);
         this.keyboardService.sendKeyUp(key);
-        this.gameTimeComponent.sleep(20);
+        this.gameTimeComponent.sleep(10);
         this.mouseService.releaseCursor();
         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
         this.mouseService.blockInput(false);
@@ -415,9 +389,10 @@ public class OrbWalker implements ScriptLoaderService {
         }
     }
     private boolean canCast(double coolDown, int level) {
-        return this.canCastTime + 0.15 < this.getTimer() &&
+        return this.canCastTime + 0.1 < this.getTimer() &&
                 this.gameTimeComponent.getGameTime() - coolDown > 0 &&
-                level > 0;
+                level > 0 &&
+                this.getTimer() - this.lastAttack > 0.2;
     }
     private boolean isValidPoint(Vector2 predictedPosition, Vector2 localPlayerPosition, Double spellRange) {
         return predictedPosition != null &&
