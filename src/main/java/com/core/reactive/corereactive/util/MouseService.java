@@ -13,7 +13,15 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class MouseService {
     private final Config.User32 user32;
-
+    private static void zeroMemory(WinUser.INPUT input) {
+        input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_MOUSE);
+        input.input.setType("mi");
+        input.input.mi.dx = new WinDef.LONG(0);
+        input.input.mi.dy = new WinDef.LONG(0);
+        input.input.mi.time = new WinDef.DWORD(0);
+        input.input.mi.dwExtraInfo = new BaseTSD.ULONG_PTR(0);
+        input.input.mi.dwFlags = new WinDef.DWORD(0);
+    }
     private static final String MI = "mi";
     public static final int MOUSEEVENTF_MOVE = 1;
     public static final int MOUSEEVENTF_LEFTDOWN = 2;
@@ -74,18 +82,19 @@ public class MouseService {
     private void mouseAction(int x, int y, int flags) {
         WinUser.INPUT input = new WinUser.INPUT();
 
-        input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_MOUSE);
-        input.input.setType(MI);
+        // Restablecer las propiedades de la estructura INPUT
+        zeroMemory(input);
+
         if (x != -1) {
             input.input.mi.dx = new WinDef.LONG(x);
         }
         if (y != -1) {
             input.input.mi.dy = new WinDef.LONG(y);
         }
-        input.input.mi.time = new WinDef.DWORD(0);
-        input.input.mi.dwExtraInfo = new BaseTSD.ULONG_PTR(0);
+
         input.input.mi.dwFlags = new WinDef.DWORD(flags);
         user32.SendInput(new WinDef.DWORD(1), new WinUser.INPUT[] { input }, input.size());
+
     }
 
     @SneakyThrows

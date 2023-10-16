@@ -152,11 +152,13 @@ public class OrbWalker implements ScriptLoaderService {
                                         this.canAttackTime = this.getTimer() + 1.0 / attackSpeed;
                                         Vector2 position = this.rendererComponent.worldToScreen(champion.getPosition().getX(), champion.getPosition().getY(), champion.getPosition().getZ());
                                         Vector2 mousePos = this.mouseService.getCursorPos();
+                                        this.mouseService.blockInput(true);
                                         this.mouseService.mouseMiddleDown();
                                         this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
                                         this.gameTimeComponent.sleep(10);
                                         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.mouseMiddleUp();
+                                        this.mouseService.blockInput(false);
                                         return Mono.just(Boolean.TRUE);
                                     }
                                     return Mono.just(Boolean.FALSE);
@@ -183,9 +185,11 @@ public class OrbWalker implements ScriptLoaderService {
                                         this.canAttackTime = this.getTimer() + 1.0 / attackSpeed;
                                         Vector2 position = this.rendererComponent.worldToScreen(tower.getPosition().getX(), tower.getPosition().getY(), tower.getPosition().getZ());
                                         Vector2 mousePos = this.mouseService.getCursorPos();
+                                        this.mouseService.blockInput(true);
                                         this.mouseService.mouseRightClick((int) position.getX(), (int) position.getY());
                                         this.gameTimeComponent.sleep(10);
                                         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
+                                        this.mouseService.blockInput(false);
                                         return Mono.just(Boolean.TRUE);
                                     }
                                     return Mono.just(Boolean.FALSE);
@@ -200,9 +204,11 @@ public class OrbWalker implements ScriptLoaderService {
                                         this.canAttackTime = this.getTimer() + 1.0 / attackSpeed;
                                         Vector2 position = this.rendererComponent.worldToScreen(minion.getPosition().getX(), minion.getPosition().getY(), minion.getPosition().getZ());
                                         Vector2 mousePos = this.mouseService.getCursorPos();
+                                        this.mouseService.blockInput(true);
                                         this.mouseService.mouseRightClick((int) position.getX(), (int) position.getY());
                                         this.gameTimeComponent.sleep(10);
                                         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
+                                        this.mouseService.blockInput(false);
                                         return Mono.just(Boolean.TRUE);
                                     }
                                     return Mono.just(Boolean.FALSE);
@@ -364,13 +370,13 @@ public class OrbWalker implements ScriptLoaderService {
     }
     private boolean cast(Vector2 predictedPosition, int key) {
         Vector2 mousePos = mouseService.getCursorPos();
-        this.mouseService.blockInput(Boolean.TRUE);
+        this.mouseService.blockInput(true);
         this.mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
         this.keyboardService.sendKeyDown(key);
         this.keyboardService.sendKeyUp(key);
         this.gameTimeComponent.sleep(15);
         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-        this.mouseService.blockInput(Boolean.FALSE);
+        this.mouseService.blockInput(false);
 
         // Return true for success, or false for failure
         return true;
