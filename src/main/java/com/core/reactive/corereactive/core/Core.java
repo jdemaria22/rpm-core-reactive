@@ -44,7 +44,7 @@ public class Core {
                     )
                     .subscribeOn(Schedulers.boundedElastic())
                     .blockLast();
-            this.gameTimeComponent.sleep(1000 / 60);
+            this.gameTimeComponent.sleep(1000 / 50);
         }
     }
 

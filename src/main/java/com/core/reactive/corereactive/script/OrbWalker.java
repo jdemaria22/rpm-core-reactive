@@ -130,7 +130,7 @@ public class OrbWalker implements ScriptLoaderService {
                                         this.mouseService.blockInput(true);
                                         this.mouseService.mouseMiddleDown();
                                         this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                        this.gameTimeComponent.sleep(10);
+                                        this.gameTimeComponent.sleep(30);
                                         this.mouseService.releaseCursor();
                                         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.mouseMiddleUp();
@@ -164,7 +164,7 @@ public class OrbWalker implements ScriptLoaderService {
                                         this.mouseService.clipCursor((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.blockInput(true);
                                         this.mouseService.mouseRightClick((int) position.getX(), (int) position.getY());
-                                        this.gameTimeComponent.sleep(10);
+                                        this.gameTimeComponent.sleep(30);
                                         this.mouseService.releaseCursor();
                                         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.blockInput(false);
@@ -185,7 +185,7 @@ public class OrbWalker implements ScriptLoaderService {
                                         this.mouseService.clipCursor((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.blockInput(true);
                                         this.mouseService.mouseRightClick((int) position.getX(), (int) position.getY());
-                                        this.gameTimeComponent.sleep(10);
+                                        this.gameTimeComponent.sleep(30);
                                         this.mouseService.releaseCursor();
                                         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.blockInput(false);
@@ -355,7 +355,7 @@ public class OrbWalker implements ScriptLoaderService {
         this.mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
         this.keyboardService.sendKeyDown(key);
         this.keyboardService.sendKeyUp(key);
-        this.gameTimeComponent.sleep(10);
+        this.gameTimeComponent.sleep(30);
         this.mouseService.releaseCursor();
         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
         this.mouseService.blockInput(false);
