@@ -379,6 +379,9 @@ public class TargetService {
             if (Objects.equals(minion.getTeam(), localPLayer.getTeam())) {
                 continue;
             }
+            if (minion.getName().equals("SennaSoul") && !localPLayer.getName().equals("Senna")){
+                continue;
+            }
 
             boolean inDistance = (this.distanceBetweenTargets(localPLayer.getPosition(), minion.getPosition())).compareTo(range + localPLayer.getJsonCommunityDragon().getGameplayRadius()) < 0;
 

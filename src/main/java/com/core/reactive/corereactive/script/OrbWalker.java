@@ -13,6 +13,7 @@ import com.core.reactive.corereactive.target.TargetService;
 import com.core.reactive.corereactive.util.KeyboardService;
 import com.core.reactive.corereactive.util.MouseService;
 import com.core.reactive.corereactive.util.api.ApiService;
+import com.core.reactive.corereactive.util.api.object.JsonActivePlayer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -48,14 +49,14 @@ public class OrbWalker implements ScriptLoaderService {
         if (!this.championComponent.getLocalPlayer().getIsAlive()) {
             return Mono.just(Boolean.TRUE);
         }
-
         if (isVkSpacePressed()) {
             this.keepKeyOPressed();
             boolean attackTargetResult = Boolean.TRUE.equals(attackTarget().block());
-            boolean walkResult = Boolean.TRUE.equals(walk().block());
-            if (attackTargetResult && walkResult) {
+           // boolean walkResult = Boolean.TRUE.equals(walk().block());
+            if (attackTargetResult) {
                 return Mono.just(Boolean.TRUE);
             }
+
             if (championsWithPredictionAbilities.contains(championComponent.getLocalPlayer().getName())) {
                 boolean castWResult = Boolean.TRUE.equals(castW().block());
                 boolean castQResult = Boolean.TRUE.equals(castQ().block());
@@ -65,8 +66,8 @@ public class OrbWalker implements ScriptLoaderService {
         } else if (this.isVkVPressed()) {
                 this.keepKeyOPressed();
                 boolean attackTargetResult = Boolean.TRUE.equals(attackTarget().block());
-                boolean walkResult = Boolean.TRUE.equals(walk().block());
-                if (attackTargetResult && walkResult) {
+                //boolean walkResult = Boolean.TRUE.equals(walk().block());
+                if (attackTargetResult) {
                     return Mono.just(Boolean.TRUE);
                 }
                 if (championsWithPredictionAbilities.contains(championComponent.getLocalPlayer().getName())) {
@@ -76,8 +77,8 @@ public class OrbWalker implements ScriptLoaderService {
                         return Mono.just(Boolean.TRUE);
                     }
                     boolean laneClearResult = Boolean.TRUE.equals(laneClear().block());
-                    boolean walk2 = Boolean.TRUE.equals(walk().block());
-                    if (laneClearResult && walk2) {
+                    //boolean walk2 = Boolean.TRUE.equals(walk().block());
+                    if (laneClearResult) {
                         return Mono.just(Boolean.TRUE);
                     }
                     // Realizar las operaciones de manera síncrona
@@ -87,9 +88,9 @@ public class OrbWalker implements ScriptLoaderService {
                 } else {
                     // Realizar operaciones de manera síncrona
                     boolean laneClearResult = Boolean.TRUE.equals(laneClear().block());
-                    boolean walkResult2 = Boolean.TRUE.equals(walk().block());
+                    //boolean walkResult2 = Boolean.TRUE.equals(walk().block());
                     // Aplicar lógica según tus necesidades
-                    return Mono.just(laneClearResult && walkResult2);
+                    return Mono.just(laneClearResult);
                 }
         }
         return Mono.defer(() -> {
@@ -101,48 +102,57 @@ public class OrbWalker implements ScriptLoaderService {
 
     private Mono<Boolean> walk() {
             if (this.canMoveTime < this.getTimer()) {
-                this.gameTimeComponent.sleep(20);
                 this.mouseService.mouseRightClickNoMove();
+                this.canMoveTime = this.getTimer() + 0.03;
                 return Mono.just(Boolean.TRUE);
             }
         return Mono.just(Boolean.FALSE);
     }
 
-    private Mono<Boolean> attackTarget(){
-        if (this.getTimer() - this.lastCast > 0.35){
-            return this.apiService.getJsonActivePlayer()
-                    .flatMap(jsonActivePlayer -> Mono.just(jsonActivePlayer.championStats.getAttackSpeed()))
-                    .flatMap(attackSpeed -> {
-                        Champion localPlayer =  championComponent.getLocalPlayer();
-                        Double range = (double) localPlayer.getAttackRange();
-                        double windUpTime = this.getWindUpTime(localPlayer.getJsonCommunityDragon().getAttackSpeed(), localPlayer.getJsonCommunityDragon().getWindUp(), localPlayer.getJsonCommunityDragon().getWindupMod(), attackSpeed) ;
-                        return this.targetService.getBestChampionInRange(range)
-                                .defaultIfEmpty(Champion.builder().build())
-                                .flatMap(champion -> {
-                                    if (this.canAttackTime < this.getTimer() && !ObjectUtils.isEmpty(champion.getPosition())) {
-                                        this.canMoveTime = this.getTimer() + windUpTime;
-                                        this.canCastTime = this.getTimer() + windUpTime;
-                                        this.canAttackTime = this.getTimer() + 1.0 / attackSpeed;
-                                        this.lastAttack = this.getTimer();
-                                        Vector2 position = this.rendererComponent.worldToScreen(champion.getPosition().getX(), champion.getPosition().getY(), champion.getPosition().getZ());
-                                        Vector2 mousePos = this.mouseService.getCursorPos();
-                                        this.mouseService.clipCursor((int) mousePos.getX(), (int) mousePos.getY());
-                                        this.mouseService.blockInput(true);
-                                        this.mouseService.mouseMiddleDown();
-                                        this.mouseService.mouseRightClick((int) position.getX(),(int) position.getY());
-                                        this.gameTimeComponent.sleep(30);
-                                        this.mouseService.releaseCursor();
-                                        this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-                                        this.mouseService.mouseMiddleUp();
-                                        this.mouseService.blockInput(false);
-                                        return Mono.just(Boolean.TRUE);
-                                    }
-                                    return Mono.just(Boolean.FALSE);
-                                });
-                    });
+    private Mono<Boolean> attackTarget() {
+        if (this.getTimer() - this.lastCast > 0.35) {
+            JsonActivePlayer jsonActivePlayer = this.apiService.getJsonActivePlayer().block();
+            if (jsonActivePlayer != null) {
+                double attackSpeed = jsonActivePlayer.championStats.getAttackSpeed();
+                Champion localPlayer = this.championComponent.getLocalPlayer();
+                Double range = (double) localPlayer.getAttackRange();
+                double windUpTime = this.getWindUpTime(
+                        localPlayer.getJsonCommunityDragon().getAttackSpeed(),
+                        localPlayer.getJsonCommunityDragon().getWindUp(),
+                        localPlayer.getJsonCommunityDragon().getWindupMod(),
+                        attackSpeed
+                );
+
+                Champion champion = this.targetService.getBestChampionInRange(range).defaultIfEmpty(Champion.builder().build()).block();
+
+                if (champion != null && this.canAttackTime < this.getTimer() && !ObjectUtils.isEmpty(champion.getPosition())) {
+                    Vector2 position = this.rendererComponent.worldToScreen(champion.getPosition().getX(), champion.getPosition().getY(), champion.getPosition().getZ());
+                    Vector2 mousePos = this.mouseService.getCursorPos();
+                    this.mouseService.clipCursor((int) mousePos.getX(), (int) mousePos.getY());
+                    this.mouseService.blockInput(true);
+                    this.mouseService.mouseMiddleDown();
+                    this.mouseService.mouseRightClick((int) position.getX(), (int) position.getY());
+                    this.gameTimeComponent.sleep(10);
+                    this.mouseService.releaseCursor();
+                    this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
+                    this.mouseService.mouseMiddleUp();
+                    this.mouseService.blockInput(false);
+                    this.canMoveTime = this.getTimer() + windUpTime;
+                    this.canCastTime = this.getTimer() + windUpTime;
+                    this.canAttackTime = this.getTimer() + 1.0 / attackSpeed;
+                    this.lastAttack = this.getTimer();
+                    return Mono.just(Boolean.TRUE);
+                }
+            }
+        }
+        if (this.canMoveTime +0.1 < this.getTimer()) {
+            this.mouseService.mouseRightClickNoMove();
+            this.canMoveTime = this.getTimer() + 0.03;
+            return Mono.just(Boolean.TRUE);
         }
         return Mono.just(Boolean.FALSE);
     }
+
     private Mono<Boolean> laneClear() {
         if (this.getTimer() - this.lastCast > 0.35) {
             return this.apiService.getJsonActivePlayer()
@@ -164,7 +174,7 @@ public class OrbWalker implements ScriptLoaderService {
                                         this.mouseService.clipCursor((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.blockInput(true);
                                         this.mouseService.mouseRightClick((int) position.getX(), (int) position.getY());
-                                        this.gameTimeComponent.sleep(30);
+                                        this.gameTimeComponent.sleep(10);
                                         this.mouseService.releaseCursor();
                                         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.blockInput(false);
@@ -185,7 +195,7 @@ public class OrbWalker implements ScriptLoaderService {
                                         this.mouseService.clipCursor((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.blockInput(true);
                                         this.mouseService.mouseRightClick((int) position.getX(), (int) position.getY());
-                                        this.gameTimeComponent.sleep(30);
+                                        this.gameTimeComponent.sleep(10);
                                         this.mouseService.releaseCursor();
                                         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.blockInput(false);
@@ -201,6 +211,11 @@ public class OrbWalker implements ScriptLoaderService {
                                     return Mono.just(attackResult && walkResult);
                                 });
                     });
+        }
+        if (this.canMoveTime +0.1 < this.getTimer()) {
+            this.mouseService.mouseRightClickNoMove();
+            this.canMoveTime = this.getTimer() + 0.03;
+            return Mono.just(Boolean.TRUE);
         }
         return Mono.just(Boolean.FALSE);
     }
@@ -355,7 +370,7 @@ public class OrbWalker implements ScriptLoaderService {
         this.mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
         this.keyboardService.sendKeyDown(key);
         this.keyboardService.sendKeyUp(key);
-        this.gameTimeComponent.sleep(30);
+        this.gameTimeComponent.sleep(10);
         this.mouseService.releaseCursor();
         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
         this.mouseService.blockInput(false);

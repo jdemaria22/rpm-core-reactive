@@ -29,33 +29,38 @@ public class Core {
     private final UnitManagerComponent unitManagerComponent;
     private final OrbWalker orbWalker;
     private final Overlay overlay;
+
     public void run() {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(System::gc, 0, 2, TimeUnit.SECONDS);
         ExecutorService overlayExecutor = Executors.newSingleThreadExecutor();
         overlayExecutor.submit(this::updateOverlay);
+
         while (true) {
-            Flux.fromIterable(getMemoryLoaderServices())
-                    .flatMap(MemoryLoaderService::update)
-                    .all(result -> result)
-                    .flatMapMany(memoryResult -> Flux.fromIterable(getScriptLoaderService())
-                            .flatMap(ScriptLoaderService::update)
-                            .all(scriptResult -> scriptResult)
-                    )
-                    .subscribeOn(Schedulers.boundedElastic())
-                    .blockLast();
-            this.gameTimeComponent.sleep(1000 / 50);
+            updateComponentList(getMemoryLoaderServices());
+            updateScriptList(getScriptLoaderService());
+            this.gameTimeComponent.sleep(1000 / 70);
         }
     }
 
     private void updateOverlay() {
         while (true) {
-            Flux.fromIterable(getMemoryLoaderServices())
-                    .flatMap(MemoryLoaderService::update)
-                    .blockLast();
+            updateComponentList(getMemoryLoaderServices());
             overlay.update().subscribeOn(Schedulers.boundedElastic());
             this.gameTimeComponent.sleep(1000 / 5);
         }
+    }
+
+    private void updateComponentList(List<MemoryLoaderService> components) {
+        Flux.fromIterable(components)
+                .flatMap(MemoryLoaderService::update)
+                .blockLast();
+    }
+
+    private void updateScriptList(List<ScriptLoaderService> scripts) {
+        Flux.fromIterable(scripts)
+                .flatMap(ScriptLoaderService::update)
+                .blockLast();
     }
 
     private List<MemoryLoaderService> getMemoryLoaderServices() {
