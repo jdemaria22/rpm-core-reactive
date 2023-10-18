@@ -39,7 +39,6 @@ public class Core {
         while (true) {
             updateComponentList(getMemoryLoaderServices());
             updateScriptList(getScriptLoaderService());
-            this.gameTimeComponent.sleep(1000 / 70);
         }
     }
 
@@ -58,10 +57,11 @@ public class Core {
     }
 
     private void updateScriptList(List<ScriptLoaderService> scripts) {
-        Flux.fromIterable(scripts)
-                .flatMap(ScriptLoaderService::update)
-                .blockLast();
+        for (ScriptLoaderService script : scripts) {
+            script.update().block();
+        }
     }
+
 
     private List<MemoryLoaderService> getMemoryLoaderServices() {
         List<MemoryLoaderService> memoryLoaderServices = new ArrayList<>();

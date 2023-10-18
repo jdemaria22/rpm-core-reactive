@@ -99,7 +99,6 @@ public class OrbWalker implements ScriptLoaderService {
         });
     }
 
-
     private Mono<Boolean> walk() {
             if (this.canMoveTime < this.getTimer()) {
                 this.mouseService.mouseRightClickNoMove();
@@ -122,9 +121,7 @@ public class OrbWalker implements ScriptLoaderService {
                         localPlayer.getJsonCommunityDragon().getWindupMod(),
                         attackSpeed
                 );
-
                 Champion champion = this.targetService.getBestChampionInRange(range).defaultIfEmpty(Champion.builder().build()).block();
-
                 if (champion != null && this.canAttackTime < this.getTimer() && !ObjectUtils.isEmpty(champion.getPosition())) {
                     Vector2 position = this.rendererComponent.worldToScreen(champion.getPosition().getX(), champion.getPosition().getY(), champion.getPosition().getZ());
                     Vector2 mousePos = this.mouseService.getCursorPos();
@@ -139,13 +136,13 @@ public class OrbWalker implements ScriptLoaderService {
                     this.mouseService.blockInput(false);
                     this.canMoveTime = this.getTimer() + windUpTime;
                     this.canCastTime = this.getTimer() + windUpTime;
-                    this.canAttackTime = this.getTimer() + 1.0 / attackSpeed;
+                    this.canAttackTime = this.getTimer() + (1.0 / attackSpeed) + 33.0/2000.0;
                     this.lastAttack = this.getTimer();
                     return Mono.just(Boolean.TRUE);
                 }
             }
         }
-        if (this.canMoveTime +0.1 < this.getTimer()) {
+        if (this.canMoveTime < this.getTimer()) {
             this.mouseService.mouseRightClickNoMove();
             this.canMoveTime = this.getTimer() + 0.03;
             return Mono.just(Boolean.TRUE);
@@ -166,9 +163,6 @@ public class OrbWalker implements ScriptLoaderService {
                                 .defaultIfEmpty(Tower.builder().build())
                                 .flatMap(tower -> {
                                     if (this.canAttackTime < this.getTimer() && !ObjectUtils.isEmpty(tower.getPosition())) {
-                                        this.canMoveTime = this.getTimer() + windUpTime;
-                                        this.canCastTime = this.getTimer() + windUpTime;
-                                        this.canAttackTime = this.getTimer() + 1.0 / attackSpeed;
                                         Vector2 position = this.rendererComponent.worldToScreen(tower.getPosition().getX(), tower.getPosition().getY(), tower.getPosition().getZ());
                                         Vector2 mousePos = this.mouseService.getCursorPos();
                                         this.mouseService.clipCursor((int) mousePos.getX(), (int) mousePos.getY());
@@ -178,6 +172,9 @@ public class OrbWalker implements ScriptLoaderService {
                                         this.mouseService.releaseCursor();
                                         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.blockInput(false);
+                                        this.canMoveTime = this.getTimer() + windUpTime;
+                                        this.canCastTime = this.getTimer() + windUpTime;
+                                        this.canAttackTime = this.getTimer() + (1.0 / attackSpeed) + 33.0/2000.0;
                                         return Mono.just(Boolean.TRUE);
                                     }
                                     return Mono.just(Boolean.FALSE);
@@ -187,9 +184,6 @@ public class OrbWalker implements ScriptLoaderService {
                                 .defaultIfEmpty(Minion.builder().build())
                                 .flatMap(minion -> {
                                     if (this.canAttackTime < this.getTimer() && !ObjectUtils.isEmpty(minion.getPosition())) {
-                                        this.canMoveTime = this.getTimer() + windUpTime;
-                                        this.canCastTime = this.getTimer() + windUpTime;
-                                        this.canAttackTime = this.getTimer() + 1.0 / attackSpeed;
                                         Vector2 position = this.rendererComponent.worldToScreen(minion.getPosition().getX(), minion.getPosition().getY(), minion.getPosition().getZ());
                                         Vector2 mousePos = this.mouseService.getCursorPos();
                                         this.mouseService.clipCursor((int) mousePos.getX(), (int) mousePos.getY());
@@ -199,6 +193,9 @@ public class OrbWalker implements ScriptLoaderService {
                                         this.mouseService.releaseCursor();
                                         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                                         this.mouseService.blockInput(false);
+                                        this.canMoveTime = this.getTimer() + windUpTime;
+                                        this.canCastTime = this.getTimer() + windUpTime;
+                                        this.canAttackTime = this.getTimer() + (1.0 / attackSpeed) + 33.0/2000.0;
                                         return Mono.just(Boolean.TRUE);
                                     }
                                     return Mono.just(Boolean.FALSE);
@@ -212,7 +209,7 @@ public class OrbWalker implements ScriptLoaderService {
                                 });
                     });
         }
-        if (this.canMoveTime +0.1 < this.getTimer()) {
+        if (this.canMoveTime < this.getTimer()) {
             this.mouseService.mouseRightClickNoMove();
             this.canMoveTime = this.getTimer() + 0.03;
             return Mono.just(Boolean.TRUE);
@@ -370,7 +367,7 @@ public class OrbWalker implements ScriptLoaderService {
         this.mouseService.mouseMove((int) predictedPosition.getX(), (int) predictedPosition.getY());
         this.keyboardService.sendKeyDown(key);
         this.keyboardService.sendKeyUp(key);
-        this.gameTimeComponent.sleep(10);
+        this.gameTimeComponent.sleep(15);
         this.mouseService.releaseCursor();
         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
         this.mouseService.blockInput(false);
