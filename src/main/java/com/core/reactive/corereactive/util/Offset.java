@@ -87,7 +87,7 @@ public class Offset {
     public static final long aiManagerIsDashing = 0x324;
     public static final long aiManagerCurrentSegment = 0x1C4;
     public static final long aiManagerDashSpeed = 0x300;
-    public static final long minimapObject = 0x21B8D98;
+    public static final long minimapObject = 0x21C6EB8; //48 8B 1D ? ? ? ? 48 85 DB 74 17 48 8B 06
     public static final long minimapObjectHud = 0x320;
     public static final long minimapHudPos = 0x60;
     public static final long minimapHudSize = 0x68;

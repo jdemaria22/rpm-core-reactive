@@ -5,6 +5,7 @@ import com.core.reactive.corereactive.component.gametime.GameTimeComponent;
 import com.core.reactive.corereactive.component.renderer.RendererComponent;
 import com.core.reactive.corereactive.component.unitmanager.impl.UnitManagerComponent;
 import com.core.reactive.corereactive.overlay.Overlay;
+import com.core.reactive.corereactive.script.Ezreal;
 import com.core.reactive.corereactive.script.OrbWalker;
 import com.core.reactive.corereactive.script.ScriptLoaderService;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class Core {
     private final RendererComponent rendererComponent;
     private final UnitManagerComponent unitManagerComponent;
     private final OrbWalker orbWalker;
+    private final Ezreal ezreal;
     private final Overlay overlay;
 
     public void run() {
@@ -73,6 +75,7 @@ public class Core {
     private List<ScriptLoaderService> getScriptLoaderService() {
         List<ScriptLoaderService> scriptLoaderServices = new ArrayList<>();
         scriptLoaderServices.add(orbWalker);
+        scriptLoaderServices.add(ezreal);
         return scriptLoaderServices;
     }
 }

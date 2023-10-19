@@ -99,7 +99,7 @@ public class RendererComponent implements MemoryLoaderService {
         return Vector2.builder().x(out_x).y(out_y).build();
     }
 
-    public Vector2 worldToMinimap(Vector3 pos) {
+    public Vector2 worldToMinimap2(Vector3 pos) {
         Vector2 result = Vector2.builder()
                 .x(pos.getX()/15000.0f)
                 .y(pos.getZ()/15000.0f)
@@ -107,6 +107,17 @@ public class RendererComponent implements MemoryLoaderService {
         result.setX(this.minimapPos.getX() + result.getX() * this.minimapSize.getX());
         result.setY(this.minimapPos.getY() + this.minimapSize.getY() - (result.getY() * this.minimapSize.getY()));
         return result;
+    }
+    public Vector2 worldToMinimap(Vector3 pos) {
+        Vector2 minimapSize = this.minimapSize;
+        Vector2 minimapPos = this.minimapPos;
+        Vector2 res = Vector2.builder()
+                .x(pos.getX() / 15000.0f)
+                .y(pos.getZ() / 15000.0f)
+                .build();
+        res.setX(minimapPos.getX() + res.getX() * minimapSize.getX());
+        res.setY(minimapPos.getY() + minimapSize.getY() - (res.getY() * minimapSize.getY()));
+        return res;
     }
 
     private void multiplyMatrices() {

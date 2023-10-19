@@ -79,13 +79,9 @@ public class Ezreal implements ScriptLoaderService{
             Double spellRangeQ = 1150.0;
             return targetService.getPrediction(spellRangeQ, spellSpeedQ, spellDelayQ, spellRadiusQ)
                     .flatMap(predictedPosition -> {
-                        owService.setCanCastTime(this.getTimer() + spellDelayQ + 33.0/2000.0);
-                        owService.setLastCast(this.getTimer());
-                        Vector3 localPlayerPosition = localPlayer.getPosition();
-                        Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(
-                                localPlayerPosition.getX(), localPlayerPosition.getY(), localPlayerPosition.getZ()
-                        );
-                        if (isValidPoint(predictedPosition, screenLocalPlayerPosition, spellRangeQ)) {
+                        owService.setCanCastTime(this.gameTimeComponent.getGameTime() + spellDelayQ + 33.0/2000.0);
+                        owService.setLastCast(this.gameTimeComponent.getGameTime());
+                        if (isValidPoint(predictedPosition)) {
                             return Mono.just(cast(predictedPosition, KeyEvent.VK_Q));
                         } else {
                             return Mono.just(Boolean.FALSE);
@@ -111,13 +107,9 @@ public class Ezreal implements ScriptLoaderService{
             Double spellRangeW = 1200.0;
             return targetService.getPrediction(spellRangeW, spellSpeedW, spellDelayW, spellRadiusW)
                     .flatMap(predictedPosition -> {
-                        owService.setCanCastTime(this.getTimer() + spellDelayW + 33.0/2000.0);
-                        owService.setLastCast(this.getTimer());
-                        Vector3 localPlayerPosition = localPlayer.getPosition();
-                        Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(
-                                localPlayerPosition.getX(), localPlayerPosition.getY(), localPlayerPosition.getZ()
-                        );
-                        if (isValidPoint(predictedPosition, screenLocalPlayerPosition, spellRangeW)) {
+                        owService.setCanCastTime(this.gameTimeComponent.getGameTime() + spellDelayW + 33.0/2000.0);
+                        owService.setLastCast(this.gameTimeComponent.getGameTime());
+                        if (isValidPoint(predictedPosition)) {
                             return Mono.just(cast(predictedPosition, KeyEvent.VK_W));
                         } else {
                             return Mono.just(Boolean.FALSE);
@@ -141,17 +133,13 @@ public class Ezreal implements ScriptLoaderService{
             Double spellRadiusR = 320.0;
             Double spellDelayR = 1.00;
             Double spellSpeedR = 2000.0;
-            Double spellRangeR = 50000.0;
+            Double spellRangeR = 3000.0;//max Distance
             Double spellDamageR = getEzrealDamageR(rLevel);
             return targetService.getKSPrediction(spellRangeR, spellSpeedR, spellDelayR, spellRadiusR, spellDamageR, 1)
                     .flatMap(predictedPosition -> {
-                        owService.setCanCastTime(this.getTimer() + spellDelayR + 33.0/2000.0);
-                        owService.setLastCast(this.getTimer());
-                        Vector3 localPlayerPosition = localPlayer.getPosition();
-                        Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(
-                                localPlayerPosition.getX(), localPlayerPosition.getY(), localPlayerPosition.getZ()
-                        );
-                        if (isValidPoint(predictedPosition, screenLocalPlayerPosition, spellRangeR)) {
+                        owService.setCanCastTime(this.gameTimeComponent.getGameTime() + spellDelayR + 33.0/2000.0);
+                        owService.setLastCast(this.gameTimeComponent.getGameTime());
+                        if (isValidPoint(predictedPosition)) {
                             return Mono.just(cast(predictedPosition, KeyEvent.VK_R));
                         } else {
                             return Mono.just(Boolean.FALSE);
@@ -178,13 +166,9 @@ public class Ezreal implements ScriptLoaderService{
             Double spellDamageQ = getEzrealDamageQ(qLevel);
             return targetService.getKSPrediction(spellRangeQ, spellSpeedQ, spellDelayQ, spellRadiusQ, spellDamageQ, 0)
                     .flatMap(predictedPosition -> {
-                        owService.setCanCastTime(this.getTimer() + spellDelayQ + 33.0/2000.0);
-                        owService.setLastCast(this.getTimer());
-                        Vector3 localPlayerPosition = localPlayer.getPosition();
-                        Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(
-                                localPlayerPosition.getX(), localPlayerPosition.getY(), localPlayerPosition.getZ()
-                        );
-                        if (isValidPoint(predictedPosition, screenLocalPlayerPosition, spellRangeQ)) {
+                        owService.setCanCastTime(this.gameTimeComponent.getGameTime() + spellDelayQ + 33.0/2000.0);
+                        owService.setLastCast(this.gameTimeComponent.getGameTime());
+                        if (isValidPoint(predictedPosition)) {
                             return Mono.just(cast(predictedPosition, KeyEvent.VK_Q));
                         } else {
                             return Mono.just(Boolean.FALSE);
@@ -208,14 +192,10 @@ public class Ezreal implements ScriptLoaderService{
                     .defaultIfEmpty(Tower.builder().build())
                     .flatMap(tower -> {
                         if (tower.getPosition() != null){
-                            owService.setCanCastTime(this.getTimer() + spellDelayW + 33.0/2000.0);
-                            owService.setLastCast(this.getTimer());
-                            Vector3 localPlayerPosition = localPlayer.getPosition();
+                            owService.setCanCastTime(this.gameTimeComponent.getGameTime() + spellDelayW + 33.0/2000.0);
+                            owService.setLastCast(this.gameTimeComponent.getGameTime());
                             Vector2 towerPosition = rendererComponent.worldToScreen(tower.getPosition().getX(), tower.getPosition().getY(), tower.getPosition().getZ());
-                            Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(
-                                    localPlayerPosition.getX(), localPlayerPosition.getY(), localPlayerPosition.getZ()
-                            );
-                            if (isValidPoint(towerPosition, screenLocalPlayerPosition, spellRangeW)) {
+                            if (isValidPoint(towerPosition)) {
                                 return Mono.just(cast(towerPosition, KeyEvent.VK_W));
                             } else {
                                 return Mono.just(Boolean.FALSE);
@@ -242,14 +222,10 @@ public class Ezreal implements ScriptLoaderService{
                     .defaultIfEmpty(Minion.builder().build())
                     .flatMap(minion -> {
                         if (minion.getPosition() != null){
-                            owService.setCanCastTime(this.getTimer() + spellDelayQ + 33.0/2000.0);
-                            owService.setLastCast(this.getTimer());
-                            Vector3 localPlayerPosition = localPlayer.getPosition();
+                            owService.setCanCastTime(this.gameTimeComponent.getGameTime() + spellDelayQ + 33.0/2000.0);
+                            owService.setLastCast(this.gameTimeComponent.getGameTime());
                             Vector2 minionPosition = rendererComponent.worldToScreen(minion.getPosition().getX(), minion.getPosition().getY(), minion.getPosition().getZ());
-                            Vector2 screenLocalPlayerPosition = rendererComponent.worldToScreen(
-                                    localPlayerPosition.getX(), localPlayerPosition.getY(), localPlayerPosition.getZ()
-                            );
-                            if (isValidPoint(minionPosition, screenLocalPlayerPosition, spellRangeQ)) {
+                            if (isValidPoint(minionPosition)) {
                                 return Mono.just(cast(minionPosition, KeyEvent.VK_Q));
                             } else {
                                 return Mono.just(Boolean.FALSE);
@@ -282,32 +258,16 @@ public class Ezreal implements ScriptLoaderService{
     private boolean isVkVPressed() {
         return this.keyboardService.isKeyDown(KeyEvent.VK_V);
     }
-    private void keepKeyOPressed(){
-        if (!this.keyboardService.isKeyDown(KeyEvent.VK_O)) {
-            this.keyboardService.sendKeyDown(KeyEvent.VK_O);
-        }
-    }
     private boolean canCast(double coolDown, int level) {
-        return owService.getCanCastTime() + 0.11 < this.getTimer() &&
+        return owService.getCanCastTime() + 0.11 < this.gameTimeComponent.getGameTime() &&
                 this.gameTimeComponent.getGameTime() - coolDown > 0 &&
                 level > 0 &&
-                this.getTimer() - owService.getLastAttack() > 0.2;
+                this.gameTimeComponent.getGameTime() - owService.getLastAttack() > 0.2;
     }
-    private boolean isValidPoint(Vector2 predictedPosition, Vector2 localPlayerPosition, Double spellRange) {
-        return predictedPosition != null &&
-                distanceBetweenTargets2D(localPlayerPosition, predictedPosition) < spellRange;
+    private boolean isValidPoint(Vector2 predictedPosition) {
+        return predictedPosition != null;
     }
-    private Double distanceBetweenTargets2D(Vector2 vector1, Vector2 vector2) {
-        Double xDiff = (double) Math.abs(vector1.getX() - vector2.getX());
-        Double yDiff = (double) Math.abs(vector1.getY() - vector2.getY());
 
-        double sumOfSquares = xDiff * xDiff + yDiff * yDiff;
-
-        return Math.sqrt(sumOfSquares);
-    }
-    private Double getTimer(){
-        return System.nanoTime() / 1_000_000_000.0;
-    }
     private Double getEzrealDamageQ(int qLvl){
         //This ability hits on Physical Damage
         Champion localPlayer =  championComponent.getLocalPlayer();
