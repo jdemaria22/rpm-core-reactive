@@ -57,11 +57,10 @@ public class Core {
     }
 
     private void updateScriptList(List<ScriptLoaderService> scripts) {
-        for (ScriptLoaderService script : scripts) {
-            script.update().block();
-        }
+        Flux.fromIterable(scripts)
+                .flatMap(ScriptLoaderService::update)
+                .blockLast();
     }
-
 
     private List<MemoryLoaderService> getMemoryLoaderServices() {
         List<MemoryLoaderService> memoryLoaderServices = new ArrayList<>();

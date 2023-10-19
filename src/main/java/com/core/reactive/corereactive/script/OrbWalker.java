@@ -52,7 +52,6 @@ public class OrbWalker implements ScriptLoaderService {
         if (isVkSpacePressed()) {
             this.keepKeyOPressed();
             boolean attackTargetResult = Boolean.TRUE.equals(attackTarget().block());
-           // boolean walkResult = Boolean.TRUE.equals(walk().block());
             if (attackTargetResult) {
                 return Mono.just(Boolean.TRUE);
             }
@@ -66,7 +65,6 @@ public class OrbWalker implements ScriptLoaderService {
         } else if (this.isVkVPressed()) {
                 this.keepKeyOPressed();
                 boolean attackTargetResult = Boolean.TRUE.equals(attackTarget().block());
-                //boolean walkResult = Boolean.TRUE.equals(walk().block());
                 if (attackTargetResult) {
                     return Mono.just(Boolean.TRUE);
                 }
@@ -77,19 +75,14 @@ public class OrbWalker implements ScriptLoaderService {
                         return Mono.just(Boolean.TRUE);
                     }
                     boolean laneClearResult = Boolean.TRUE.equals(laneClear().block());
-                    //boolean walk2 = Boolean.TRUE.equals(walk().block());
                     if (laneClearResult) {
                         return Mono.just(Boolean.TRUE);
                     }
-                    // Realizar las operaciones de manera síncrona
                     boolean castWtoTowersResult = Boolean.TRUE.equals(ezrealCastWtoTowers().block());
                     boolean castQtoMinionsResult = Boolean.TRUE.equals(ezrealCastQtoMinions().block());
                     return Mono.just(castWtoTowersResult && castQtoMinionsResult);
                 } else {
-                    // Realizar operaciones de manera síncrona
                     boolean laneClearResult = Boolean.TRUE.equals(laneClear().block());
-                    //boolean walkResult2 = Boolean.TRUE.equals(walk().block());
-                    // Aplicar lógica según tus necesidades
                     return Mono.just(laneClearResult);
                 }
         }
@@ -98,16 +91,6 @@ public class OrbWalker implements ScriptLoaderService {
             return Mono.just(Boolean.TRUE);
         });
     }
-
-    private Mono<Boolean> walk() {
-            if (this.canMoveTime < this.getTimer()) {
-                this.mouseService.mouseRightClickNoMove();
-                this.canMoveTime = this.getTimer() + 0.03;
-                return Mono.just(Boolean.TRUE);
-            }
-        return Mono.just(Boolean.FALSE);
-    }
-
     private Mono<Boolean> attackTarget() {
         if (this.getTimer() - this.lastCast > 0.35) {
             JsonActivePlayer jsonActivePlayer = this.apiService.getJsonActivePlayer().block();
@@ -291,7 +274,6 @@ public class OrbWalker implements ScriptLoaderService {
     }
 
     private Mono<Boolean> ezrealCastWtoTowers() {
-        //TODO: Laneclear
         Champion localPlayer = championComponent.getLocalPlayer();
         SpellBook spellBook = localPlayer.getSpellBook();
         double wCoolDown = spellBook.getW().getReadyAtSeconds();
@@ -326,7 +308,7 @@ public class OrbWalker implements ScriptLoaderService {
         return Mono.just(Boolean.TRUE);
     }
     private Mono<Boolean> ezrealCastQtoMinions() {
-        //TODO: Laneclear
+
         Champion localPlayer = championComponent.getLocalPlayer();
         SpellBook spellBook = localPlayer.getSpellBook();
         double qCoolDown = spellBook.getQ().getReadyAtSeconds();
