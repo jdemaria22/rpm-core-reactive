@@ -86,10 +86,13 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
         champion.setMaxHealth(memory.getFloat(Offset.objMaxHealth));
         champion.setArmor(memory.getFloat(Offset.objArmor));
         champion.setLevel(memory.getFloat(Offset.objLevel));
+        champion.setMana(memory.getFloat(Offset.objMana));
         champion.setLethality(memory.getFloat(Offset.objLethality));
         champion.setAbilityPower(memory.getFloat(Offset.objAbilityPower));
         champion.setArmorPen(memory.getFloat(Offset.objArmorPen));
         champion.setBonusArmor(memory.getFloat(Offset.objBonusArmor));
+        champion.setMagicResist(memory.getFloat(Offset.objMagicResit));
+        champion.setBonusMagicResist(memory.getFloat(Offset.objBonusMagicResist));
         Vector3 vector3 = Vector3.builder()
                 .x(memory.getFloat(Offset.objPositionX))
                 .y(memory.getFloat(Offset.objPositionX + 0x4))

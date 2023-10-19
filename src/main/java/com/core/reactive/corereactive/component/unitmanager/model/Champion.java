@@ -25,8 +25,11 @@ public class Champion extends Unit {
     private float maxHealth;
     private float lethality;
     private float level;
+    private float mana;
     private float armor;
     private float bonusArmor;
+    private float magicResist;
+    private float bonusMagicResist;
     private float armorPen;
     private float abilityPower;
     private Vector3 position;

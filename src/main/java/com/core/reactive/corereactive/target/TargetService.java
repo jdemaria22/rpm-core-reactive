@@ -100,6 +100,71 @@ public class TargetService {
         });
     }
 
+    public Mono<Vector2> getKSPrediction(Double spellRange, Double spellSpeed, Double spellDelay, Double spellRadius, Double damage, int damageType) {
+        //damageType = 0 -> AD
+        //damageType = 1 -> AP
+        //damageType = 2 -> TD
+
+        Champion localPLayer = this.championComponent.getLocalPlayer();
+        return Mono.fromCallable(() -> {
+            for (Champion champion : this.championComponent.getMapUnit().values()) {
+                if (!champion.getIsTargeteable()){
+                    continue;
+                }
+                if (!champion.getIsVisible()) {
+                    continue;
+                }
+                if (!champion.getIsAlive()) {
+                    continue;
+                }
+                if (Objects.equals(champion.getTeam(), localPLayer.getTeam())) {
+                    continue;
+                }
+                Double resist = (double) ((damageType == 0) ? (champion.getArmor() + champion.getBonusArmor()) : (champion.getMagicResist() + champion.getBonusMagicResist()));
+
+                Double minAttacks = getMinAttacks(
+                        damage,
+                        0.0,
+                        (double) champion.getHealth(),
+                        resist
+                );
+                if (minAttacks > 1){
+                    continue;
+                }
+                Double targetGameplayRadius = (champion.getJsonCommunityDragon() != null) ? champion.getJsonCommunityDragon().getGameplayRadius() : 65.0;
+                boolean inDistance = this.distanceBetweenTargets(localPLayer.getPosition(), champion.getPosition()) <= spellRange-targetGameplayRadius;
+                if (inDistance){
+                    List<Vector3> waypoints = getFuturePoints(champion);
+                    if (waypoints.size()<=1 || !champion.getAiManager().getIsMoving()){
+                        if (checkCollision(localPLayer.getPosition(), waypoints.get(0), localPLayer, spellRadius)){
+                            return this.rendererComponent.worldToScreen(waypoints.get(0).getX(), waypoints.get(0).getY(), waypoints.get(0).getZ());
+                        }
+                    }
+                    double travelTime = (distanceBetweenTargets(champion.getPosition(), localPLayer.getPosition()) / spellSpeed) + spellDelay /*+ spell->chanelingTime*/;
+                    Vector3 predictedPos = posAfterTime(champion, travelTime, spellRadius);
+                    double distanceMissile = distanceBetweenTargets(predictedPos, localPLayer.getPosition());
+                    double missileTime = (distanceMissile / spellSpeed) + spellDelay;
+                    while (Math.abs(travelTime - missileTime) > 0.01) {
+                        travelTime = missileTime;
+                        predictedPos = posAfterTime(champion, travelTime, spellRadius);
+                        distanceMissile = distanceBetweenTargets(predictedPos, localPLayer.getPosition());
+                        if (distanceMissile > spellRange)
+                            return null;
+                        missileTime = (distanceMissile / spellSpeed) + spellDelay /*+ spell->chanelingTime*/;
+                    }
+                    Integer hitChance = getHitChances(champion,targetGameplayRadius, spellSpeed, spellDelay, spellRadius, localPLayer,predictedPos);
+                    if (checkCollision(localPLayer.getPosition(), predictedPos, localPLayer, spellRadius) && hitChance > 2){
+                        Vector2 predictedPos2 = rendererComponent.worldToScreen(predictedPos);
+                        if (isOutScreen(predictedPos2)){
+                            return this.rendererComponent.worldToMinimap(predictedPos);
+                        }
+                        return predictedPos2;
+                    }
+                }
+            }
+            return null;
+        });
+    }
     Integer getHitChances(Champion target,double targetGameplayRadius, double spellSpeed, double spellDelay, double spellWidth, Champion localPLayer, Vector3 predictedPos){
         List<Vector3> navigationPath = target.getAiManager().getWaypoints().getNavigationPath();
         Vector3 lastWaypoint = (!navigationPath.isEmpty()) ? navigationPath.get(navigationPath.size() - 1) : null;

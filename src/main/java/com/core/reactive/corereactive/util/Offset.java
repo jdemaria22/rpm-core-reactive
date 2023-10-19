@@ -32,10 +32,13 @@ public class Offset {
     public static final long objSkinName = 0x35E8; //48 81 C1 ? ? ? ? E8 ? ? ? ? F2 0F 10
     public static final long objTeam = 0x3C;
     public static final long objLevel = 0x3FD0;
+    public static final long objMana = 0x350;
     public static final long objHealth = 0x1068;
     public static final long objMaxHealth = 0x1080;
     public static final long objArmor = 0x1694;
     public static final long objBonusArmor = 0x16A8;
+    public static final long objMagicResit = 0x169C;
+    public static final long objBonusMagicResist = 0x16A0;
     public static final long objArmorPen = 0x1590;
     public static final long objBaseAttack = 0x166C;
     public static final long objBonusAttack = 0x15D8;
