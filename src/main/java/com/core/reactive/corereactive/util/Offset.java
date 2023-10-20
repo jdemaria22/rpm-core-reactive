@@ -35,9 +35,9 @@ public class Offset {
     public static final long objMana = 0x350;
     public static final long objHealth = 0x1068;
     public static final long objMaxHealth = 0x1080;
-    public static final long objArmor = 0x1694;
+    public static final long objArmor = 0x16A4;
     public static final long objBonusArmor = 0x16A8;
-    public static final long objMagicResit = 0x169C;
+    public static final long objMagicResit = 0x16AC;
     public static final long objBonusMagicResist = 0x16A0;
     public static final long objArmorPen = 0x1590;
     public static final long objBaseAttack = 0x166C;
@@ -46,7 +46,7 @@ public class Offset {
     public static final long objActionState = 0x13C0;
     public static final long objBonusAttackSpeed = 0x164C;
     public static final long objAttackSpeedMultiplier = 0x1668;
-    public static final long objAbilityPower = 0x15E8;
+    public static final long objAbilityPower = 0x15F8;
     public static final long objAttackRange = 0x16C4;
     public static final long objSpawnCount = 0x338;
     public static final long objTargetable = 0xEC0;

@@ -69,7 +69,7 @@ public class OrbWalker implements ScriptLoaderService {
         });
     }
     private Mono<Boolean> attackTarget() {
-        if (this.gameTimeComponent.getGameTime() - this.lastCast > 0.35) {
+        if (this.gameTimeComponent.getGameTime() - this.lastCast > 0.50) {
             JsonActivePlayer jsonActivePlayer = this.apiService.getJsonActivePlayer().block();
             if (jsonActivePlayer != null) {
                 double attackSpeed = jsonActivePlayer.championStats.getAttackSpeed();
@@ -96,7 +96,7 @@ public class OrbWalker implements ScriptLoaderService {
                     this.mouseService.blockInput(false);
                     this.canMoveTime = this.gameTimeComponent.getGameTime() + windUpTime;
                     this.canCastTime = this.gameTimeComponent.getGameTime() + windUpTime;
-                    this.canAttackTime = this.gameTimeComponent.getGameTime() + (1.0 / attackSpeed) + 33.0/2000.0;
+                    this.canAttackTime = this.gameTimeComponent.getGameTime() + (1.0 / attackSpeed) + 40.0/2000.0;
                     this.lastAttack = this.gameTimeComponent.getGameTime();
                     return Mono.just(Boolean.TRUE);
                 }
@@ -111,7 +111,7 @@ public class OrbWalker implements ScriptLoaderService {
     }
 
     private Mono<Boolean> laneClear() {
-        if (this.gameTimeComponent.getGameTime() - this.lastCast > 0.35) {
+        if (this.gameTimeComponent.getGameTime() - this.lastCast > 0.50) {
             JsonActivePlayer jsonActivePlayer = this.apiService.getJsonActivePlayer().block();
             if (jsonActivePlayer != null) {
                 double attackSpeed = jsonActivePlayer.championStats.getAttackSpeed();
@@ -137,7 +137,7 @@ public class OrbWalker implements ScriptLoaderService {
                     this.mouseService.blockInput(false);
                     this.canMoveTime = this.gameTimeComponent.getGameTime() + windUpTime;
                     this.canCastTime = this.gameTimeComponent.getGameTime() + windUpTime;
-                    this.canAttackTime = this.gameTimeComponent.getGameTime() + (1.0 / attackSpeed) + 33.0/2000.0;
+                    this.canAttackTime = this.gameTimeComponent.getGameTime() + (1.0 / attackSpeed) + 40.0/2000.0;
                     return Mono.just(Boolean.TRUE);
                 }
 
@@ -154,7 +154,7 @@ public class OrbWalker implements ScriptLoaderService {
                     this.mouseService.blockInput(false);
                     this.canMoveTime = this.gameTimeComponent.getGameTime() + windUpTime;
                     this.canCastTime = this.gameTimeComponent.getGameTime() + windUpTime;
-                    this.canAttackTime = this.gameTimeComponent.getGameTime() + (1.0 / attackSpeed) + 33.0/2000.0;
+                    this.canAttackTime = this.gameTimeComponent.getGameTime() + (1.0 / attackSpeed) + 40.0/2000.0;
                     return Mono.just(Boolean.TRUE);
                 }
 

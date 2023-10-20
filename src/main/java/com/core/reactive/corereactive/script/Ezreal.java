@@ -79,7 +79,7 @@ public class Ezreal implements ScriptLoaderService{
             Double spellRangeQ = 1150.0;
             return targetService.getPrediction(spellRangeQ, spellSpeedQ, spellDelayQ, spellRadiusQ)
                     .flatMap(predictedPosition -> {
-                        owService.setCanCastTime(this.gameTimeComponent.getGameTime() + spellDelayQ + 33.0/2000.0);
+                        owService.setCanCastTime(this.gameTimeComponent.getGameTime() + spellDelayQ + 40.0/2000.0);
                         owService.setLastCast(this.gameTimeComponent.getGameTime());
                         if (isValidPoint(predictedPosition)) {
                             return Mono.just(cast(predictedPosition, KeyEvent.VK_Q));
@@ -107,7 +107,7 @@ public class Ezreal implements ScriptLoaderService{
             Double spellRangeW = 1200.0;
             return targetService.getPrediction(spellRangeW, spellSpeedW, spellDelayW, spellRadiusW)
                     .flatMap(predictedPosition -> {
-                        owService.setCanCastTime(this.gameTimeComponent.getGameTime() + spellDelayW + 33.0/2000.0);
+                        owService.setCanCastTime(this.gameTimeComponent.getGameTime() + spellDelayW + 40.0/2000.0);
                         owService.setLastCast(this.gameTimeComponent.getGameTime());
                         if (isValidPoint(predictedPosition)) {
                             return Mono.just(cast(predictedPosition, KeyEvent.VK_W));
@@ -137,7 +137,7 @@ public class Ezreal implements ScriptLoaderService{
             Double spellDamageR = getEzrealDamageR(rLevel);
             return targetService.getKSPrediction(spellRangeR, spellSpeedR, spellDelayR, spellRadiusR, spellDamageR, 1)
                     .flatMap(predictedPosition -> {
-                        owService.setCanCastTime(this.gameTimeComponent.getGameTime() + spellDelayR + 33.0/2000.0);
+                        owService.setCanCastTime(this.gameTimeComponent.getGameTime() + spellDelayR + 40.0/2000.0);
                         owService.setLastCast(this.gameTimeComponent.getGameTime());
                         if (isValidPoint(predictedPosition)) {
                             return Mono.just(cast(predictedPosition, KeyEvent.VK_R));
@@ -166,7 +166,7 @@ public class Ezreal implements ScriptLoaderService{
             Double spellDamageQ = getEzrealDamageQ(qLevel);
             return targetService.getKSPrediction(spellRangeQ, spellSpeedQ, spellDelayQ, spellRadiusQ, spellDamageQ, 0)
                     .flatMap(predictedPosition -> {
-                        owService.setCanCastTime(this.gameTimeComponent.getGameTime() + spellDelayQ + 33.0/2000.0);
+                        owService.setCanCastTime(this.gameTimeComponent.getGameTime() + spellDelayQ + 40.0/2000.0);
                         owService.setLastCast(this.gameTimeComponent.getGameTime());
                         if (isValidPoint(predictedPosition)) {
                             return Mono.just(cast(predictedPosition, KeyEvent.VK_Q));
@@ -192,7 +192,7 @@ public class Ezreal implements ScriptLoaderService{
                     .defaultIfEmpty(Tower.builder().build())
                     .flatMap(tower -> {
                         if (tower.getPosition() != null){
-                            owService.setCanCastTime(this.gameTimeComponent.getGameTime() + spellDelayW + 33.0/2000.0);
+                            owService.setCanCastTime(this.gameTimeComponent.getGameTime() + spellDelayW + 40.0/2000.0);
                             owService.setLastCast(this.gameTimeComponent.getGameTime());
                             Vector2 towerPosition = rendererComponent.worldToScreen(tower.getPosition().getX(), tower.getPosition().getY(), tower.getPosition().getZ());
                             if (isValidPoint(towerPosition)) {
@@ -222,7 +222,7 @@ public class Ezreal implements ScriptLoaderService{
                     .defaultIfEmpty(Minion.builder().build())
                     .flatMap(minion -> {
                         if (minion.getPosition() != null){
-                            owService.setCanCastTime(this.gameTimeComponent.getGameTime() + spellDelayQ + 33.0/2000.0);
+                            owService.setCanCastTime(this.gameTimeComponent.getGameTime() + spellDelayQ + 40.0/2000.0);
                             owService.setLastCast(this.gameTimeComponent.getGameTime());
                             Vector2 minionPosition = rendererComponent.worldToScreen(minion.getPosition().getX(), minion.getPosition().getY(), minion.getPosition().getZ());
                             if (isValidPoint(minionPosition)) {
