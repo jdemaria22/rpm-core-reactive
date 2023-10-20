@@ -3,11 +3,9 @@ package com.core.reactive.corereactive.script;
 import com.core.reactive.corereactive.component.gametime.GameTimeComponent;
 import com.core.reactive.corereactive.component.renderer.RendererComponent;
 import com.core.reactive.corereactive.component.renderer.vector.Vector2;
-import com.core.reactive.corereactive.component.renderer.vector.Vector3;
 import com.core.reactive.corereactive.component.unitmanager.impl.ChampionComponent;
 import com.core.reactive.corereactive.component.unitmanager.model.Champion;
 import com.core.reactive.corereactive.component.unitmanager.model.Minion;
-import com.core.reactive.corereactive.component.unitmanager.model.SpellBook;
 import com.core.reactive.corereactive.component.unitmanager.model.Tower;
 import com.core.reactive.corereactive.target.TargetService;
 import com.core.reactive.corereactive.util.KeyboardService;
@@ -69,7 +67,7 @@ public class OrbWalker implements ScriptLoaderService {
         });
     }
     private Mono<Boolean> attackTarget() {
-        if (this.gameTimeComponent.getGameTime() - this.lastCast > 0.50) {
+        if (this.getTimer() - this.lastCast > 0.50) {
             JsonActivePlayer jsonActivePlayer = this.apiService.getJsonActivePlayer().block();
             if (jsonActivePlayer != null) {
                 double attackSpeed = jsonActivePlayer.championStats.getAttackSpeed();
@@ -82,7 +80,7 @@ public class OrbWalker implements ScriptLoaderService {
                         attackSpeed
                 );
                 Champion champion = this.targetService.getBestChampionInRange(range).defaultIfEmpty(Champion.builder().build()).block();
-                if (champion != null && this.canAttackTime < this.gameTimeComponent.getGameTime() && !ObjectUtils.isEmpty(champion.getPosition())) {
+                if (champion != null && this.canAttackTime < this.getTimer() && !ObjectUtils.isEmpty(champion.getPosition())) {
                     Vector2 position = this.rendererComponent.worldToScreen(champion.getPosition().getX(), champion.getPosition().getY(), champion.getPosition().getZ());
                     Vector2 mousePos = this.mouseService.getCursorPos();
                     this.mouseService.clipCursor((int) mousePos.getX(), (int) mousePos.getY());
@@ -94,24 +92,24 @@ public class OrbWalker implements ScriptLoaderService {
                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                     this.mouseService.mouseMiddleUp();
                     this.mouseService.blockInput(false);
-                    this.canMoveTime = this.gameTimeComponent.getGameTime() + windUpTime;
-                    this.canCastTime = this.gameTimeComponent.getGameTime() + windUpTime;
-                    this.canAttackTime = this.gameTimeComponent.getGameTime() + (1.0 / attackSpeed) + 40.0/2000.0;
-                    this.lastAttack = this.gameTimeComponent.getGameTime();
+                    this.canMoveTime = this.getTimer() + windUpTime;
+                    this.canCastTime = this.getTimer() + windUpTime;
+                    this.canAttackTime = this.getTimer() + (1.0 / attackSpeed) + 40.0/2000.0;
+                    this.lastAttack = this.getTimer();
                     return Mono.just(Boolean.TRUE);
                 }
             }
         }
-        if (this.canMoveTime < this.gameTimeComponent.getGameTime()) {
+        if (this.canMoveTime < this.getTimer()) {
             this.mouseService.mouseRightClickNoMove();
-            this.canMoveTime = this.gameTimeComponent.getGameTime() + 0.03;
+            this.canMoveTime = this.getTimer() + 0.03;
             return Mono.just(Boolean.TRUE);
         }
         return Mono.just(Boolean.FALSE);
     }
 
     private Mono<Boolean> laneClear() {
-        if (this.gameTimeComponent.getGameTime() - this.lastCast > 0.50) {
+        if (this.getTimer() - this.lastCast > 0.50) {
             JsonActivePlayer jsonActivePlayer = this.apiService.getJsonActivePlayer().block();
             if (jsonActivePlayer != null) {
                 double attackSpeed = jsonActivePlayer.championStats.getAttackSpeed();
@@ -125,7 +123,7 @@ public class OrbWalker implements ScriptLoaderService {
                 );
 
                 Tower tower = this.targetService.getBestTowerInRange(range).defaultIfEmpty(Tower.builder().build()).block();
-                if (tower != null && this.canAttackTime < this.gameTimeComponent.getGameTime() && !ObjectUtils.isEmpty(tower.getPosition())) {
+                if (tower != null && this.canAttackTime < this.getTimer() && !ObjectUtils.isEmpty(tower.getPosition())) {
                     Vector2 position = this.rendererComponent.worldToScreen(tower.getPosition().getX(), tower.getPosition().getY(), tower.getPosition().getZ());
                     Vector2 mousePos = this.mouseService.getCursorPos();
                     this.mouseService.clipCursor((int) mousePos.getX(), (int) mousePos.getY());
@@ -135,14 +133,15 @@ public class OrbWalker implements ScriptLoaderService {
                     this.mouseService.releaseCursor();
                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                     this.mouseService.blockInput(false);
-                    this.canMoveTime = this.gameTimeComponent.getGameTime() + windUpTime;
-                    this.canCastTime = this.gameTimeComponent.getGameTime() + windUpTime;
-                    this.canAttackTime = this.gameTimeComponent.getGameTime() + (1.0 / attackSpeed) + 40.0/2000.0;
+                    this.canMoveTime = this.getTimer() + windUpTime;
+                    this.canCastTime = this.getTimer() + windUpTime;
+                    this.canAttackTime = this.getTimer() + (1.0 / attackSpeed) + 40.0/2000.0;
+                    this.lastAttack = this.getTimer();
                     return Mono.just(Boolean.TRUE);
                 }
 
                 Minion minion = this.targetService.getBestMinionInRange(range).defaultIfEmpty(Minion.builder().build()).block();
-                if (minion != null && this.canAttackTime < this.gameTimeComponent.getGameTime() && !ObjectUtils.isEmpty(minion.getPosition())) {
+                if (minion != null && this.canAttackTime < this.getTimer() && !ObjectUtils.isEmpty(minion.getPosition())) {
                     Vector2 position = this.rendererComponent.worldToScreen(minion.getPosition().getX(), minion.getPosition().getY(), minion.getPosition().getZ());
                     Vector2 mousePos = this.mouseService.getCursorPos();
                     this.mouseService.clipCursor((int) mousePos.getX(), (int) mousePos.getY());
@@ -152,9 +151,10 @@ public class OrbWalker implements ScriptLoaderService {
                     this.mouseService.releaseCursor();
                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                     this.mouseService.blockInput(false);
-                    this.canMoveTime = this.gameTimeComponent.getGameTime() + windUpTime;
-                    this.canCastTime = this.gameTimeComponent.getGameTime() + windUpTime;
-                    this.canAttackTime = this.gameTimeComponent.getGameTime() + (1.0 / attackSpeed) + 40.0/2000.0;
+                    this.canMoveTime = this.getTimer() + windUpTime;
+                    this.canCastTime = this.getTimer() + windUpTime;
+                    this.canAttackTime = this.getTimer() + (1.0 / attackSpeed) + 40.0/2000.0;
+                    this.lastAttack = this.getTimer();
                     return Mono.just(Boolean.TRUE);
                 }
 
@@ -162,9 +162,9 @@ public class OrbWalker implements ScriptLoaderService {
             }
         }
 
-        if (this.canMoveTime < this.gameTimeComponent.getGameTime()) {
+        if (this.canMoveTime < this.getTimer()) {
             this.mouseService.mouseRightClickNoMove();
-            this.canMoveTime = this.gameTimeComponent.getGameTime() + 0.03;
+            this.canMoveTime = this.getTimer() + 0.03;
             return Mono.just(Boolean.TRUE);
         }
         return Mono.just(Boolean.FALSE);
@@ -194,5 +194,8 @@ public class OrbWalker implements ScriptLoaderService {
         if (!this.keyboardService.isKeyDown(KeyEvent.VK_O)) {
             this.keyboardService.sendKeyDown(KeyEvent.VK_O);
         }
+    }
+    private Double getTimer(){
+        return System.nanoTime() / 1_000_000_000.0;
     }
 }

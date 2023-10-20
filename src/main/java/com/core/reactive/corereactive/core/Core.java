@@ -41,6 +41,7 @@ public class Core {
         while (true) {
             updateComponentList(getMemoryLoaderServices());
             updateScriptList(getScriptLoaderService());
+            this.gameTimeComponent.sleep(1000 / 60);
         }
     }
 
