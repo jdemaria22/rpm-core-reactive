@@ -41,7 +41,7 @@ public class Offset {
     public static final long objBonusMagicResist = 0x16A0;
     public static final long objArmorPen = 0x1590;
     public static final long objBaseAttack = 0x166C;
-    public static final long objBonusAttack = 0x15D8;
+    public static final long objBonusAttack = 0x15E8;
     public static final long objLethality = 0x1598;
     public static final long objActionState = 0x13C0;
     public static final long objBonusAttackSpeed = 0x164C;

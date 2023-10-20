@@ -121,7 +121,6 @@ public class TargetService {
                     continue;
                 }
                 Double resist = (double) ((damageType == 0) ? (champion.getArmor() + champion.getBonusArmor()) : (champion.getMagicResist() + champion.getBonusMagicResist()));
-
                 Double minAttacks = getMinAttacks(
                         damage,
                         0.0,

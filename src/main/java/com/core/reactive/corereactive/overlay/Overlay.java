@@ -107,7 +107,7 @@ public class Overlay {
 
             JPanel squarePanelContainer = new JPanel();
             squarePanelContainer.setOpaque(false);
-            squarePanelContainer.setLayout(new FlowLayout(FlowLayout.RIGHT, 15, 0));
+            squarePanelContainer.setLayout(new FlowLayout(FlowLayout.RIGHT, 5, 0));
             this.drawSpells(squarePanelContainer, champion);
 
             JProgressBar progressBar = new JProgressBar();
@@ -238,9 +238,10 @@ public class Overlay {
         this.squareSpellBookMap.put(champion.getName(), jPanelMap);
     }
 
+
     private JPanel createSquare(Color color) {
         JPanel squarePanel = new JPanel();
-        squarePanel.setPreferredSize(new Dimension(15, 15));
+        squarePanel.setPreferredSize(new Dimension(25, 25));
         squarePanel.setBackground(color);
         return squarePanel;
     }
