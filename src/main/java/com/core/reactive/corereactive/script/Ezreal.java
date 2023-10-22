@@ -3,7 +3,6 @@ package com.core.reactive.corereactive.script;
 import com.core.reactive.corereactive.component.gametime.GameTimeComponent;
 import com.core.reactive.corereactive.component.renderer.RendererComponent;
 import com.core.reactive.corereactive.component.renderer.vector.Vector2;
-import com.core.reactive.corereactive.component.renderer.vector.Vector3;
 import com.core.reactive.corereactive.component.unitmanager.impl.ChampionComponent;
 import com.core.reactive.corereactive.component.unitmanager.model.Champion;
 import com.core.reactive.corereactive.component.unitmanager.model.Minion;
@@ -59,11 +58,8 @@ public class Ezreal implements ScriptLoaderService{
                     return Mono.just(castWtoTowersResult && castQtoMinionsResult);
             }
         }
-        return Mono.defer(() -> {
-            return Mono.just(Boolean.TRUE);
-        });
+        return Mono.just(Boolean.TRUE);
     }
-
     private Mono<Boolean> castQ() {
         Champion localPlayer = championComponent.getLocalPlayer();
         if (localPlayer.getMana() < 50){
@@ -120,7 +116,6 @@ public class Ezreal implements ScriptLoaderService{
 
         return Mono.just(Boolean.FALSE);
     }
-
     private Mono<Boolean> killStealWithR() {
         Champion localPlayer = championComponent.getLocalPlayer();
         SpellBook spellBook = localPlayer.getSpellBook();
@@ -149,7 +144,6 @@ public class Ezreal implements ScriptLoaderService{
         }
         return Mono.just(Boolean.FALSE);
     }
-
     private Mono<Boolean> killStealWithQ() {
         Champion localPlayer = championComponent.getLocalPlayer();
         SpellBook spellBook = localPlayer.getSpellBook();
@@ -186,7 +180,7 @@ public class Ezreal implements ScriptLoaderService{
         int wLevel = spellBook.getW().getLevel();
         //double wDamage = getEzrealDamageW(wLevel);
         if (canCast(wCoolDown, wLevel)) {
-            Double spellDelayW = 0.25;
+            double spellDelayW = 0.25;
             Double spellRangeW = (double) localPlayer.getAttackRange();
             return this.targetService.getBestTowerInRange(spellRangeW)
                     .defaultIfEmpty(Tower.builder().build())
@@ -208,15 +202,13 @@ public class Ezreal implements ScriptLoaderService{
         return Mono.just(Boolean.TRUE);
     }
     private Mono<Boolean> ezrealCastQtoMinions() {
-
         Champion localPlayer = championComponent.getLocalPlayer();
         SpellBook spellBook = localPlayer.getSpellBook();
         double qCoolDown = spellBook.getQ().getReadyAtSeconds();
-
         int qLevel = spellBook.getQ().getLevel();
         double qDamage = getEzrealDamageQ(qLevel);
         if (canCast(qCoolDown, qLevel)) {
-            Double spellDelayQ = 0.25;
+            double spellDelayQ = 0.25;
             Double spellRangeQ = 1150.0;
             return this.targetService.getMinionToLastHitBySpell(spellRangeQ, qDamage)
                     .defaultIfEmpty(Minion.builder().build())
@@ -248,8 +240,6 @@ public class Ezreal implements ScriptLoaderService{
         this.mouseService.releaseCursor();
         this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
         this.mouseService.blockInput(false);
-
-        // Return true for success, or false for failure
         return true;
     }
     private boolean isVkSpacePressed() {
@@ -260,14 +250,13 @@ public class Ezreal implements ScriptLoaderService{
     }
     private boolean canCast(double coolDown, int level) {
         return owService.getCanCastTime() + 0.11 < this.getTimer() &&
-                this.getTimer() - coolDown > 0 &&
+                this.gameTimeComponent.getGameTime() - coolDown > 0 &&
                 level > 0 &&
                 this.getTimer() - owService.getLastAttack() > 0.2;
     }
     private boolean isValidPoint(Vector2 predictedPosition) {
         return predictedPosition != null;
     }
-
     private Double getEzrealDamageQ(int qLvl){
         //This ability hits on Physical Damage
         Champion localPlayer =  championComponent.getLocalPlayer();
@@ -302,7 +291,6 @@ public class Ezreal implements ScriptLoaderService{
             default -> 0.0;
         };
     }
-
     private Double getEzrealDamageR(int rLvl){
         //This ability hits on Magic Damage
         Champion localPlayer =  championComponent.getLocalPlayer();

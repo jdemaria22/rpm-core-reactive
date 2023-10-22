@@ -21,8 +21,6 @@ import org.springframework.util.ObjectUtils;
 import reactor.core.publisher.Mono;
 
 import java.awt.event.KeyEvent;
-import java.util.Arrays;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -37,13 +35,11 @@ public class OrbWalker implements ScriptLoaderService {
     private final RendererComponent rendererComponent;
     private final KeyboardService keyboardService;
     private final TargetService targetService;
-    private final List<String> championsWithPredictionAbilities = Arrays.asList("Ezreal", "Morgana", "Samira");
     private Double canAttackTime = 0.0000000000;
     private Double canMoveTime = 0.0000000000;
     private Double canCastTime = 0.0000000000;
     private Double lastCast = 0.0000000000;
     private Double lastAttack = 0.0000000000;
-
     @Override
     public Mono<Boolean> update() {
         if (!this.championComponent.getLocalPlayer().getIsAlive()) {
@@ -92,8 +88,8 @@ public class OrbWalker implements ScriptLoaderService {
                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                     this.mouseService.mouseMiddleUp();
                     this.mouseService.blockInput(false);
-                    this.canMoveTime = this.getTimer() + windUpTime;
-                    this.canCastTime = this.getTimer() + windUpTime;
+                    this.canMoveTime = this.getTimer() + windUpTime + 40.0/2000.0;
+                    this.canCastTime = this.getTimer() + windUpTime + 40.0/2000.0;
                     this.canAttackTime = this.getTimer() + (1.0 / attackSpeed) + 40.0/2000.0;
                     this.lastAttack = this.getTimer();
                     return Mono.just(Boolean.TRUE);
@@ -107,7 +103,6 @@ public class OrbWalker implements ScriptLoaderService {
         }
         return Mono.just(Boolean.FALSE);
     }
-
     private Mono<Boolean> laneClear() {
         if (this.getTimer() - this.lastCast > 0.50) {
             JsonActivePlayer jsonActivePlayer = this.apiService.getJsonActivePlayer().block();
@@ -133,8 +128,8 @@ public class OrbWalker implements ScriptLoaderService {
                     this.mouseService.releaseCursor();
                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                     this.mouseService.blockInput(false);
-                    this.canMoveTime = this.getTimer() + windUpTime;
-                    this.canCastTime = this.getTimer() + windUpTime;
+                    this.canMoveTime = this.getTimer() + windUpTime + 40.0/2000.0;
+                    this.canCastTime = this.getTimer() + windUpTime + 40.0/2000.0;
                     this.canAttackTime = this.getTimer() + (1.0 / attackSpeed) + 40.0/2000.0;
                     this.lastAttack = this.getTimer();
                     return Mono.just(Boolean.TRUE);
@@ -151,8 +146,8 @@ public class OrbWalker implements ScriptLoaderService {
                     this.mouseService.releaseCursor();
                     this.mouseService.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
                     this.mouseService.blockInput(false);
-                    this.canMoveTime = this.getTimer() + windUpTime;
-                    this.canCastTime = this.getTimer() + windUpTime;
+                    this.canMoveTime = this.getTimer() + windUpTime + 40.0/2000.0;
+                    this.canCastTime = this.getTimer() + windUpTime + 40.0/2000.0;
                     this.canAttackTime = this.getTimer() + (1.0 / attackSpeed) + 40.0/2000.0;
                     this.lastAttack = this.getTimer();
                     return Mono.just(Boolean.TRUE);
@@ -169,7 +164,6 @@ public class OrbWalker implements ScriptLoaderService {
         }
         return Mono.just(Boolean.FALSE);
     }
-    
     private Double getWindUpTime(Double baseAs, Double windup, Double windupMod, Double cAttackSpeed) {
         double baseWindupTime = (1.0 / baseAs) * windup;
         double part2;

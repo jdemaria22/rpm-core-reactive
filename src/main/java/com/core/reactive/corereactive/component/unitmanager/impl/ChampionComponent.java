@@ -226,5 +226,4 @@ public class ChampionComponent extends AbstractUnitManagerComponent<Champion> {
                 .f(spellMap.get(5L))
                 .build();
     }
-
 }
